@@ -1,36 +1,40 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BreachLab Platform
 
-## Getting Started
+The web platform behind `breachlab.io`. Foundation skeleton — auth, leaderboards, donations land in subsequent plans.
 
-First, run the development server:
+## Local development
 
 ```bash
+npm install
+cp .env.example .env
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Then `http://localhost:3000`.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tests
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm test            # unit (Vitest)
+npm run test:e2e    # smoke (Playwright)
+```
 
-## Learn More
+## Local docker stack
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+docker compose up -d --build
+curl http://localhost/api/health
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Production deploy (VPS)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Copy the repo to the VPS at `204.168.229.209`.
+2. `cp .env.production.example .env` and fill in real values (set a strong `POSTGRES_PASSWORD`).
+3. `cp Caddyfile.prod Caddyfile`
+4. Make sure DNS A records for `breachlab.io` and `www.breachlab.io` point to the VPS.
+5. `docker compose up -d --build`
+6. `curl https://breachlab.io/api/health`
 
-## Deploy on Vercel
+## Specs and plans
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+`docs/superpowers/specs/` and `docs/superpowers/plans/`.
