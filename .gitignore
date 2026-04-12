@@ -41,3 +41,7 @@ yarn-error.log*
 next-env.d.ts
 test-results/
 playwright-report/
+.env
+.env.local
+caddy_data/
+caddy_config/

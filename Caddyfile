@@ -1,0 +1,8 @@
+{
+    email admin@breachlab.io
+}
+
+:80 {
+    encode zstd gzip
+    reverse_proxy web:3000
+}
