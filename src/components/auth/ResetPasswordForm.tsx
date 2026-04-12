@@ -1,0 +1,41 @@
+"use client";
+
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { resetPasswordAction } from "@/app/reset-password/[token]/actions";
+
+const initialState = { error: null as string | null };
+
+export function ResetPasswordForm({ token }: { token: string }) {
+  const action = resetPasswordAction.bind(null, token);
+  const [state, formAction] = useActionState(action, initialState);
+  return (
+    <form action={formAction} className="space-y-3 text-sm">
+      <label className="block">
+        <span className="block text-muted mb-1">New password (min 12)</span>
+        <input
+          name="password"
+          type="password"
+          required
+          minLength={12}
+          className="w-full bg-bg border border-border p-2 text-text focus:outline-none focus:border-amber"
+        />
+      </label>
+      {state.error && <p className="text-red text-xs">{state.error}</p>}
+      <SubmitButton />
+    </form>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="border border-amber text-amber px-4 py-2 hover:bg-amber hover:text-bg disabled:opacity-50"
+    >
+      {pending ? "..." : "[ Set password ]"}
+    </button>
+  );
+}
