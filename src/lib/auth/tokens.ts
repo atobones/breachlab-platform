@@ -1,4 +1,4 @@
-import { encodeBase64url } from "@oslojs/encoding";
+import { encodeBase64urlNoPadding } from "@oslojs/encoding";
 import { sha256 } from "@oslojs/crypto/sha2";
 
 export const TOKEN_LENGTH_BYTES = 32;
@@ -6,7 +6,7 @@ export const TOKEN_LENGTH_BYTES = 32;
 export function generateToken(): string {
   const bytes = new Uint8Array(TOKEN_LENGTH_BYTES);
   crypto.getRandomValues(bytes);
-  return encodeBase64url(bytes);
+  return encodeBase64urlNoPadding(bytes);
 }
 
 export async function hashToken(token: string): Promise<string> {
