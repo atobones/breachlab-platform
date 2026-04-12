@@ -8,10 +8,15 @@
     "start": "next start",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:push": "drizzle-kit push"
   },
   "dependencies": {
+    "drizzle-orm": "^0.45.2",
     "next": "^15",
+    "postgres": "^3.4.9",
     "react": "^19",
     "react-dom": "^19"
   },
@@ -24,6 +29,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^6.0.1",
+    "drizzle-kit": "^0.31.10",
     "jsdom": "^29.0.2",
     "tailwindcss": "^4",
     "typescript": "^5",
