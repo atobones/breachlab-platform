@@ -1,26 +1,24 @@
 @import "tailwindcss";
+@import "../styles/tokens.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --color-bg: var(--bl-bg);
+  --color-text: var(--bl-text);
+  --color-amber: var(--bl-amber);
+  --color-green: var(--bl-green);
+  --color-red: var(--bl-red);
+  --color-muted: var(--bl-muted);
+  --color-border: var(--bl-border);
+  --font-mono: var(--bl-font-mono);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+html, body {
+  background: var(--bl-bg);
+  color: var(--bl-text);
+  font-family: var(--bl-font-mono);
+  font-size: var(--bl-text-base);
+  -webkit-font-smoothing: antialiased;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
-}
+a { color: var(--bl-amber); text-decoration: none; }
+a:hover { text-decoration: underline; }

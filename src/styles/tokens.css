@@ -1,0 +1,16 @@
+:root {
+  --bl-bg: #0a0a0a;
+  --bl-text: #c0c0c0;
+  --bl-amber: #f59e0b;
+  --bl-green: #10b981;
+  --bl-red: #ef4444;
+  --bl-muted: #6b7280;
+  --bl-border: #1f1f1f;
+
+  --bl-font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+
+  --bl-text-sm: 14px;
+  --bl-text-base: 16px;
+  --bl-text-lg: 20px;
+  --bl-text-xl: 28px;
+}
