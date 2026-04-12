@@ -1,29 +1,36 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+
+vi.mock("@/components/auth/UserMenu", () => ({
+  UserMenu: () => <div>Operative</div>,
+}));
+
 import { Sidebar } from "@/components/Sidebar";
 
+async function renderAsync() {
+  const node = await Sidebar();
+  return render(node);
+}
+
 describe("Sidebar", () => {
-  it("renders the BreachLab logo text", () => {
-    render(<Sidebar />);
+  it("renders the BreachLab logo text", async () => {
+    await renderAsync();
     expect(screen.getByText(/BreachLab/i)).toBeInTheDocument();
   });
 
-  it("renders the Donate button at the top, before tracks", () => {
-    render(<Sidebar />);
+  it("renders Donate before Tracks", async () => {
+    await renderAsync();
     const html = document.body.innerHTML;
-    const donateIdx = html.indexOf("Donate");
-    const tracksIdx = html.indexOf("Tracks");
-    expect(donateIdx).toBeGreaterThan(-1);
-    expect(tracksIdx).toBeGreaterThan(-1);
-    expect(donateIdx).toBeLessThan(tracksIdx);
+    expect(html.indexOf("Donate")).toBeLessThan(html.indexOf("Tracks"));
   });
 
-  it("contains TracksNav, LiveOps, TopFive, Recent, Links", () => {
-    render(<Sidebar />);
+  it("contains TracksNav, LiveOps, TopFive, Recent, Links, Operative", async () => {
+    await renderAsync();
     expect(screen.getByText(/Tracks/i)).toBeInTheDocument();
     expect(screen.getByText(/Live Ops/i)).toBeInTheDocument();
     expect(screen.getByText(/Top 5/i)).toBeInTheDocument();
     expect(screen.getByText(/Recent/i)).toBeInTheDocument();
     expect(screen.getByText(/Links/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/Operative/i).length).toBeGreaterThan(0);
   });
 });
