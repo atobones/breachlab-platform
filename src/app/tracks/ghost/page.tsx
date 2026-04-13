@@ -64,9 +64,10 @@ export default async function GhostTrackPage() {
       <section>
         <h2 className="text-amber text-lg mb-2">What Ghost makes of you</h2>
         <p className="text-sm mb-2">
-          After Ghost you will not be a beginner any more. You will be an
-          operative with the foundation that every other BreachLab track
-          builds on. Concretely, by the end of Ghost you can:
+          Twenty-two levels. No hand-holding. No walkthroughs. After Ghost
+          you will not be a beginner any more — you will be an operative
+          with the foundation that every other BreachLab track builds on.
+          Concretely, by the end of Ghost you can:
         </p>
         <ul className="list-disc list-outside pl-5 text-sm space-y-1">
           <li>
@@ -74,24 +75,63 @@ export default async function GhostTrackPage() {
             bearings fast — files, processes, network, users, permissions.
           </li>
           <li>
-            Read logs and find the one line that matters out of thousands.
-          </li>
-          <li>
-            Handle shell weirdness — filenames with spaces, quoting,
-            redirection, pipes — without panicking.
+            Handle shell weirdness — filenames with spaces, quoting, pipes,
+            redirection — without panicking.
           </li>
           <li>
             Pull secrets out of environment variables, hidden files, and
             running processes, the way a real responder or attacker does.
           </li>
           <li>
-            Recognise encoded data (hex, base64) and peel it off without a
-            calculator.
+            Hunt through thousands of log lines and find the one that
+            matters — the core loop of every SOC analyst on earth.
           </li>
           <li>
-            Use <code className="text-amber">/proc</code> to reason about what
-            the system is doing right now — the core of modern forensics and
-            fileless malware analysis.
+            Recognise encoded data (hex, base64, multi-layer compression)
+            and peel it apart without writing any code of your own.
+          </li>
+          <li>
+            Talk to services over raw TCP and TLS from the command line —
+            no client libraries, no tooling crutches.
+          </li>
+          <li>
+            Use SSH key authentication — the way every production server on
+            the planet actually authenticates people.
+          </li>
+          <li>
+            Scan a port range, tell the difference between a refused,
+            filtered, and open-but-weird port, and identify what is
+            listening.
+          </li>
+          <li>
+            Work inside a restricted environment that tries to kick you
+            out, and still get useful work done — the skill every bastion
+            and container demands.
+          </li>
+          <li>
+            Read Linux permissions, including SUID, and recognise when a
+            binary is a privilege escalation opportunity — the bridge into
+            the Phantom track.
+          </li>
+          <li>
+            Write your first real script. Automate something you cannot do
+            by hand. The exact moment you stop being a user of other
+            people's tools and start being an engineer.
+          </li>
+          <li>
+            Find scheduled tasks (cron) and understand why they are the #1
+            persistence and privilege escalation vector on Linux.
+          </li>
+          <li>
+            Use <code className="text-amber">git</code> to dig through the
+            history of a dirty repository — the exact technique behind
+            every real-world secrets leak from 2024 onward and the bridge
+            into the Nexus (CI/CD) track.
+          </li>
+          <li>
+            Use <code className="text-amber">/proc</code> to reason about
+            what the system is doing right now — the core of modern
+            forensics and fileless malware analysis.
           </li>
         </ul>
       </section>

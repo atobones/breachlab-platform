@@ -88,11 +88,6 @@ export default async function GhostLevelPage({
       {content ? (
         <>
           <section>
-            <h2 className="text-amber text-lg mb-2">Level Goal</h2>
-            <p className="text-sm">{content.goal}</p>
-          </section>
-
-          <section>
             <h2 className="text-amber text-lg mb-2">
               Commands you may need to solve this level
             </h2>
