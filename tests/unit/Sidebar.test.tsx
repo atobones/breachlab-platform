@@ -21,6 +21,14 @@ vi.mock("@/components/TopFiveWidget", () => ({
   ),
 }));
 
+vi.mock("@/components/RecentTickerWidget", () => ({
+  RecentTickerWidget: () => (
+    <section>
+      <h2 className="text-muted text-sm uppercase mb-2">▸ Recent</h2>
+    </section>
+  ),
+}));
+
 import { Sidebar } from "@/components/Sidebar";
 
 async function renderAsync() {
