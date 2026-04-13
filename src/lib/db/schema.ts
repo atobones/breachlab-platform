@@ -14,6 +14,7 @@ export const users = pgTable("users", {
   passwordHash: text("password_hash").notNull(),
   emailVerified: boolean("email_verified").notNull().default(false),
   totpSecret: text("totp_secret"),
+  isAdmin: boolean("is_admin").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -117,6 +118,25 @@ export const badges = pgTable("badges", {
     .notNull()
     .defaultNow(),
 });
+
+export const speedrunRuns = pgTable("speedrun_runs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  trackId: uuid("track_id")
+    .notNull()
+    .references(() => tracks.id, { onDelete: "cascade" }),
+  startedAt: timestamp("started_at", { withTimezone: true }).notNull(),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  totalSeconds: integer("total_seconds"),
+  isSuspicious: boolean("is_suspicious").notNull().default(false),
+  reviewStatus: text("review_status").notNull().default("pending"),
+  reviewedBy: uuid("reviewed_by"),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+});
+
+export type SpeedrunRun = typeof speedrunRuns.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
