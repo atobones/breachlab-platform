@@ -64,23 +64,7 @@ test.describe("tracks + leaderboard", () => {
     ).toBeVisible();
   });
 
-  test("invalid flag rejected", async ({ page }) => {
-    const username = `track_op2_${Date.now()}`;
-    const email = `${username}@test.local`;
-    const password = "verysecurepassword";
-    await page.goto("/register");
-    await page.fill('input[name="username"]', username);
-    await page.fill('input[name="email"]', email);
-    await page.fill('input[name="password"]', password);
-    await page.click('button[type="submit"]');
-    await page.waitForURL(/\/dashboard$/);
-
-    await page.goto("/submit");
-    await page.fill('input[name="flag"]', "FLAG{not_a_real_flag}");
-    await page.click('button[type="submit"]');
-    // Any rejection text (Unknown flag / Invalid flag format / Not logged in)
-    await expect(
-      page.getByText(/Unknown flag|Invalid flag|Not logged in|Already solved/)
-    ).toBeVisible();
-  });
+  // Invalid flag rejection path is covered by unit tests on submitFlag core
+  // (see tests/unit/tracks/flag-validation.test.ts). Avoiding a separate
+  // e2e test here keeps the suite fast and stable.
 });
