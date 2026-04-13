@@ -19,6 +19,7 @@ export const lucia = new Lucia(adapter, {
     email: attrs.email,
     emailVerified: attrs.email_verified,
     totpEnabled: attrs.totp_secret !== null,
+    isAdmin: attrs.is_admin,
   }),
 });
 
@@ -30,6 +31,7 @@ declare module "lucia" {
       email: string;
       email_verified: boolean;
       totp_secret: string | null;
+      is_admin: boolean;
     };
   }
 }
