@@ -17,9 +17,9 @@ export const lucia = new Lucia(adapter, {
   getUserAttributes: (attrs) => ({
     username: attrs.username,
     email: attrs.email,
-    emailVerified: attrs.email_verified,
-    totpEnabled: attrs.totp_secret !== null,
-    isAdmin: attrs.is_admin,
+    emailVerified: attrs.emailVerified,
+    totpEnabled: attrs.totpSecret !== null,
+    isAdmin: attrs.isAdmin,
   }),
 });
 
@@ -29,9 +29,9 @@ declare module "lucia" {
     DatabaseUserAttributes: {
       username: string;
       email: string;
-      email_verified: boolean;
-      totp_secret: string | null;
-      is_admin: boolean;
+      emailVerified: boolean;
+      totpSecret: string | null;
+      isAdmin: boolean;
     };
   }
 }
