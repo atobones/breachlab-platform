@@ -15,6 +15,13 @@
       "when": 1776063460369,
       "tag": "0001_silky_hobgoblin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776066764215,
+      "tag": "0002_aberrant_franklin_richards",
+      "breakpoints": true
     }
   ]
 }

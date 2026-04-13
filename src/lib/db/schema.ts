@@ -106,9 +106,22 @@ export const submissions = pgTable("submissions", {
   sourceIp: text("source_ip"),
 });
 
+export const badges = pgTable("badges", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  kind: text("kind").notNull(),
+  refId: uuid("ref_id"),
+  awardedAt: timestamp("awarded_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
 export type Track = typeof tracks.$inferSelect;
 export type Level = typeof levels.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
+export type Badge = typeof badges.$inferSelect;
