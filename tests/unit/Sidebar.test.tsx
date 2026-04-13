@@ -5,6 +5,22 @@ vi.mock("@/components/auth/UserMenu", () => ({
   UserMenu: () => <div>Operative</div>,
 }));
 
+vi.mock("@/components/LiveOpsWidget", () => ({
+  LiveOpsWidget: () => (
+    <section>
+      <h2 className="text-muted text-sm uppercase mb-2">▸ Live Ops</h2>
+    </section>
+  ),
+}));
+
+vi.mock("@/components/TopFiveWidget", () => ({
+  TopFiveWidget: () => (
+    <section>
+      <h2 className="text-muted text-sm uppercase mb-2">▸ Top 5</h2>
+    </section>
+  ),
+}));
+
 import { Sidebar } from "@/components/Sidebar";
 
 async function renderAsync() {

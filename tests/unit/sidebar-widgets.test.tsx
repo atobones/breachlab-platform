@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { TracksNav } from "@/components/TracksNav";
-import { LiveOpsWidget } from "@/components/LiveOpsWidget";
-import { TopFiveWidget } from "@/components/TopFiveWidget";
-import { RecentTickerWidget } from "@/components/RecentTickerWidget";
 import { SidebarLinks } from "@/components/SidebarLinks";
+
+// LiveOpsWidget and TopFiveWidget are now async Server Components backed
+// by DB queries — covered by e2e tests (tracks.spec.ts) instead of unit.
+// RecentTickerWidget is a client component subscribing to SSE — also covered by e2e.
 
 describe("TracksNav", () => {
   it("lists Ghost as LIVE and at least Phantom as SOON", () => {
@@ -19,36 +20,6 @@ describe("TracksNav", () => {
     render(<TracksNav />);
     const ghostLink = screen.getByRole("link", { name: /ghost/i });
     expect(ghostLink).toHaveAttribute("href", "/tracks/ghost");
-  });
-});
-
-describe("LiveOpsWidget", () => {
-  it("renders an online count", () => {
-    render(<LiveOpsWidget />);
-    expect(screen.getByText(/online now/i)).toBeInTheDocument();
-  });
-});
-
-describe("TopFiveWidget", () => {
-  it("renders five rows", () => {
-    render(<TopFiveWidget />);
-    const rows = screen.getAllByTestId("top-five-row");
-    expect(rows.length).toBe(5);
-  });
-
-  it("links to /leaderboard", () => {
-    render(<TopFiveWidget />);
-    expect(screen.getByRole("link", { name: /full board/i })).toHaveAttribute(
-      "href",
-      "/leaderboard"
-    );
-  });
-});
-
-describe("RecentTickerWidget", () => {
-  it("renders at least one recent event", () => {
-    render(<RecentTickerWidget />);
-    expect(screen.getAllByTestId("recent-event").length).toBeGreaterThan(0);
   });
 });
 
