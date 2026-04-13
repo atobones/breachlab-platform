@@ -1,6 +1,15 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 
+vi.mock("@/lib/tracks/all", () => ({
+  getAllTracksWithLevels: async () => [],
+  isHiddenLevel: () => false,
+}));
+
+vi.mock("@/lib/auth/session", () => ({
+  getCurrentSession: async () => ({ user: null, session: null }),
+}));
+
 vi.mock("@/components/auth/UserMenu", () => ({
   UserMenu: () => <div>Operative</div>,
 }));

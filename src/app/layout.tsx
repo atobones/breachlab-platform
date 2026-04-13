@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
+import { Header } from "@/components/Header";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -21,7 +22,10 @@ export default function RootLayout({
     <html lang="en" className={jetbrainsMono.variable}>
       <body className="min-h-screen flex">
         <Sidebar />
-        <main className="flex-1 p-8 max-w-4xl">{children}</main>
+        <main className="flex-1 p-8 max-w-4xl">
+          <Header />
+          {children}
+        </main>
       </body>
     </html>
   );

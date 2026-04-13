@@ -6,7 +6,14 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import crypto from "node:crypto";
 
-const GHOST_LEVELS = [
+type GhostLevel = {
+  idx: number;
+  title: string;
+  description?: string;
+  pointsBase?: number;
+};
+
+const GHOST_LEVELS: GhostLevel[] = [
   { idx: 0, title: "First Contact" },
   { idx: 1, title: "Name Game" },
   { idx: 2, title: "In The Shadows" },
@@ -16,7 +23,32 @@ const GHOST_LEVELS = [
   { idx: 6, title: "Ghost in the Machine" },
   { idx: 7, title: "Lost in Translation" },
   { idx: 8, title: "Something's Running" },
+  { idx: 9, title: "Noise Floor" },
+  { idx: 10, title: "Binary Strings" },
+  { idx: 11, title: "Wrapped Three Deep" },
+  { idx: 12, title: "Key Not Password" },
+  { idx: 13, title: "Port 30000" },
+  { idx: 14, title: "TLS, Not Plaintext" },
+  { idx: 15, title: "Port Range" },
+  { idx: 16, title: "Diff" },
+  { idx: 17, title: "No Shell For You" },
+  { idx: 18, title: "Wrong User" },
+  { idx: 19, title: "Your First Script" },
+  { idx: 20, title: "Cron Discovery" },
+  { idx: 21, title: "Git Archaeology" },
+  {
+    idx: 22,
+    title: "Classified",
+    description: "[HIDDEN] Graduation bonus — unlocked after solving all 22 public levels",
+    pointsBase: 1000,
+  },
 ];
+
+function defaultPoints(idx: number): number {
+  if (idx <= 8) return 100 + idx * 20;
+  if (idx <= 21) return 300 + (idx - 9) * 30;
+  return 1000;
+}
 
 async function main() {
   const existing = await db
@@ -59,8 +91,9 @@ async function main() {
         trackId,
         idx: l.idx,
         title: l.title,
-        pointsBase: 100 + l.idx * 20,
-        pointsFirstBloodBonus: 50,
+        description: l.description ?? "",
+        pointsBase: l.pointsBase ?? defaultPoints(l.idx),
+        pointsFirstBloodBonus: l.idx === 22 ? 0 : 50,
       })
       .returning({ id: levels.id });
     const rand = crypto.randomBytes(8).toString("hex");
