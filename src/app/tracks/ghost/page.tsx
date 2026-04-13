@@ -4,6 +4,7 @@ import { LevelTable } from "@/components/tracks/LevelTable";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { submissions } from "@/lib/db/schema";
+import { getFirstBloodByLevel } from "@/lib/badges/queries";
 
 export default async function GhostTrackPage() {
   const track = await getTrackBySlug("ghost");
@@ -18,6 +19,7 @@ export default async function GhostTrackPage() {
     );
   }
   const levelRows = await getLevelsForTrack(track.id);
+  const firstBloodByLevelId = await getFirstBloodByLevel();
   const { user } = await getCurrentSession();
 
   let solvedLevelIds = new Set<string>();
@@ -36,7 +38,11 @@ export default async function GhostTrackPage() {
       <pre className="bg-border/40 p-3 text-sm">
         ssh ghost0@ghost.breachlab.org -p 2222
       </pre>
-      <LevelTable levels={levelRows} solvedLevelIds={solvedLevelIds} />
+      <LevelTable
+        levels={levelRows}
+        solvedLevelIds={solvedLevelIds}
+        firstBloodByLevelId={firstBloodByLevelId}
+      />
       {user ? (
         <p className="text-xs">
           <a href="/submit">Submit a flag →</a>
