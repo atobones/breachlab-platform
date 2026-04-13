@@ -151,6 +151,19 @@ export const speedrunRuns = pgTable("speedrun_runs", {
 
 export type SpeedrunRun = typeof speedrunRuns.$inferSelect;
 
+export const donations = pgTable("donations", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id").references(() => users.id, { onDelete: "set null" }),
+  btcpayInvoiceId: text("btcpay_invoice_id").notNull().unique(),
+  amount: integer("amount").notNull(),
+  currency: text("currency").notNull(),
+  status: text("status").notNull().default("pending"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  settledAt: timestamp("settled_at", { withTimezone: true }),
+});
+
+export type Donation = typeof donations.$inferSelect;
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
