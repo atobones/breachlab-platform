@@ -1,13 +1,49 @@
-const PLACEHOLDER = [{ id: "p1", text: "awaiting first operative" }];
+"use client";
+
+import { useEffect, useState } from "react";
+import type { LiveEvent } from "@/lib/live/events";
+
+const MAX = 5;
 
 export function RecentTickerWidget() {
+  const [events, setEvents] = useState<LiveEvent[]>([]);
+  useEffect(() => {
+    const es = new EventSource("/api/live/events");
+    es.onmessage = (msg) => {
+      try {
+        const ev = JSON.parse(msg.data) as LiveEvent;
+        setEvents((prev) => [ev, ...prev].slice(0, MAX));
+      } catch {
+        // ignore malformed
+      }
+    };
+    return () => es.close();
+  }, []);
+
+  if (events.length === 0) {
+    return (
+      <section>
+        <h2 className="text-muted text-sm uppercase mb-2">▸ Recent</h2>
+        <ul className="text-xs space-y-1">
+          <li data-testid="recent-event" className="text-muted">
+            awaiting first operative
+          </li>
+        </ul>
+      </section>
+    );
+  }
   return (
     <section>
       <h2 className="text-muted text-sm uppercase mb-2">▸ Recent</h2>
       <ul className="text-xs space-y-1">
-        {PLACEHOLDER.map((e) => (
-          <li key={e.id} data-testid="recent-event" className="text-muted">
-            {e.text}
+        {events.map((e, i) => (
+          <li
+            key={`${e.at}-${i}`}
+            data-testid="recent-event"
+            className="text-text"
+          >
+            <span className="text-amber">@{e.username}</span> owned{" "}
+            {e.trackSlug} L{e.levelIdx}
           </li>
         ))}
       </ul>
