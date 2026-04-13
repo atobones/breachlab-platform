@@ -15,6 +15,19 @@ export const users = pgTable("users", {
   emailVerified: boolean("email_verified").notNull().default(false),
   totpSecret: text("totp_secret"),
   isAdmin: boolean("is_admin").notNull().default(false),
+  discordId: text("discord_id").unique(),
+  discordUsername: text("discord_username"),
+  isSupporter: boolean("is_supporter").notNull().default(false),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const discordOauthStates = pgTable("discord_oauth_states", {
+  state: text("state").primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
