@@ -8,6 +8,13 @@
       "when": 1776034799814,
       "tag": "0000_silent_black_knight",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1776063460369,
+      "tag": "0001_silky_hobgoblin",
+      "breakpoints": true
     }
   ]
 }

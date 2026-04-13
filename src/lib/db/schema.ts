@@ -4,6 +4,7 @@ import {
   timestamp,
   boolean,
   uuid,
+  integer,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -50,6 +51,64 @@ export const passwordResets = pgTable("password_resets", {
     .defaultNow(),
 });
 
+export const tracks = pgTable("tracks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  status: text("status").notNull().default("planned"),
+  orderIdx: integer("order_idx").notNull().default(0),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const levels = pgTable("levels", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  trackId: uuid("track_id")
+    .notNull()
+    .references(() => tracks.id, { onDelete: "cascade" }),
+  idx: integer("idx").notNull(),
+  title: text("title").notNull(),
+  description: text("description").notNull().default(""),
+  pointsBase: integer("points_base").notNull().default(100),
+  pointsFirstBloodBonus: integer("points_first_blood_bonus")
+    .notNull()
+    .default(50),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const flags = pgTable("flags", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  levelId: uuid("level_id")
+    .notNull()
+    .references(() => levels.id, { onDelete: "cascade" }),
+  flagHash: text("flag_hash").notNull().unique(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const submissions = pgTable("submissions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  levelId: uuid("level_id")
+    .notNull()
+    .references(() => levels.id, { onDelete: "cascade" }),
+  pointsAwarded: integer("points_awarded").notNull(),
+  submittedAt: timestamp("submitted_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  sourceIp: text("source_ip"),
+});
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;
+export type Track = typeof tracks.$inferSelect;
+export type Level = typeof levels.$inferSelect;
+export type Submission = typeof submissions.$inferSelect;
