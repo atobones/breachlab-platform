@@ -1,10 +1,18 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { flags, levels, submissions, tracks, users } from "@/lib/db/schema";
+import {
+  flags,
+  levels,
+  submissions,
+  tracks,
+  users,
+  badges,
+} from "@/lib/db/schema";
 import { hashToken } from "@/lib/auth/tokens";
 import { computeAwardedPoints } from "./points";
 import { normalizeFlag, flagSchema } from "@/lib/validation/flags";
 import { liveBus } from "@/lib/live/bus";
+import { decideBadgesToAward } from "@/lib/badges/award";
 
 export type SubmitResult =
   | { ok: true; levelIdx: number; trackSlug: string; points: number }
@@ -60,6 +68,38 @@ export async function submitFlag(
     pointsAwarded: points,
     sourceIp: sourceIp ?? undefined,
   });
+
+  // Track completion detection
+  const [totalRow] = await db
+    .select({ total: sql<number>`count(*)::int` })
+    .from(levels)
+    .where(eq(levels.trackId, level.trackId));
+  const solvedInTrack = await db
+    .select({ levelId: submissions.levelId })
+    .from(submissions)
+    .innerJoin(levels, eq(levels.id, submissions.levelId))
+    .where(
+      and(eq(submissions.userId, userId), eq(levels.trackId, level.trackId))
+    );
+  const totalInTrack = Number(totalRow?.total ?? 0);
+  const trackCompleted =
+    solvedInTrack.length >= totalInTrack && totalInTrack > 0;
+
+  const toAward = decideBadgesToAward({
+    isFirstBlood,
+    levelId: level.id,
+    trackId: level.trackId,
+    trackCompleted,
+  });
+  if (toAward.length > 0) {
+    await db.insert(badges).values(
+      toAward.map((b) => ({
+        userId,
+        kind: b.kind,
+        refId: b.refId,
+      }))
+    );
+  }
 
   const [trackRow] = await db
     .select({ slug: tracks.slug })
