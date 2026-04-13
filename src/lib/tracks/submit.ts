@@ -13,6 +13,7 @@ import { computeAwardedPoints } from "./points";
 import { normalizeFlag, flagSchema } from "@/lib/validation/flags";
 import { liveBus } from "@/lib/live/bus";
 import { decideBadgesToAward } from "@/lib/badges/award";
+import { startRun, findOpenRun, closeRun } from "@/lib/speedrun/hooks";
 
 export type SubmitResult =
   | { ok: true; levelIdx: number; trackSlug: string; points: number }
@@ -85,6 +86,12 @@ export async function submitFlag(
   const trackCompleted =
     solvedInTrack.length >= totalInTrack && totalInTrack > 0;
 
+  const [trackRow] = await db
+    .select({ slug: tracks.slug })
+    .from(tracks)
+    .where(eq(tracks.id, level.trackId))
+    .limit(1);
+
   const toAward = decideBadgesToAward({
     isFirstBlood,
     levelId: level.id,
@@ -101,11 +108,17 @@ export async function submitFlag(
     );
   }
 
-  const [trackRow] = await db
-    .select({ slug: tracks.slug })
-    .from(tracks)
-    .where(eq(tracks.id, level.trackId))
-    .limit(1);
+  // Speedrun hooks: start on first submission, close on track completion.
+  if (solvedInTrack.length === 1) {
+    await startRun(userId, level.trackId);
+  }
+  if (trackCompleted) {
+    const openRun = await findOpenRun(userId, level.trackId);
+    if (openRun) {
+      await closeRun(openRun.id, new Date(), trackRow?.slug ?? "");
+    }
+  }
+
   const [userRow] = await db
     .select({ username: users.username })
     .from(users)
