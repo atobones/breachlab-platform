@@ -45,3 +45,4 @@ playwright-report/
 .env.local
 caddy_data/
 caddy_config/
+.seed-flags.ghost.local.txt
