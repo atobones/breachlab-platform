@@ -1,8 +1,9 @@
 import { and, eq, ilike } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { badges, tracks, users } from "@/lib/db/schema";
+import type { BadgeKind } from "@/lib/badges/types";
 
-export type GhostCertificate = {
+export type TrackCertificate = {
   username: string;
   userId: string;
   trackId: string;
@@ -11,9 +12,21 @@ export type GhostCertificate = {
   awardedAt: Date;
 };
 
-export async function getGhostCertificate(
+// Backwards-compat alias — existing imports of GhostCertificate keep working.
+export type GhostCertificate = TrackCertificate;
+
+const TRACK_BADGE_KIND: Record<string, BadgeKind> = {
+  ghost: "ghost_graduate",
+  phantom: "phantom_master",
+};
+
+export async function getTrackCertificate(
   username: string,
-): Promise<GhostCertificate | null> {
+  trackSlug: string,
+): Promise<TrackCertificate | null> {
+  const kind = TRACK_BADGE_KIND[trackSlug];
+  if (!kind) return null;
+
   const [user] = await db
     .select({ id: users.id, username: users.username })
     .from(users)
@@ -33,8 +46,8 @@ export async function getGhostCertificate(
     .where(
       and(
         eq(badges.userId, user.id),
-        eq(badges.kind, "ghost_graduate"),
-        eq(tracks.slug, "ghost"),
+        eq(badges.kind, kind),
+        eq(tracks.slug, trackSlug),
       ),
     )
     .limit(1);
@@ -49,4 +62,11 @@ export async function getGhostCertificate(
     trackSlug: row.trackSlug,
     awardedAt: row.awardedAt,
   };
+}
+
+// Thin backwards-compat wrapper — keeps existing ghost-specific callers working.
+export async function getGhostCertificate(
+  username: string,
+): Promise<GhostCertificate | null> {
+  return getTrackCertificate(username, "ghost");
 }

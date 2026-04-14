@@ -12,6 +12,7 @@ export function operativeSerial(
   userId: string,
   trackId: string,
   awardedAt: Date,
+  prefix: string = "GHST",
 ): string {
   const input = `${userId}|${trackId}|${awardedAt.toISOString()}`;
   const digest = createHash("sha256").update(input).digest();
@@ -20,7 +21,7 @@ export function operativeSerial(
     hex += BLOCK_CHARS[digest[i] >> 4];
     hex += BLOCK_CHARS[digest[i] & 0x0f];
   }
-  return `GHST-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}`;
+  return `${prefix}-${hex.slice(0, 4)}-${hex.slice(4, 8)}-${hex.slice(8, 12)}`;
 }
 
 /**
