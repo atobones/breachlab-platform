@@ -4,6 +4,8 @@ import { db } from "@/lib/db/client";
 import { discordOauthStates, users } from "@/lib/db/schema";
 import { getCurrentSession } from "@/lib/auth/session";
 import { exchangeCode, fetchUser, isConfigured } from "@/lib/discord/oauth";
+import { syncUserRoles } from "@/lib/discord/sync";
+import { hasBotToken } from "@/lib/discord/client";
 
 const TEN_MINUTES_MS = 10 * 60 * 1000;
 
@@ -68,6 +70,17 @@ export async function GET(req: NextRequest) {
     .update(users)
     .set({ discordId: discordUser.id, discordUsername: discordUser.username })
     .where(eq(users.id, user.id));
+
+  // Auto-sync: grant the Operative baseline + any badge-derived roles.
+  // Failures here should not block the OAuth flow — the user can re-sync
+  // later via the standalone script.
+  if (hasBotToken() && process.env.DISCORD_GUILD_ID) {
+    try {
+      await syncUserRoles(user.id);
+    } catch (err) {
+      console.error("[discord-callback] auto-sync failed:", err);
+    }
+  }
 
   return redirect("/dashboard?discord=linked");
 }

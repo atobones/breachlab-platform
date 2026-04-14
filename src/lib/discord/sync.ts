@@ -6,9 +6,11 @@ import { computeExpectedRoles, type RoleIds } from "./roles";
 
 function roleIdsFromEnv(): RoleIds {
   return {
+    operative: process.env.DISCORD_ROLE_OPERATIVE || null,
     supporter: process.env.DISCORD_ROLE_SUPPORTER || null,
     firstBlood: process.env.DISCORD_ROLE_FIRST_BLOOD || null,
     ghostMaster: process.env.DISCORD_ROLE_GHOST_MASTER || null,
+    phantomOperative: process.env.DISCORD_ROLE_PHANTOM_OPERATIVE || null,
   };
 }
 
@@ -41,22 +43,29 @@ export async function syncUserRoles(userId: string): Promise<void> {
 
   const hasFirstBlood = userBadges.some((b) => b.kind === "first_blood");
   const hasTrackComplete = userBadges.some((b) => b.kind === "track_complete");
+  const hasGhostGraduate = userBadges.some((b) => b.kind === "ghost_graduate");
+  const hasPhantomMaster = userBadges.some((b) => b.kind === "phantom_master");
+  const ids = roleIdsFromEnv();
   const expected = new Set(
     computeExpectedRoles(
       {
         isSupporter: user.isSupporter,
         hasFirstBlood,
         hasTrackComplete,
+        hasGhostGraduate,
+        hasPhantomMaster,
       },
-      roleIdsFromEnv(),
+      ids,
     ),
   );
 
   const managed = new Set(
     [
-      roleIdsFromEnv().supporter,
-      roleIdsFromEnv().firstBlood,
-      roleIdsFromEnv().ghostMaster,
+      ids.operative,
+      ids.supporter,
+      ids.firstBlood,
+      ids.ghostMaster,
+      ids.phantomOperative,
     ].filter((id): id is string => Boolean(id)),
   );
 
