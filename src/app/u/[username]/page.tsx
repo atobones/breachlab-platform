@@ -21,9 +21,19 @@ export default async function ProfilePage({
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
 
+  const hasGraduate = profile.badges.some((b) => b.kind === "ghost_graduate");
+
   return (
     <div className="space-y-6" data-testid="profile-page">
       <ProfileHeader profile={profile} />
+      {hasGraduate && (
+        <a
+          href={`/u/${profile.user.username}/certificate`}
+          className="inline-flex items-center gap-2 px-4 py-2 border-2 border-amber text-amber font-bold uppercase tracking-widest text-xs hover:bg-amber/10 shadow-[0_0_12px_rgba(245,158,11,0.25)]"
+        >
+          ★ View Operative Certificate
+        </a>
+      )}
       <ProfileStats profile={profile} />
       <section className="space-y-2">
         <h2 className="text-sm text-muted uppercase tracking-wider">Badges</h2>

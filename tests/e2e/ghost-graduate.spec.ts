@@ -91,12 +91,42 @@ test.describe("ghost graduation", () => {
     `;
     expect(badgeRows.length).toBe(1);
 
-    // Visit public profile — Ghost Graduate pill visible
+    // Visit public profile — Ghost Graduate pill visible + certificate link
     await page.goto(`/u/${username}`);
     await expect(
       page
         .locator('[data-testid="profile-page"]')
         .getByText("Ghost Graduate", { exact: true }),
     ).toBeVisible();
+    await expect(
+      page.getByRole("link", { name: /View Operative Certificate/i }),
+    ).toBeVisible();
+
+    // Certificate page renders with serial + operative name
+    await page.getByRole("link", { name: /View Operative Certificate/i }).click();
+    await expect(
+      page.locator('[data-testid="operative-certificate"]'),
+    ).toBeVisible();
+    await expect(page.getByText(`@${username}`).first()).toBeVisible();
+    await expect(
+      page.getByText(/GHST-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}/).first(),
+    ).toBeVisible();
+    await expect(page.getByText(/OPERATIVE CERTIFICATION/)).toBeVisible();
+  });
+
+  test("/u/:username/certificate returns 404 for non-graduate", async ({ page }) => {
+    const username = `novice_${Date.now()}`;
+    const email = `${username}@test.local`;
+    const password = "verysecurepassword";
+
+    await page.goto("/register");
+    await page.fill('input[name="username"]', username);
+    await page.fill('input[name="email"]', email);
+    await page.fill('input[name="password"]', password);
+    await page.click('button[type="submit"]');
+    await page.waitForURL(/\/dashboard$/);
+
+    const resp = await page.goto(`/u/${username}/certificate`);
+    expect(resp?.status()).toBe(404);
   });
 });
