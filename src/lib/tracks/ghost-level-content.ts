@@ -160,7 +160,7 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   21: {
     goal:
-      "A local git repository was pulled off an internal server. It has a dirty history. Somewhere in the log, someone committed something they shouldn't have and then tried to cover it up. Find it. Read it. Full workflow: clone, log, diff, branches, reflog, tags.",
+      "A local git repository was pulled off an internal server. It has a dirty history. Somewhere in the log, someone committed something they shouldn't have and then tried to cover it up. Find it. Read it. Full workflow: clone, log, diff, branches, reflog, tags.\n\nBefore you leave — take one last look at this machine. Everything you have ever learned on Ghost is written on it somewhere. Not every door opens on the first knock.",
     commands: ["git"],
     realWorldSkill:
       "Git history forensics is the number-one way real-world secrets leak. Every supply-chain attack in 2024-2026 either started here or passed through here. This is the only Ghost level that maps directly onto the Nexus (CI/CD) track that comes later.",

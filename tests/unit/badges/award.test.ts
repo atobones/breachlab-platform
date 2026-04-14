@@ -44,4 +44,40 @@ describe("decideBadgesToAward", () => {
       })
     ).toEqual([]);
   });
+
+  it("awards ghost_graduate when isGhostGraduate", () => {
+    const badges = decideBadgesToAward({
+      isFirstBlood: false,
+      levelId: "lvl-22",
+      trackId: "trk-ghost",
+      trackCompleted: false,
+      isGhostGraduate: true,
+    });
+    expect(badges).toEqual([{ kind: "ghost_graduate", refId: "trk-ghost" }]);
+  });
+
+  it("omits ghost_graduate when flag is false", () => {
+    const badges = decideBadgesToAward({
+      isFirstBlood: false,
+      levelId: "lvl-22",
+      trackId: "trk-ghost",
+      trackCompleted: false,
+      isGhostGraduate: false,
+    });
+    expect(badges).toEqual([]);
+  });
+
+  it("awards first blood + track complete + graduate together", () => {
+    const badges = decideBadgesToAward({
+      isFirstBlood: true,
+      levelId: "lvl-22",
+      trackId: "trk-ghost",
+      trackCompleted: true,
+      isGhostGraduate: true,
+    });
+    expect(badges).toHaveLength(3);
+    expect(badges).toContainEqual({ kind: "first_blood", refId: "lvl-22" });
+    expect(badges).toContainEqual({ kind: "track_complete", refId: "trk-ghost" });
+    expect(badges).toContainEqual({ kind: "ghost_graduate", refId: "trk-ghost" });
+  });
 });

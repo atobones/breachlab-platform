@@ -70,17 +70,24 @@ export async function submitFlag(
     sourceIp: sourceIp ?? undefined,
   });
 
-  // Track completion detection
+  // Track completion detection — excludes hidden levels (marked with
+  // a "[HIDDEN]" description prefix). Hidden bonuses are graduation,
+  // not part of the public track completion set.
+  const publicFilter = sql`coalesce(${levels.description}, '') not like '[HIDDEN]%'`;
   const [totalRow] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(levels)
-    .where(eq(levels.trackId, level.trackId));
+    .where(and(eq(levels.trackId, level.trackId), publicFilter));
   const solvedInTrack = await db
     .select({ levelId: submissions.levelId })
     .from(submissions)
     .innerJoin(levels, eq(levels.id, submissions.levelId))
     .where(
-      and(eq(submissions.userId, userId), eq(levels.trackId, level.trackId))
+      and(
+        eq(submissions.userId, userId),
+        eq(levels.trackId, level.trackId),
+        publicFilter,
+      ),
     );
   const totalInTrack = Number(totalRow?.total ?? 0);
   const trackCompleted =
@@ -92,11 +99,31 @@ export async function submitFlag(
     .where(eq(tracks.id, level.trackId))
     .limit(1);
 
+  const isGhostGraduate =
+    trackRow?.slug === "ghost" && level.idx === 22;
+
+  let alreadyGraduate = false;
+  if (isGhostGraduate) {
+    const existing = await db
+      .select({ id: badges.id })
+      .from(badges)
+      .where(
+        and(
+          eq(badges.userId, userId),
+          eq(badges.kind, "ghost_graduate"),
+          eq(badges.refId, level.trackId),
+        ),
+      )
+      .limit(1);
+    alreadyGraduate = existing.length > 0;
+  }
+
   const toAward = decideBadgesToAward({
     isFirstBlood,
     levelId: level.id,
     trackId: level.trackId,
     trackCompleted,
+    isGhostGraduate: isGhostGraduate && !alreadyGraduate,
   });
   if (toAward.length > 0) {
     await db.insert(badges).values(

@@ -6,6 +6,7 @@ const COLOR: Record<BadgeKind, string> = {
   track_complete: "border-amber text-amber",
   supporter: "border-green text-green",
   speedrun_top10: "border-amber text-amber",
+  ghost_graduate: "border-amber text-amber font-bold",
 };
 
 export function BadgePill({ kind }: { kind: BadgeKind }) {
