@@ -46,3 +46,11 @@ playwright-report/
 caddy_data/
 caddy_config/
 .seed-flags.ghost.local.txt
+
+# macOS Finder duplicate files (created when multiple Finder tabs touch the same dir)
+* 2.ts
+* 2.tsx
+* 2.md
+* 2.sql
+* 2.json
+* 2/
