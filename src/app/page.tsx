@@ -10,7 +10,7 @@ export default function HomePage() {
         <h2 className="text-lg mb-2">Suggested order</h2>
         <ol className="list-decimal list-inside text-sm space-y-1">
           <li>Ghost — Linux and shell fundamentals</li>
-          <li>Phantom — privilege escalation and container escape (soon)</li>
+          <li>Phantom — post-exploitation, container escape, Kubernetes pod escape</li>
         </ol>
       </section>
       <section>

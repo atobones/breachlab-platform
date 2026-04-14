@@ -5,7 +5,7 @@ type Track = { slug: string; name: string; status: TrackStatus };
 
 const TRACKS: Track[] = [
   { slug: "ghost", name: "Ghost", status: "LIVE" },
-  { slug: "phantom", name: "Phantom", status: "SOON" },
+  { slug: "phantom", name: "Phantom", status: "LIVE" },
   { slug: "specter", name: "Specter", status: "SOON" },
   { slug: "cipher", name: "Cipher", status: "PLANNED" },
   { slug: "mirage", name: "Mirage", status: "PLANNED" },
