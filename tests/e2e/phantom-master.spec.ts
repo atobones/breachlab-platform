@@ -9,12 +9,10 @@ const DB_URL =
 
 const sql = postgres(DB_URL);
 
-test.describe("ghost graduation", () => {
+test.describe("phantom graduation", () => {
   test.beforeAll(async () => {
     await sql`TRUNCATE users, sessions, email_verifications, password_resets, submissions, flags, levels, tracks, speedrun_runs, badges, discord_oauth_states, donations CASCADE`;
-    // Re-seed via the project's seed script so all 23 levels + flags are
-    // present and the plaintext flag file is up to date.
-    execSync("npm run seed:ghost", {
+    execSync("npm run seed:phantom", {
       cwd: process.cwd(),
       env: { ...process.env, DATABASE_URL: DB_URL },
       stdio: "ignore",
@@ -26,10 +24,10 @@ test.describe("ghost graduation", () => {
     await sql.end();
   });
 
-  test("user who solves all 22 public levels unlocks level 22 and gets ghost_graduate badge", async ({
+  test("user who solves all 20 public levels unlocks level 20 and gets phantom_master badge + certificate", async ({
     page,
   }) => {
-    const username = `grad_${Date.now()}`;
+    const username = `phantomop_${Date.now()}`;
     const email = `${username}@test.local`;
     const password = "verysecurepassword";
 
@@ -40,22 +38,20 @@ test.describe("ghost graduation", () => {
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/dashboard$/);
 
-    // Fetch userId
     const [userRow] = await sql`SELECT id FROM users WHERE username=${username}`;
     const userId = userRow.id as string;
 
-    // Fetch ghost track + public levels (idx 0..21)
-    const [track] = await sql`SELECT id FROM tracks WHERE slug='ghost'`;
+    const [track] = await sql`SELECT id FROM tracks WHERE slug='phantom'`;
     const trackId = track.id as string;
+
     const publicLevels = await sql`
       SELECT id, idx, points_base
       FROM levels
       WHERE track_id=${trackId} AND coalesce(description, '') NOT LIKE '[HIDDEN]%'
       ORDER BY idx ASC
     `;
-    expect(publicLevels.length).toBe(22);
+    expect(publicLevels.length).toBe(20);
 
-    // Insert submissions for idx 0..21 directly (skip the level UI flows)
     for (const lvl of publicLevels) {
       await sql`
         INSERT INTO submissions (user_id, level_id, points_awarded)
@@ -63,59 +59,62 @@ test.describe("ghost graduation", () => {
       `;
     }
 
-    // Confirm hidden level now accessible
-    const resp = await page.goto("/tracks/ghost/22");
+    // Hidden level 20 should now be accessible
+    const resp = await page.goto("/tracks/phantom/20");
     expect(resp?.status()).toBe(200);
 
-    // Grab the level 22 flag from the seed plaintext file
+    // Grab the latest phantom_l20 flag from the append-only seed file
     const flagsText = readFileSync(
-      ".seed-flags.ghost.local.txt",
+      ".seed-flags.phantom.local.txt",
       "utf-8",
     );
-    // The seed script appends to the plaintext file, so take the LAST
-    // ghost_l22 line — that's the fresh one from this test's beforeAll seed.
-    const matches = [...flagsText.matchAll(/^ghost_l22 = (FLAG\{[^}]+\})$/gm)];
+    const matches = [...flagsText.matchAll(/^phantom_l20 = (FLAG\{[^}]+\})$/gm)];
     expect(matches.length).toBeGreaterThan(0);
-    const flag22 = matches[matches.length - 1][1];
+    const flag20 = matches[matches.length - 1][1];
 
-    // Submit level 22 flag via UI
+    // Submit the graduation flag
     await page.goto("/submit");
-    await page.fill('input[name="flag"]', flag22);
+    await page.fill('input[name="flag"]', flag20);
     await page.click('button[type="submit"]');
-    await expect(page.getByText(/Captured ghost level 22/)).toBeVisible();
+    await expect(page.getByText(/Captured phantom level 20/)).toBeVisible();
 
-    // Verify ghost_graduate badge row exists
+    // Verify phantom_master badge row exists
     const badgeRows = await sql`
       SELECT kind FROM badges
-      WHERE user_id=${userId} AND kind='ghost_graduate'
+      WHERE user_id=${userId} AND kind='phantom_master'
     `;
     expect(badgeRows.length).toBe(1);
 
-    // Visit public profile — Ghost Graduate pill visible + certificate link
+    // Profile shows Phantom Operative pill + cert button
     await page.goto(`/u/${username}`);
     await expect(
       page
         .locator('[data-testid="profile-page"]')
-        .getByText("Ghost Graduate", { exact: true }),
+        .getByText("Phantom Operative", { exact: true }),
     ).toBeVisible();
     await expect(
-      page.getByRole("link", { name: /Ghost Operative Certificate/i }),
+      page.getByRole("link", { name: /Phantom Operative Certificate/i }),
     ).toBeVisible();
 
-    // Certificate page renders with serial + operative name
-    await page.getByRole("link", { name: /Ghost Operative Certificate/i }).click();
+    // Certificate page renders with crimson variant + PHNM serial
+    await page.goto(`/u/${username}/certificate/phantom`);
     await expect(
-      page.locator('[data-testid="operative-certificate"]'),
+      page.locator('[data-testid="phantom-certificate"]'),
     ).toBeVisible();
-    await expect(page.getByText(`@${username}`).first()).toBeVisible();
     await expect(
-      page.getByText(/GHST-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}/).first(),
+      page.getByText(/PHNM-[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}/).first(),
     ).toBeVisible();
-    await expect(page.getByText(/OPERATIVE CERTIFICATION/)).toBeVisible();
+    await expect(page.getByText(/POST-EXPLOITATION CERTIFICATION/)).toBeVisible();
+
+    // Honor roll shows the graduate
+    await page.goto("/tracks/phantom/graduates");
+    await expect(
+      page.getByRole("table").getByRole("link", { name: `@${username}` }),
+    ).toBeVisible();
   });
 
-  test("/u/:username/certificate returns 404 for non-graduate", async ({ page }) => {
-    const username = `novice_${Date.now()}`;
+  test("/tracks/phantom/20 returns 404 for non-graduate", async ({ page }) => {
+    const username = `phantomnovice_${Date.now()}`;
     const email = `${username}@test.local`;
     const password = "verysecurepassword";
 
@@ -126,7 +125,18 @@ test.describe("ghost graduation", () => {
     await page.click('button[type="submit"]');
     await page.waitForURL(/\/dashboard$/);
 
-    const resp = await page.goto(`/u/${username}/certificate`);
+    const resp = await page.goto("/tracks/phantom/20");
     expect(resp?.status()).toBe(404);
+  });
+
+  test("/tracks/phantom page renders with tier table + SSH info", async ({
+    page,
+  }) => {
+    await page.goto("/tracks/phantom");
+    await expect(page.getByText(/Phantom — Post-Exploitation/)).toBeVisible();
+    await expect(page.getByText(/ssh phantom0@phantom.breachlab/)).toBeVisible();
+    await expect(page.getByText("RECRUIT", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("OPERATOR", { exact: true }).first()).toBeVisible();
+    await expect(page.getByText("PHANTOM", { exact: true }).first()).toBeVisible();
   });
 });
