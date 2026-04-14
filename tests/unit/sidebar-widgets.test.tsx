@@ -8,11 +8,12 @@ import { SidebarLinks } from "@/components/SidebarLinks";
 // RecentTickerWidget is a client component subscribing to SSE — also covered by e2e.
 
 describe("TracksNav", () => {
-  it("lists Ghost as LIVE and at least Phantom as SOON", () => {
+  it("lists Ghost and Phantom as LIVE, Specter as SOON", () => {
     render(<TracksNav />);
     expect(screen.getByText("Ghost")).toBeInTheDocument();
-    expect(screen.getByText("LIVE")).toBeInTheDocument();
     expect(screen.getByText("Phantom")).toBeInTheDocument();
+    expect(screen.getByText("Specter")).toBeInTheDocument();
+    expect(screen.getAllByText("LIVE").length).toBeGreaterThanOrEqual(2);
     expect(screen.getAllByText("SOON").length).toBeGreaterThan(0);
   });
 

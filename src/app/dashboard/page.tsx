@@ -7,7 +7,9 @@ import { isBadgeKind } from "@/lib/badges/types";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
+import { CertificateShowcase } from "@/components/dashboard/CertificateShowcase";
 import { isConfigured as isDiscordConfigured } from "@/lib/discord/oauth";
+import { getEarnedCertificates } from "@/lib/dashboard/certificates";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +17,7 @@ export default async function DashboardPage() {
   const { user } = await getCurrentSession();
   if (!user) redirect("/login");
   const userBadges = await getBadgesForUser(user.id);
+  const earnedCerts = await getEarnedCertificates(user.id);
   const [userRow] = await db
     .select({ discordUsername: users.discordUsername })
     .from(users)
@@ -29,6 +32,11 @@ export default async function DashboardPage() {
           public profile →
         </a>
       </p>
+      <CertificateShowcase
+        earned={earnedCerts}
+        userId={user.id}
+        username={user.username}
+      />
       <DiscordLinkCard
         discordUsername={userRow?.discordUsername ?? null}
         configured={isDiscordConfigured()}
