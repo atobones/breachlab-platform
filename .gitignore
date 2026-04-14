@@ -54,3 +54,4 @@ caddy_config/
 * 2.sql
 * 2.json
 * 2/
+.seed-flags.phantom.local.txt

@@ -12,7 +12,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
-    "seed:ghost": "tsx scripts/seed-ghost.ts"
+    "seed:ghost": "tsx scripts/seed-ghost.ts",
+    "seed:phantom": "tsx scripts/seed-phantom.ts"
   },
   "dependencies": {
     "@lucia-auth/adapter-drizzle": "^1.1.0",
