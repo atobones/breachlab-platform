@@ -16,7 +16,7 @@ export default function HomePage() {
       <section>
         <h2 className="text-lg mb-2">Get started</h2>
         <pre className="bg-border/40 p-3 text-sm">
-          ssh ghost0@ghost.breachlab.io -p 2222
+          ssh ghost0@ghost.breachlab.org -p 2222
         </pre>
       </section>
     </div>

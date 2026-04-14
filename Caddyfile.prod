@@ -1,8 +1,8 @@
 {
-    email admin@breachlab.io
+    email admin@breachlab.org
 }
 
-breachlab.io, www.breachlab.io {
+breachlab.org, www.breachlab.org {
     encode zstd gzip
     header {
         Strict-Transport-Security "max-age=31536000; includeSubDomains"

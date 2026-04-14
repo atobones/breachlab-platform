@@ -4,7 +4,7 @@ This app ships **code** for accepting crypto donations, but the BTCPay Server it
 
 ## 1. Provision BTCPay Server on the VPS
 
-BreachLab runs on `204.168.229.209`. Pick a subdomain, e.g. `pay.breachlab.<tld>`.
+BreachLab runs on `204.168.229.209`. Pick a subdomain, e.g. `pay.breachlab.org`.
 
 Easiest path is the official one-click Docker deployment:
 
@@ -13,7 +13,7 @@ ssh root@204.168.229.209
 mkdir btcpayserver && cd btcpayserver
 git clone https://github.com/btcpayserver/btcpayserver-docker
 cd btcpayserver-docker
-export BTCPAY_HOST="pay.breachlab.<tld>"
+export BTCPAY_HOST="pay.breachlab.org"
 export NBITCOIN_NETWORK="mainnet"
 export BTCPAYGEN_CRYPTO1="btc"
 export BTCPAYGEN_ADDITIONAL_FRAGMENTS="opt-save-storage-s;opt-add-xmr"
@@ -27,7 +27,7 @@ BTCPay takes 5–15 minutes to sync headers. Bitcoin Core full sync can take day
 
 ## 2. DNS
 
-Add an A-record `pay` → `204.168.229.209` (Cloudflare or whatever you end up using). Wait for propagation. Verify: `dig pay.breachlab.<tld>`.
+Add an A-record `pay` → `204.168.229.209` (Cloudflare or whatever you end up using). Wait for propagation. Verify: `dig pay.breachlab.org`.
 
 ## 3. Create the BreachLab store
 
@@ -50,7 +50,7 @@ In the BTCPay admin UI:
 ## 5. Register webhook
 
 - **Store → Settings → Webhooks → Create webhook**.
-- Payload URL: `https://breachlab.<tld>/api/btcpay/webhook`
+- Payload URL: `https://breachlab.org/api/btcpay/webhook`
 - Secret: generate a long random string (e.g. `openssl rand -hex 32`). Save it.
 - Events: `Invoice Settled`, `Invoice Payment Settled`.
 
@@ -59,18 +59,18 @@ In the BTCPay admin UI:
 Add to the deployed `.env` (and your local `.env.local` if testing):
 
 ```
-BTCPAY_URL=https://pay.breachlab.<tld>
+BTCPAY_URL=https://pay.breachlab.org
 BTCPAY_STORE_ID=<store id from BTCPay dashboard URL>
 BTCPAY_API_KEY=<key from step 4>
 BTCPAY_WEBHOOK_SECRET=<secret from step 5>
-SITE_URL=https://breachlab.<tld>
+SITE_URL=https://breachlab.org
 ```
 
 Restart the Next.js container.
 
 ## 7. Test end-to-end
 
-- Visit `https://breachlab.<tld>/donate`.
+- Visit `https://breachlab.org/donate`.
 - Pick $1, click Donate → redirected to BTCPay checkout.
 - Complete payment on testnet or with a small mainnet amount.
 - After a minute, the webhook should fire.
