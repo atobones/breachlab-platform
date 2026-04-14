@@ -7,6 +7,7 @@ const COLOR: Record<BadgeKind, string> = {
   supporter: "border-green text-green",
   speedrun_top10: "border-amber text-amber",
   ghost_graduate: "border-amber text-amber font-bold",
+  phantom_master: "border-red text-red font-bold",
 };
 
 export function BadgePill({ kind }: { kind: BadgeKind }) {

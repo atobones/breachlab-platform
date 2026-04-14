@@ -3,7 +3,8 @@ export type BadgeKind =
   | "track_complete"
   | "supporter"
   | "speedrun_top10"
-  | "ghost_graduate";
+  | "ghost_graduate"
+  | "phantom_master";
 
 const KINDS = new Set<BadgeKind>([
   "first_blood",
@@ -11,6 +12,7 @@ const KINDS = new Set<BadgeKind>([
   "supporter",
   "speedrun_top10",
   "ghost_graduate",
+  "phantom_master",
 ]);
 
 export function isBadgeKind(value: string): value is BadgeKind {
@@ -23,4 +25,5 @@ export const BADGE_LABEL: Record<BadgeKind, string> = {
   supporter: "Supporter",
   speedrun_top10: "Speedrun Top 10",
   ghost_graduate: "Ghost Graduate",
+  phantom_master: "Phantom Operative",
 };
