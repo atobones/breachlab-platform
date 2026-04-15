@@ -1,4 +1,5 @@
 import { SpotlightCard } from "@/components/donate/SpotlightCard";
+import { SpotlightGrid } from "@/components/donate/SpotlightGrid";
 
 export const dynamic = "force-dynamic";
 
@@ -15,9 +16,9 @@ export default function DonatePage() {
         </p>
       </header>
 
-      <div
+      <SpotlightGrid
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-        data-testid="donate-methods"
+        testId="donate-methods"
       >
         <SpotlightCard
           href="/donate/crypto"
@@ -58,7 +59,7 @@ export default function DonatePage() {
           cta="Sponsor via Liberapay →"
           testId="donate-card-liberapay"
         />
-      </div>
+      </SpotlightGrid>
 
       <p className="text-[11px] text-muted max-w-2xl">
         Whichever path you pick, every contribution goes directly into the
