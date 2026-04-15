@@ -5,7 +5,7 @@ import { DonateFlash } from "@/components/donate/DonateFlash";
 export const dynamic = "force-dynamic";
 
 const GITHUB_SPONSORS_URL = "https://github.com/sponsors/atobones";
-const LIBERAPAY_URL = "https://liberapay.com/atobones/donate";
+const LIBERAPAY_URL = "https://liberapay.com/breachlab/donate";
 
 export default function DonatePage() {
   const configured = isConfigured();
