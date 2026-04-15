@@ -143,16 +143,19 @@ export default function DonateGitHubSponsorsPage() {
 function TierCard({ tier }: { tier: Tier }) {
   return (
     <div
-      className={`flex flex-col gap-3 border p-4 transition-colors ${
-        tier.highlighted
-          ? "border-amber bg-amber/5"
-          : "border-amber/30 hover:border-amber hover:bg-amber/5"
-      }`}
+      className="relative flex flex-col gap-3 border border-amber/30 hover:border-amber hover:bg-amber/5 p-4 transition-colors"
       data-testid={`tier-card-${tier.code}`}
     >
       {tier.highlighted && (
-        <span className="text-[10px] uppercase tracking-wider text-amber">
-          Most popular
+        <span
+          aria-label="Most popular tier"
+          title="Most popular"
+          className="pointer-events-none absolute -top-2 -right-2 text-amber text-xl leading-none select-none"
+          style={{
+            filter: "drop-shadow(0 0 6px rgba(255, 176, 0, 0.7))",
+          }}
+        >
+          ★
         </span>
       )}
       <div className="space-y-1">
