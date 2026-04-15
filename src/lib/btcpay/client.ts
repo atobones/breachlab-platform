@@ -47,7 +47,7 @@ export async function createInvoice(
         source: "breachlab-donate",
       },
       checkout: {
-        redirectURL: input.redirectUrl ?? `${site}/donate?thanks=1`,
+        redirectURL: input.redirectUrl ?? `${site}/donate/crypto?thanks=1`,
       },
     }),
   });

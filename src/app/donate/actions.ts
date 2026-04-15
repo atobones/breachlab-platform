@@ -7,11 +7,11 @@ import { validateAmount, CURRENCY_DEFAULT } from "@/lib/btcpay/amounts";
 
 export async function createInvoiceAction(formData: FormData): Promise<void> {
   if (!isConfigured()) {
-    redirect("/donate?error=not_configured");
+    redirect("/donate/crypto?error=not_configured");
   }
   const amount = validateAmount(formData.get("amount"));
   if (amount === null) {
-    redirect("/donate?error=invalid_amount");
+    redirect("/donate/crypto?error=invalid_amount");
   }
   const { user } = await getCurrentSession();
   let checkoutUrl: string;
@@ -23,7 +23,7 @@ export async function createInvoiceAction(formData: FormData): Promise<void> {
     });
     checkoutUrl = res.checkoutUrl;
   } catch {
-    redirect("/donate?error=btcpay_error");
+    redirect("/donate/crypto?error=btcpay_error");
   }
   redirect(checkoutUrl);
 }
