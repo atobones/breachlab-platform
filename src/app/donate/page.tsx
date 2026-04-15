@@ -1,4 +1,4 @@
-import { MagneticCard } from "@/components/donate/MagneticCard";
+import { SpotlightCard } from "@/components/donate/SpotlightCard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export default function DonatePage() {
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         data-testid="donate-methods"
       >
-        <MagneticCard
+        <SpotlightCard
           href="/donate/crypto"
           icon="⚡"
           title="Pay with crypto"
@@ -32,7 +32,7 @@ export default function DonatePage() {
           cta="Donate crypto →"
           testId="donate-card-crypto"
         />
-        <MagneticCard
+        <SpotlightCard
           href="/donate/github-sponsors"
           icon="★"
           title="GitHub Sponsors"
@@ -45,7 +45,7 @@ export default function DonatePage() {
           cta="See sponsor tiers →"
           testId="donate-card-github"
         />
-        <MagneticCard
+        <SpotlightCard
           href="/donate/liberapay"
           icon="♥"
           title="Liberapay"
