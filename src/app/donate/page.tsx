@@ -1,4 +1,4 @@
-import Link from "next/link";
+import { MagneticCard } from "@/components/donate/MagneticCard";
 
 export const dynamic = "force-dynamic";
 
@@ -19,7 +19,7 @@ export default function DonatePage() {
         className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
         data-testid="donate-methods"
       >
-        <DonateMethodCard
+        <MagneticCard
           href="/donate/crypto"
           icon="⚡"
           title="Pay with crypto"
@@ -32,7 +32,7 @@ export default function DonatePage() {
           cta="Donate crypto →"
           testId="donate-card-crypto"
         />
-        <DonateMethodCard
+        <MagneticCard
           href="/donate/github-sponsors"
           icon="★"
           title="GitHub Sponsors"
@@ -45,7 +45,7 @@ export default function DonatePage() {
           cta="See sponsor tiers →"
           testId="donate-card-github"
         />
-        <DonateMethodCard
+        <MagneticCard
           href="/donate/liberapay"
           icon="♥"
           title="Liberapay"
@@ -67,47 +67,5 @@ export default function DonatePage() {
         new tracks.
       </p>
     </div>
-  );
-}
-
-function DonateMethodCard({
-  href,
-  icon,
-  title,
-  summary,
-  bullets,
-  cta,
-  testId,
-}: {
-  href: string;
-  icon: string;
-  title: string;
-  summary: string;
-  bullets: string[];
-  cta: string;
-  testId: string;
-}) {
-  return (
-    <Link
-      href={href}
-      data-testid={testId}
-      className="group flex flex-col gap-3 border border-amber/30 p-5 hover:border-amber hover:bg-amber/5 transition-colors"
-    >
-      <div className="flex items-center gap-3">
-        <span aria-hidden="true" className="text-amber text-2xl">
-          {icon}
-        </span>
-        <h2 className="text-amber text-lg group-hover:underline">{title}</h2>
-      </div>
-      <p className="text-xs text-muted">{summary}</p>
-      <ul className="text-[11px] text-muted space-y-1 list-disc list-inside flex-1">
-        {bullets.map((b) => (
-          <li key={b}>{b}</li>
-        ))}
-      </ul>
-      <span className="mt-2 text-xs text-amber group-hover:underline">
-        {cta}
-      </span>
-    </Link>
   );
 }
