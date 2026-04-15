@@ -8,7 +8,7 @@ export default function DonatePage() {
   const configured = isConfigured();
   return (
     <div className="space-y-6" data-testid="donate-page">
-      <header className="space-y-3">
+      <header className="space-y-2">
         <h1 className="text-amber text-2xl">Support BreachLab</h1>
         <p className="text-sm text-muted max-w-xl">
           BreachLab is self-hosted and runs on community support. Donations
@@ -19,13 +19,32 @@ export default function DonatePage() {
           self-hosted BTCPay Server — 0% processing fees, non-custodial. No
           custodian. No KYC. No third-party eyes on the donation flow.
         </p>
-        <div
-          className="border border-red/40 bg-red/5 p-3 text-xs text-muted max-w-xl space-y-1"
-          role="alert"
-        >
-          <p className="text-red font-semibold">
-            ⚠ Network warning — read before sending
-          </p>
+      </header>
+      <DonateFlash />
+      {!configured && (
+        <p className="text-xs text-muted border border-amber/20 p-3">
+          Donations are not active yet. Operator: see{" "}
+          <code className="text-amber">docs/BTCPAY-SETUP.md</code>.
+        </p>
+      )}
+      <DonateForm configured={configured} />
+      <details className="max-w-xl text-xs text-muted group">
+        <summary className="cursor-pointer list-none select-none inline-flex items-center gap-2 border border-muted/30 px-2 py-1 hover:border-amber/60 hover:text-amber transition-colors">
+          <span
+            className="inline-flex items-center justify-center w-4 h-4 border border-current text-[10px] font-semibold rounded-full"
+            aria-hidden="true"
+          >
+            i
+          </span>
+          <span>Network warning — read before sending</span>
+          <span className="text-[10px] opacity-60 group-open:hidden">
+            ▸ click to expand
+          </span>
+          <span className="text-[10px] opacity-60 hidden group-open:inline">
+            ▾ click to collapse
+          </span>
+        </summary>
+        <div className="mt-2 border border-red/40 bg-red/5 p-3 space-y-1">
           <p>
             Every address you see on the checkout page is a{" "}
             <span className="text-amber">one-time deposit address</span>{" "}
@@ -59,22 +78,14 @@ export default function DonatePage() {
               Sparrow (Liquid mode).
             </li>
           </ul>
-          <p className="text-muted pt-1">
+          <p className="pt-1">
             If you are not sure which network your exchange or wallet supports,
             donate in <span className="text-amber">BTC</span> or{" "}
             <span className="text-amber">BTC-Lightning</span> — they are the
             safest default.
           </p>
         </div>
-      </header>
-      <DonateFlash />
-      {!configured && (
-        <p className="text-xs text-muted border border-amber/20 p-3">
-          Donations are not active yet. Operator: see{" "}
-          <code className="text-amber">docs/BTCPAY-SETUP.md</code>.
-        </p>
-      )}
-      <DonateForm configured={configured} />
+      </details>
     </div>
   );
 }
