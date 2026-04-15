@@ -143,20 +143,37 @@ export default function DonateGitHubSponsorsPage() {
 function TierCard({ tier }: { tier: Tier }) {
   return (
     <div
-      className="relative flex flex-col gap-3 border border-amber/30 hover:border-amber hover:bg-amber/5 p-4 transition-colors"
+      className={`relative flex flex-col gap-3 border p-4 transition-colors ${
+        tier.highlighted
+          ? "border-amber hover:bg-amber/5"
+          : "border-amber/30 hover:border-amber hover:bg-amber/5"
+      }`}
+      style={
+        tier.highlighted
+          ? {
+              boxShadow:
+                "0 0 0 1px rgba(255, 176, 0, 0.6), 0 0 24px rgba(255, 176, 0, 0.18)",
+            }
+          : undefined
+      }
       data-testid={`tier-card-${tier.code}`}
     >
       {tier.highlighted && (
-        <span
-          aria-label="Most popular tier"
-          title="Most popular"
-          className="pointer-events-none absolute -top-2 -right-2 text-amber text-xl leading-none select-none"
-          style={{
-            filter: "drop-shadow(0 0 6px rgba(255, 176, 0, 0.7))",
-          }}
-        >
-          ★
-        </span>
+        <>
+          <span
+            aria-label="Most popular tier"
+            title="Most popular"
+            className="pointer-events-none absolute -top-3 -right-3 text-amber text-3xl leading-none select-none"
+            style={{
+              filter: "drop-shadow(0 0 10px rgba(255, 176, 0, 0.9))",
+            }}
+          >
+            ★
+          </span>
+          <span className="inline-flex items-center self-start border border-amber bg-amber/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber">
+            Most popular
+          </span>
+        </>
       )}
       <div className="space-y-1">
         <h3 className="text-amber text-lg">{tier.name}</h3>
