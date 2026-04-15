@@ -14,6 +14,12 @@ import { normalizeFlag, flagSchema } from "@/lib/validation/flags";
 import { liveBus } from "@/lib/live/bus";
 import { decideBadgesToAward } from "@/lib/badges/award";
 import { startRun, findOpenRun, closeRun } from "@/lib/speedrun/hooks";
+import {
+  announceFirstBlood,
+  announceGhostGraduate,
+  announcePhantomGraduate,
+} from "@/lib/discord/announce";
+import { operativeSerial } from "@/lib/certificate/serial";
 
 export type SubmitResult =
   | { ok: true; levelIdx: number; trackSlug: string; points: number }
@@ -179,6 +185,32 @@ export async function submitFlag(
     levelIdx: level.idx,
     levelTitle: level.title,
   });
+
+  // Discord announcements — fire-and-forget. Do not block on Discord.
+  const announceUser = userRow?.username ?? "unknown";
+  const announceTrack = trackRow?.slug ?? "unknown";
+  const now = new Date();
+  if (isFirstBlood) {
+    void announceFirstBlood({
+      username: announceUser,
+      trackSlug: announceTrack,
+      levelIdx: level.idx,
+      levelTitle: level.title,
+      points,
+    });
+  }
+  if (isGhostGraduate && !alreadyGraduate) {
+    void announceGhostGraduate({
+      username: announceUser,
+      serial: operativeSerial(userId, level.trackId, now, "GHST"),
+    });
+  }
+  if (isPhantomGraduate && !alreadyPhantomGraduate) {
+    void announcePhantomGraduate({
+      username: announceUser,
+      serial: operativeSerial(userId, level.trackId, now, "PHNM"),
+    });
+  }
 
   return {
     ok: true,
