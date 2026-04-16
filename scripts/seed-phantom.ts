@@ -15,32 +15,62 @@ type PhantomLevel = {
 };
 
 const PHANTOM_LEVELS: PhantomLevel[] = [
+  // ═══════════════════════════════════════════════════════════════
+  // ACT I: ESCALATION (0-9) — Get root on the box
+  // ═══════════════════════════════════════════════════════════════
   { idx: 0, title: "Recon Gateway", pointsBase: 300, pointsFirstBloodBonus: 50 },
-  { idx: 1, title: "Sudo Allowlist", pointsBase: 320, pointsFirstBloodBonus: 50 },
-  { idx: 2, title: "Preload", pointsBase: 340, pointsFirstBloodBonus: 50 },
-  { idx: 3, title: "Wild Card", pointsBase: 360, pointsFirstBloodBonus: 50 },
-  { idx: 4, title: "Edit Escape", pointsBase: 380, pointsFirstBloodBonus: 50 },
-  { idx: 5, title: "Local Authority", pointsBase: 420, pointsFirstBloodBonus: 50 },
-  { idx: 6, title: "Capable Interpreter", pointsBase: 460, pointsFirstBloodBonus: 50 },
-  { idx: 7, title: "Read Everything", pointsBase: 500, pointsFirstBloodBonus: 50 },
-  { idx: 8, title: "Live Injection", pointsBase: 540, pointsFirstBloodBonus: 50 },
-  { idx: 9, title: "Writable Rules", pointsBase: 580, pointsFirstBloodBonus: 50 },
-  { idx: 10, title: "Writable Authority", pointsBase: 620, pointsFirstBloodBonus: 50 },
-  { idx: 11, title: "Schedule Hijack", pointsBase: 660, pointsFirstBloodBonus: 50 },
-  { idx: 12, title: "Group Privilege", pointsBase: 700, pointsFirstBloodBonus: 50 },
-  { idx: 13, title: "The Socket", pointsBase: 800, pointsFirstBloodBonus: 50 },
-  { idx: 14, title: "Privileged", pointsBase: 860, pointsFirstBloodBonus: 50 },
-  { idx: 15, title: "Release Agent", pointsBase: 920, pointsFirstBloodBonus: 50 },
-  { idx: 16, title: "Self Exe", pointsBase: 980, pointsFirstBloodBonus: 50 },
-  { idx: 17, title: "Leaky Vessels", pointsBase: 1040, pointsFirstBloodBonus: 50 },
-  { idx: 18, title: "Bad Pod", pointsBase: 1100, pointsFirstBloodBonus: 50 },
-  { idx: 19, title: "Kubelet Door", pointsBase: 1200, pointsFirstBloodBonus: 50 },
+  { idx: 1, title: "SUID Hunter", pointsBase: 320, pointsFirstBloodBonus: 50 },
+  { idx: 2, title: "Sudo Games", pointsBase: 340, pointsFirstBloodBonus: 50 },
+  { idx: 3, title: "Library Poison", pointsBase: 360, pointsFirstBloodBonus: 50 },
+  { idx: 4, title: "The Capabilities", pointsBase: 380, pointsFirstBloodBonus: 50 },
+  { idx: 5, title: "File Authority", pointsBase: 400, pointsFirstBloodBonus: 50 },
+  { idx: 6, title: "Scheduled Sins", pointsBase: 420, pointsFirstBloodBonus: 50 },
+  { idx: 7, title: "Local Authority", pointsBase: 460, pointsFirstBloodBonus: 50 },
+  { idx: 8, title: "Live Injection", pointsBase: 500, pointsFirstBloodBonus: 50 },
+  { idx: 9, title: "Kernel Day", pointsBase: 600, pointsFirstBloodBonus: 50 },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ACT II: HARVEST & PERSIST (10-15) — Loot, persist, disappear
+  // ═══════════════════════════════════════════════════════════════
+  { idx: 10, title: "The Harvest", pointsBase: 500, pointsFirstBloodBonus: 50 },
+  { idx: 11, title: "Token Hunter", pointsBase: 540, pointsFirstBloodBonus: 50 },
+  { idx: 12, title: "Ghost Install", pointsBase: 580, pointsFirstBloodBonus: 50 },
+  { idx: 13, title: "Deep Roots", pointsBase: 620, pointsFirstBloodBonus: 50 },
+  { idx: 14, title: "Shadow Mode", pointsBase: 700, pointsFirstBloodBonus: 50 },
+  { idx: 15, title: "Clean Slate", pointsBase: 750, pointsFirstBloodBonus: 50 },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ACT III: LATERAL MOVEMENT (16-19) — Move through the network
+  // ═══════════════════════════════════════════════════════════════
+  { idx: 16, title: "The Tunnel", pointsBase: 700, pointsFirstBloodBonus: 50 },
+  { idx: 17, title: "Internal Hunt", pointsBase: 750, pointsFirstBloodBonus: 50 },
+  { idx: 18, title: "Credential Spray", pointsBase: 800, pointsFirstBloodBonus: 50 },
+  { idx: 19, title: "Chain Reaction", pointsBase: 900, pointsFirstBloodBonus: 50 },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ACT IV: CONTAINER & CLOUD (20-26) — Break out of the box
+  // ═══════════════════════════════════════════════════════════════
+  { idx: 20, title: "Am I Contained?", pointsBase: 800, pointsFirstBloodBonus: 50 },
+  { idx: 21, title: "The Breakout", pointsBase: 860, pointsFirstBloodBonus: 50 },
+  { idx: 22, title: "Leaky Vessels", pointsBase: 920, pointsFirstBloodBonus: 50 },
+  { idx: 23, title: "Docker API", pointsBase: 960, pointsFirstBloodBonus: 50 },
+  { idx: 24, title: "Pod Games", pointsBase: 1000, pointsFirstBloodBonus: 50 },
+  { idx: 25, title: "Cluster Takeover", pointsBase: 1100, pointsFirstBloodBonus: 50 },
+  { idx: 26, title: "Cloud Reach", pointsBase: 1200, pointsFirstBloodBonus: 50 },
+
+  // ═══════════════════════════════════════════════════════════════
+  // ACT V: OPERATIONS (27-31) — Full operator skills
+  // ═══════════════════════════════════════════════════════════════
+  { idx: 27, title: "Toolsmith", pointsBase: 1000, pointsFirstBloodBonus: 50 },
+  { idx: 28, title: "The Heist", pointsBase: 1100, pointsFirstBloodBonus: 50 },
+  { idx: 29, title: "Wire Tap", pointsBase: 1100, pointsFirstBloodBonus: 50 },
+  { idx: 30, title: "Clean Exit", pointsBase: 1200, pointsFirstBloodBonus: 50 },
   {
-    idx: 20,
+    idx: 31,
     title: "Phantom Operative",
     description:
-      "[HIDDEN] Graduation gate — unlocked after solving all 20 public Phantom levels",
-    pointsBase: 2000,
+      "[HIDDEN] Final operation — full chain across multiple machines. Time-limited. Detection score tracked.",
+    pointsBase: 3000,
     pointsFirstBloodBonus: 0,
   },
 ];
@@ -61,7 +91,7 @@ async function main() {
         slug: "phantom",
         name: "Phantom",
         description:
-          "Post-exploitation — Linux privilege escalation, container escape, Kubernetes pod escape.",
+          "Post-exploitation — privilege escalation, credential harvesting, persistence, lateral movement, container escape, Kubernetes, cloud, and full operational tradecraft.",
         status: "live",
         orderIdx: 1,
       })
