@@ -212,7 +212,7 @@ export function CertificateShowcase({
       </div>
 
       {earnedCount === 0 ? (
-        <div className="border border-amber/30 p-6 space-y-3">
+        <div className="border border-amber/30 p-6 space-y-3 break-words">
           <p className="text-sm">
             You have no certifications yet. Every BreachLab graduate earns
             their first certificate by clearing the Ghost track.
