@@ -9,10 +9,7 @@ export async function UserMenu() {
       {user ? (
         <ul className="text-sm space-y-1">
           <li>
-            <Link href="/dashboard">@{user.username}</Link>
-          </li>
-          <li>
-            <Link href="/dashboard/account">Account</Link>
+            <Link href="/dashboard">Account</Link>
           </li>
         </ul>
       ) : (
