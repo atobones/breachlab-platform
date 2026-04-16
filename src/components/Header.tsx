@@ -22,7 +22,15 @@ export function Header() {
           ))}
         </ul>
       </nav>
-      <DonateButton />
+      <div className="flex items-center gap-3">
+        <Link
+          href="/help"
+          className="text-muted text-sm uppercase tracking-wider hover:text-amber"
+        >
+          Help
+        </Link>
+        <DonateButton />
+      </div>
     </header>
   );
 }
