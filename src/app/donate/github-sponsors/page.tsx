@@ -12,12 +12,14 @@ type Tier = {
   description: string;
   perks: string[];
   highlighted?: boolean;
+  tierId?: number;
 };
 
 const MONTHLY_TIERS: Tier[] = [
   {
     name: "Recruit",
     code: "recruit",
+    tierId: 607734,
     price: "$3",
     period: "/month",
     description: "The entry level. You're on the wall.",
@@ -29,6 +31,7 @@ const MONTHLY_TIERS: Tier[] = [
   {
     name: "Operator",
     code: "operator",
+    tierId: 607851,
     price: "$10",
     period: "/month",
     description: "You actively keep the gym running.",
@@ -42,6 +45,7 @@ const MONTHLY_TIERS: Tier[] = [
   {
     name: "Phantom",
     code: "phantom",
+    tierId: 607852,
     price: "$25",
     period: "/month",
     description: "You get early access. You shape the next tracks.",
@@ -55,6 +59,7 @@ const MONTHLY_TIERS: Tier[] = [
   {
     name: "Architect",
     code: "architect",
+    tierId: 607853,
     price: "$100",
     period: "/month",
     description: "You fund the mission. Your name stays forever.",
@@ -189,7 +194,11 @@ function TierCard({ tier }: { tier: Tier }) {
         ))}
       </ul>
       <a
-        href={GH_SPONSORS_URL}
+        href={
+          tier.tierId
+            ? `${GH_SPONSORS_URL}/sponsorships?tier_id=${tier.tierId}`
+            : GH_SPONSORS_URL
+        }
         target="_blank"
         rel="noopener noreferrer"
         className="inline-flex items-center justify-center gap-2 border border-amber/60 hover:border-amber hover:bg-amber/10 px-3 py-2 text-xs text-amber transition-colors"
