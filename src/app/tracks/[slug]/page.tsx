@@ -11,17 +11,17 @@ const UPCOMING_TRACKS: Record<string, TrackInfo> = {
   specter: {
     name: "Specter",
     status: "SOON",
-    tagline: "Network reconnaissance and service exploitation.",
-  },
-  cipher: {
-    name: "Cipher",
-    status: "PLANNED",
-    tagline: "Applied cryptography — breaking what was meant to be unbreakable.",
+    tagline: "Network attacks, wireless exploitation, phishing, DDoS, and firewall evasion.",
   },
   mirage: {
     name: "Mirage",
     status: "PLANNED",
     tagline: "Web application exploitation — the attack surface that never sleeps.",
+  },
+  cipher: {
+    name: "Cipher",
+    status: "PLANNED",
+    tagline: "Applied cryptography and password attacks — breaking what was meant to be unbreakable.",
   },
   nexus: {
     name: "Nexus",
@@ -31,7 +31,37 @@ const UPCOMING_TRACKS: Record<string, TrackInfo> = {
   oracle: {
     name: "Oracle",
     status: "PLANNED",
-    tagline: "AI/LLM security — the newest and least understood attack surface.",
+    tagline: "AI/LLM security — prompt injection, agent exploitation, model attacks.",
+  },
+  wraith: {
+    name: "Wraith",
+    status: "PLANNED",
+    tagline: "Windows and Active Directory — the other half of the corporate world.",
+  },
+  shadow: {
+    name: "Shadow",
+    status: "PLANNED",
+    tagline: "Anonymity, OPSEC, Tor, darknet, and counter-forensics — disappear completely.",
+  },
+  sentinel: {
+    name: "Sentinel",
+    status: "PLANNED",
+    tagline: "Blue team — forensics, incident response, threat hunting, and detection engineering.",
+  },
+  prism: {
+    name: "Prism",
+    status: "PLANNED",
+    tagline: "Apple security — macOS exploitation, iOS jailbreaking, and ecosystem attacks.",
+  },
+  venom: {
+    name: "Venom",
+    status: "PLANNED",
+    tagline: "Red team operations — C2 frameworks, implant development, and full engagement simulation.",
+  },
+  flux: {
+    name: "Flux",
+    status: "PLANNED",
+    tagline: "Binary exploitation, reverse engineering, and malware analysis.",
   },
 };
 

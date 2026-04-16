@@ -7,10 +7,16 @@ const TRACKS: Track[] = [
   { slug: "ghost", name: "Ghost", status: "LIVE" },
   { slug: "phantom", name: "Phantom", status: "LIVE" },
   { slug: "specter", name: "Specter", status: "SOON" },
-  { slug: "cipher", name: "Cipher", status: "PLANNED" },
   { slug: "mirage", name: "Mirage", status: "PLANNED" },
+  { slug: "cipher", name: "Cipher", status: "PLANNED" },
   { slug: "nexus", name: "Nexus", status: "PLANNED" },
   { slug: "oracle", name: "Oracle", status: "PLANNED" },
+  { slug: "wraith", name: "Wraith", status: "PLANNED" },
+  { slug: "shadow", name: "Shadow", status: "PLANNED" },
+  { slug: "sentinel", name: "Sentinel", status: "PLANNED" },
+  { slug: "prism", name: "Prism", status: "PLANNED" },
+  { slug: "venom", name: "Venom", status: "PLANNED" },
+  { slug: "flux", name: "Flux", status: "PLANNED" },
 ];
 
 const STATUS_COLOR: Record<TrackStatus, string> = {
