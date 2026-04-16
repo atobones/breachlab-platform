@@ -27,7 +27,7 @@ const TRACKS = [
     href: "/tracks/specter",
     status: "SOON" as const,
     difficulty: "Intermediate",
-    levels: null,
+    levels: 30,
     summary:
       "Initial access — how you get in. OSINT, network attacks, WiFi exploitation, phishing, social engineering, DDoS, firewall and IDS evasion, physical access.",
   },
@@ -37,7 +37,7 @@ const TRACKS = [
     href: "/tracks/mirage",
     status: "PLANNED" as const,
     difficulty: "Intermediate → Advanced",
-    levels: null,
+    levels: 28,
     summary:
       "Web exploitation. SQL injection, XSS, auth bypass, SSRF, deserialization, API abuse, SSTI, HTTP request smuggling. The biggest attack surface in the world.",
   },
@@ -47,7 +47,7 @@ const TRACKS = [
     href: "/tracks/cipher",
     status: "PLANNED" as const,
     difficulty: "Intermediate",
-    levels: null,
+    levels: 20,
     summary:
       "Cryptography and password attacks. Hash cracking, TLS exploitation, padding oracle, RSA vulnerabilities, JWT forgery, credential stuffing.",
   },
@@ -57,7 +57,7 @@ const TRACKS = [
     href: "/tracks/nexus",
     status: "PLANNED" as const,
     difficulty: "Advanced",
-    levels: null,
+    levels: 22,
     summary:
       "CI/CD and supply chain. Git secrets, pipeline poisoning, dependency confusion, container registry attacks, IaC exploitation.",
   },
@@ -67,7 +67,7 @@ const TRACKS = [
     href: "/tracks/oracle",
     status: "PLANNED" as const,
     difficulty: "Advanced",
-    levels: null,
+    levels: 18,
     summary:
       "AI/LLM security. Prompt injection, jailbreaking, data exfiltration through LLMs, agent exploitation, RAG poisoning, model attacks.",
   },
@@ -77,7 +77,7 @@ const TRACKS = [
     href: "/tracks/wraith",
     status: "PLANNED" as const,
     difficulty: "Intermediate → Advanced",
-    levels: null,
+    levels: 30,
     summary:
       "Windows and Active Directory. PowerShell, token impersonation, Kerberoasting, pass-the-hash, DCSync, Golden Ticket, AMSI bypass, GPO abuse.",
   },
@@ -87,7 +87,7 @@ const TRACKS = [
     href: "/tracks/shadow",
     status: "PLANNED" as const,
     difficulty: "All levels",
-    levels: null,
+    levels: 25,
     summary:
       "Anonymity, OPSEC, and darknet. Tor, VPN chains, anonymous communications, cryptocurrency privacy, counter-forensics, attribution resistance.",
   },
@@ -97,7 +97,7 @@ const TRACKS = [
     href: "/tracks/sentinel",
     status: "PLANNED" as const,
     difficulty: "Intermediate → Advanced",
-    levels: null,
+    levels: 25,
     summary:
       "Blue team. Log analysis, SIEM, incident response, memory forensics, malware analysis, network defense, hardening, threat hunting, detection engineering.",
   },
@@ -107,7 +107,7 @@ const TRACKS = [
     href: "/tracks/prism",
     status: "PLANNED" as const,
     difficulty: "Advanced",
-    levels: null,
+    levels: 22,
     summary:
       "Apple security. macOS SIP/TCC/Gatekeeper bypass, Keychain extraction, iOS jailbreak fundamentals, app analysis, AirDrop exploitation.",
   },
@@ -117,7 +117,7 @@ const TRACKS = [
     href: "/tracks/venom",
     status: "PLANNED" as const,
     difficulty: "Expert",
-    levels: null,
+    levels: 25,
     summary:
       "Red team operations. C2 frameworks, implant development, payload delivery, infrastructure setup, EDR bypass, campaign planning, purple teaming.",
   },
@@ -127,7 +127,7 @@ const TRACKS = [
     href: "/tracks/flux",
     status: "PLANNED" as const,
     difficulty: "Advanced → Expert",
-    levels: null,
+    levels: 25,
     summary:
       "Binary exploitation and reverse engineering. Stack overflow, ROP, heap, shellcoding, mitigation bypass, malware RE, firmware analysis, exploit development.",
   },
@@ -140,18 +140,13 @@ const STATUS_STYLE = {
 } as const;
 
 export default function HomePage() {
-  const totalLevels = TRACKS.reduce(
-    (sum, t) => sum + (t.levels ?? 0),
-    0,
-  );
-
   return (
     <div className="space-y-8">
       <header className="space-y-3">
         <h1 className="text-amber text-2xl">BreachLab</h1>
         <p className="text-sm text-text max-w-2xl">
           The most comprehensive offensive security training platform in the
-          world. 13 tracks, {totalLevels}+ levels, zero hand-holding. From
+          world. 13 tracks, 320+ levels, zero hand-holding. From
           Linux basics to red team operations, container escapes to darknet
           OPSEC, web exploitation to AI/LLM attacks. No other platform covers
           this range in one place.
