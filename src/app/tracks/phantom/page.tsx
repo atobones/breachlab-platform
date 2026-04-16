@@ -2,7 +2,6 @@ import { eq, count } from "drizzle-orm";
 import Link from "next/link";
 import { getTrackBySlug, getLevelsForTrack } from "@/lib/tracks/queries";
 import { PhantomLevelTable } from "@/components/tracks/PhantomLevelTable";
-import { TierBadge } from "@/components/tracks/TierBadge";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { submissions } from "@/lib/db/schema";
