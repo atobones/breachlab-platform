@@ -82,26 +82,6 @@ export default function HelpPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-amber text-lg">Rules</h2>
-        <ul className="text-sm space-y-1 list-disc list-inside text-muted">
-          <li>Do not share flags or solutions publicly</li>
-          <li>Do not attack the platform infrastructure itself</li>
-          <li>Do not interfere with other players</li>
-          <li>Do not brute force the flag submission form</li>
-          <li>
-            Stuck? Use man pages, documentation, and search engines — not
-            other players&apos; answers
-          </li>
-        </ul>
-        <p className="text-xs text-muted">
-          Full rules at{" "}
-          <a href="/rules" className="text-amber hover:underline">
-            /rules
-          </a>
-        </p>
-      </section>
-
-      <section className="space-y-3">
         <h2 className="text-amber text-lg">Useful commands</h2>
         <p className="text-xs text-muted mb-2">
           If you don&apos;t know how to use a command, try{" "}
