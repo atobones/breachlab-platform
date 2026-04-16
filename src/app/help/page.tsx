@@ -39,16 +39,14 @@ export default function HelpPage() {
         </p>
         <pre className="text-sm">
 {`Channels:
-        #wargames       (for talk related to the games)
-        #general        (for general talk)`}
+        #help           (stuck on a level? ask here)
+        #ghost          (Ghost track discussion)
+        #phantom        (Phantom track discussion)
+        #general        (general talk)
+        #victories      (share your wins)
+        #bugs           (report platform issues)
+        #feedback       (suggestions and ideas)`}
         </pre>
-        <p className="text-sm text-muted">
-          Please be aware of our{" "}
-          <Link href="/rules" className="text-amber hover:underline">
-            rules
-          </Link>
-          . When you first connect, you will be reminded of them.
-        </p>
       </section>
 
       <section className="space-y-3">
