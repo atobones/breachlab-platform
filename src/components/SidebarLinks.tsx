@@ -6,6 +6,9 @@ export function SidebarLinks() {
       <h2 className="text-muted text-sm uppercase mb-2">▸ Links</h2>
       <ul className="text-sm space-y-1">
         <li>
+          <Link href="/hall-of-operatives">Hall of Operatives</Link>
+        </li>
+        <li>
           <Link href="/rules">Rules</Link>
         </li>
         <li>

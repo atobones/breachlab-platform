@@ -8,6 +8,10 @@ const COLOR: Record<BadgeKind, string> = {
   speedrun_top10: "border-amber text-amber",
   ghost_graduate: "border-amber text-amber font-bold",
   phantom_master: "border-red text-red font-bold",
+  sponsor_recruit: "border-green text-green",
+  sponsor_operator: "border-green text-green font-bold",
+  sponsor_phantom: "border-amber text-amber font-bold",
+  sponsor_architect: "border-amber text-amber font-bold",
 };
 
 export function BadgePill({ kind }: { kind: BadgeKind }) {

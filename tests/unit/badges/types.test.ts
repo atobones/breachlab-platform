@@ -9,6 +9,13 @@ describe("badge types", () => {
     expect(isBadgeKind("speedrun_top10")).toBe(true);
   });
 
+  it("recognizes sponsor badge kinds", () => {
+    expect(isBadgeKind("sponsor_recruit")).toBe(true);
+    expect(isBadgeKind("sponsor_operator")).toBe(true);
+    expect(isBadgeKind("sponsor_phantom")).toBe(true);
+    expect(isBadgeKind("sponsor_architect")).toBe(true);
+  });
+
   it("rejects unknown kinds", () => {
     expect(isBadgeKind("hacker_deluxe")).toBe(false);
     expect(isBadgeKind("")).toBe(false);
