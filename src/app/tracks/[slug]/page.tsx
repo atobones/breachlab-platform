@@ -5,7 +5,6 @@ type TrackInfo = {
   name: string;
   status: "SOON" | "PLANNED";
   tagline: string;
-  topics: string[];
 };
 
 const UPCOMING_TRACKS: Record<string, TrackInfo> = {
@@ -13,61 +12,26 @@ const UPCOMING_TRACKS: Record<string, TrackInfo> = {
     name: "Specter",
     status: "SOON",
     tagline: "Network reconnaissance and service exploitation.",
-    topics: [
-      "Network scanning and enumeration",
-      "Service fingerprinting",
-      "Protocol analysis",
-      "Man-in-the-middle fundamentals",
-      "Wireless and lateral movement basics",
-    ],
   },
   cipher: {
     name: "Cipher",
     status: "PLANNED",
     tagline: "Applied cryptography — breaking what was meant to be unbreakable.",
-    topics: [
-      "Classical ciphers and frequency analysis",
-      "Hash cracking and collision attacks",
-      "RSA and asymmetric vulnerabilities",
-      "TLS/SSL misconfigurations",
-      "Real-world crypto implementation flaws",
-    ],
   },
   mirage: {
     name: "Mirage",
     status: "PLANNED",
     tagline: "Web application exploitation — the attack surface that never sleeps.",
-    topics: [
-      "SQL injection and ORM bypass",
-      "XSS, CSRF, and session attacks",
-      "Authentication and authorization flaws",
-      "Server-side request forgery (SSRF)",
-      "Deserialization and template injection",
-    ],
   },
   nexus: {
     name: "Nexus",
     status: "PLANNED",
     tagline: "CI/CD and supply chain — where one commit compromises thousands.",
-    topics: [
-      "Git secrets and history mining",
-      "Pipeline poisoning",
-      "Dependency confusion attacks",
-      "Container escape and registry attacks",
-      "Infrastructure as Code vulnerabilities",
-    ],
   },
   oracle: {
     name: "Oracle",
     status: "PLANNED",
     tagline: "AI/LLM security — the newest and least understood attack surface.",
-    topics: [
-      "Prompt injection and jailbreaking",
-      "Data exfiltration through LLMs",
-      "Agent exploitation and tool abuse",
-      "Model poisoning and backdoors",
-      "RAG and embedding attacks",
-    ],
   },
 };
 
@@ -97,20 +61,6 @@ export default async function TrackComingSoonPage({
         </div>
         <p className="text-sm text-muted">{track.tagline}</p>
       </header>
-
-      <section className="border border-border p-5 space-y-4">
-        <h2 className="text-amber text-sm uppercase tracking-wider">
-          What this track will cover
-        </h2>
-        <ul className="space-y-2">
-          {track.topics.map((topic) => (
-            <li key={topic} className="flex items-start gap-2 text-sm">
-              <span className="text-muted mt-0.5">&#x25B8;</span>
-              <span>{topic}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
 
       <section className="space-y-3">
         <p className="text-sm text-muted">
