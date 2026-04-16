@@ -7,69 +7,129 @@ const TRACKS = [
     href: "/tracks/ghost",
     status: "LIVE" as const,
     difficulty: "Foundation",
-    levels: 23,
+    levels: 22,
     summary:
-      "Linux and shell fundamentals. File navigation, special filenames, hidden files, permissions, grep, port enumeration, environment variables, encoding, process forensics. Where every operator starts.",
+      "Linux and shell fundamentals. Navigation, permissions, processes, encoding, network, SSH keys, port scanning, cron, git forensics, /proc. Where every operator starts.",
   },
   {
     number: 2,
     name: "Phantom",
     href: "/tracks/phantom",
     status: "LIVE" as const,
-    difficulty: "Intermediate",
-    levels: 21,
+    difficulty: "Intermediate → Advanced",
+    levels: 32,
     summary:
-      "Post-exploitation and privilege escalation. SUID exploits, sudo misconfigurations, cron hijacking, Docker escape, Linux capabilities abuse. What happens after you get a shell.",
+      "Post-exploitation — the full chain. SUID, sudo, capabilities, kernel CVEs, credential harvesting, persistence, defense evasion, lateral movement, container escape, Kubernetes takeover, cloud pivot, data exfiltration, operational cleanup.",
   },
   {
     number: 3,
     name: "Specter",
-    href: "/tracks/ghost",
+    href: "/tracks/specter",
     status: "SOON" as const,
     difficulty: "Intermediate",
     levels: null,
     summary:
-      "Web application security. JWT manipulation, OAuth misconfigs, SSRF → cloud metadata, GraphQL introspection, SSTI, prototype pollution. The modern attack surface.",
+      "Initial access — how you get in. OSINT, network attacks, WiFi exploitation, phishing, social engineering, DDoS, firewall and IDS evasion, physical access.",
   },
   {
     number: 4,
-    name: "Cipher",
-    href: "#",
+    name: "Mirage",
+    href: "/tracks/mirage",
     status: "PLANNED" as const,
-    difficulty: "Advanced",
+    difficulty: "Intermediate → Advanced",
     levels: null,
     summary:
-      "Applied cryptography. Padding oracles, hash length extension, weak RNG exploitation, TLS downgrade, certificate pinning bypass.",
+      "Web exploitation. SQL injection, XSS, auth bypass, SSRF, deserialization, API abuse, SSTI, HTTP request smuggling. The biggest attack surface in the world.",
   },
   {
     number: 5,
-    name: "Mirage",
-    href: "#",
+    name: "Cipher",
+    href: "/tracks/cipher",
     status: "PLANNED" as const,
-    difficulty: "Advanced",
+    difficulty: "Intermediate",
     levels: null,
     summary:
-      "Cloud and infrastructure. AWS IAM escalation, S3 misconfigs, Kubernetes RBAC abuse, Terraform state exploitation, CI/CD pipeline attacks.",
+      "Cryptography and password attacks. Hash cracking, TLS exploitation, padding oracle, RSA vulnerabilities, JWT forgery, credential stuffing.",
   },
   {
     number: 6,
     name: "Nexus",
-    href: "#",
+    href: "/tracks/nexus",
     status: "PLANNED" as const,
     difficulty: "Advanced",
     levels: null,
     summary:
-      "AI/ML security. Prompt injection, model extraction, training data poisoning, adversarial inputs, LLM-powered attack chains.",
+      "CI/CD and supply chain. Git secrets, pipeline poisoning, dependency confusion, container registry attacks, IaC exploitation.",
   },
   {
     number: 7,
     name: "Oracle",
-    href: "#",
+    href: "/tracks/oracle",
+    status: "PLANNED" as const,
+    difficulty: "Advanced",
+    levels: null,
+    summary:
+      "AI/LLM security. Prompt injection, jailbreaking, data exfiltration through LLMs, agent exploitation, RAG poisoning, model attacks.",
+  },
+  {
+    number: 8,
+    name: "Wraith",
+    href: "/tracks/wraith",
+    status: "PLANNED" as const,
+    difficulty: "Intermediate → Advanced",
+    levels: null,
+    summary:
+      "Windows and Active Directory. PowerShell, token impersonation, Kerberoasting, pass-the-hash, DCSync, Golden Ticket, AMSI bypass, GPO abuse.",
+  },
+  {
+    number: 9,
+    name: "Shadow",
+    href: "/tracks/shadow",
+    status: "PLANNED" as const,
+    difficulty: "All levels",
+    levels: null,
+    summary:
+      "Anonymity, OPSEC, and darknet. Tor, VPN chains, anonymous communications, cryptocurrency privacy, counter-forensics, attribution resistance.",
+  },
+  {
+    number: 10,
+    name: "Sentinel",
+    href: "/tracks/sentinel",
+    status: "PLANNED" as const,
+    difficulty: "Intermediate → Advanced",
+    levels: null,
+    summary:
+      "Blue team. Log analysis, SIEM, incident response, memory forensics, malware analysis, network defense, hardening, threat hunting, detection engineering.",
+  },
+  {
+    number: 11,
+    name: "Prism",
+    href: "/tracks/prism",
+    status: "PLANNED" as const,
+    difficulty: "Advanced",
+    levels: null,
+    summary:
+      "Apple security. macOS SIP/TCC/Gatekeeper bypass, Keychain extraction, iOS jailbreak fundamentals, app analysis, AirDrop exploitation.",
+  },
+  {
+    number: 12,
+    name: "Venom",
+    href: "/tracks/venom",
     status: "PLANNED" as const,
     difficulty: "Expert",
     levels: null,
     summary:
-      "The final exam. Multi-stage scenarios combining every track. No hints, no structure, no mercy. Prove you earned the title.",
+      "Red team operations. C2 frameworks, implant development, payload delivery, infrastructure setup, EDR bypass, campaign planning, purple teaming.",
+  },
+  {
+    number: 13,
+    name: "Flux",
+    href: "/tracks/flux",
+    status: "PLANNED" as const,
+    difficulty: "Advanced → Expert",
+    levels: null,
+    summary:
+      "Binary exploitation and reverse engineering. Stack overflow, ROP, heap, shellcoding, mitigation bypass, malware RE, firmware analysis, exploit development.",
   },
 ];
 
@@ -80,20 +140,27 @@ const STATUS_STYLE = {
 } as const;
 
 export default function HomePage() {
+  const totalLevels = TRACKS.reduce(
+    (sum, t) => sum + (t.levels ?? 0),
+    0,
+  );
+
   return (
     <div className="space-y-8">
       <header className="space-y-3">
         <h1 className="text-amber text-2xl">BreachLab</h1>
         <p className="text-sm text-text max-w-2xl">
-          A wargame series for learning real-world security. No hand-holding,
-          no GUIs, no CTF theatre. Just a terminal, a goal, and the knowledge
-          that you earned your way through.
+          The most comprehensive offensive security training platform in the
+          world. 13 tracks, {totalLevels}+ levels, zero hand-holding. From
+          Linux basics to red team operations, container escapes to darknet
+          OPSEC, web exploitation to AI/LLM attacks. No other platform covers
+          this range in one place.
         </p>
         <p className="text-xs text-muted max-w-2xl">
-          Each track teaches a different domain of offensive and defensive
-          security through progressively harder levels. Complete a track to
-          earn an Operative Certificate with a unique serial, shareable
-          publicly. First-blood and speedrun records are tracked on the{" "}
+          Each track teaches a different domain through progressively harder
+          levels on real vulnerable infrastructure. No simulations — real
+          software, real CVEs, real tools. Complete a track to earn an
+          Operative Certificate. First-blood and speedrun records on the{" "}
           <Link href="/leaderboard" className="text-amber hover:underline">
             leaderboard
           </Link>
@@ -103,7 +170,7 @@ export default function HomePage() {
 
       <section className="space-y-4">
         <h2 className="text-amber text-sm uppercase tracking-wider">
-          Tracks — suggested order
+          13 Tracks — from foundation to nation-state
         </h2>
         <div className="space-y-3 max-w-3xl">
           {TRACKS.map((track) => (
@@ -115,7 +182,7 @@ export default function HomePage() {
                 {track.number}.
               </span>
               <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Link
                     href={track.href}
                     className="text-amber text-base hover:underline"
@@ -154,16 +221,16 @@ export default function HomePage() {
             <Link href="/register" className="text-amber hover:underline">
               Register
             </Link>{" "}
-            on this site to track your progress and compete on the leaderboard
+            to track progress and compete on the leaderboard
           </li>
           <li>
-            Read the rules in{" "}
+            Read the{" "}
             <Link href="/rules" className="text-amber hover:underline">
-              📋 /rules
+              rules
             </Link>
           </li>
           <li>
-            Start the Ghost track — it is the foundation for everything else
+            Start the Ghost track — the foundation for everything else
           </li>
           <li>
             Ask questions in{" "}
@@ -172,9 +239,21 @@ export default function HomePage() {
               className="text-amber hover:underline"
               rel="noreferrer"
             >
-              💬 Discord #help
+              Discord
             </a>
           </li>
+        </ul>
+      </section>
+
+      <section className="space-y-2 max-w-2xl">
+        <h2 className="text-amber text-sm uppercase tracking-wider">
+          What you become
+        </h2>
+        <ul className="text-xs text-muted space-y-1 list-disc list-inside">
+          <li>Ghost + Phantom = Junior Penetration Tester</li>
+          <li>Add Mirage + Cipher = Web Security Specialist</li>
+          <li>Add Wraith + Venom = Senior Red Team Operator</li>
+          <li>All 13 tracks = Full-stack offensive security — nation-state capability</li>
         </ul>
       </section>
 
@@ -184,14 +263,17 @@ export default function HomePage() {
         </h2>
         <ul className="text-xs text-muted space-y-1 list-disc list-inside">
           <li>Per-level points and first-blood bonuses</li>
+          <li>Operative Certificate with unique serial per track</li>
+          <li>Discord roles and public Honor Roll</li>
           <li>
-            Operative Certificate with a unique serial, shareable publicly
+            <Link
+              href="/hall-of-operatives"
+              className="text-amber hover:underline"
+            >
+              Hall of Operatives
+            </Link>{" "}
+            for sponsors
           </li>
-          <li>
-            Discord roles (Operative / First Blood / Ghost Master / Phantom
-            Operative)
-          </li>
-          <li>A place on the public Honor Roll</li>
         </ul>
       </section>
 

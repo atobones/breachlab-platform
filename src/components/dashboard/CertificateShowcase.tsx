@@ -34,25 +34,25 @@ const TRACKS: TrackMeta[] = [
     badgeKind: "phantom_master",
     serialPrefix: "PHNM",
     color: "red",
-    description: "Post-exploitation & container escape",
+    description: "Post-exploitation & operational tradecraft",
   },
   {
     slug: "specter",
     name: "Specter",
     tier: "soon",
-    description: "Web application security",
-  },
-  {
-    slug: "cipher",
-    name: "Cipher",
-    tier: "soon",
-    description: "Cryptography attacks",
+    description: "Network, WiFi, phishing & initial access",
   },
   {
     slug: "mirage",
     name: "Mirage",
     tier: "soon",
-    description: "Cloud & infrastructure",
+    description: "Web exploitation",
+  },
+  {
+    slug: "cipher",
+    name: "Cipher",
+    tier: "soon",
+    description: "Crypto & password attacks",
   },
   {
     slug: "nexus",
@@ -65,6 +65,42 @@ const TRACKS: TrackMeta[] = [
     name: "Oracle",
     tier: "soon",
     description: "AI/LLM security",
+  },
+  {
+    slug: "wraith",
+    name: "Wraith",
+    tier: "soon",
+    description: "Windows & Active Directory",
+  },
+  {
+    slug: "shadow",
+    name: "Shadow",
+    tier: "soon",
+    description: "Anonymity, OPSEC & darknet",
+  },
+  {
+    slug: "sentinel",
+    name: "Sentinel",
+    tier: "soon",
+    description: "Blue team & detection",
+  },
+  {
+    slug: "prism",
+    name: "Prism",
+    tier: "soon",
+    description: "Apple macOS & iOS",
+  },
+  {
+    slug: "venom",
+    name: "Venom",
+    tier: "soon",
+    description: "Red team operations",
+  },
+  {
+    slug: "flux",
+    name: "Flux",
+    tier: "soon",
+    description: "Binary exploitation & RE",
   },
 ];
 
