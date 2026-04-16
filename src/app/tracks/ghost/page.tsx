@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, sql, count } from "drizzle-orm";
 import { getTrackBySlug, getLevelsForTrack } from "@/lib/tracks/queries";
 import { LevelTable } from "@/components/tracks/LevelTable";
 import { getCurrentSession } from "@/lib/auth/session";
@@ -37,6 +37,17 @@ export default async function GhostTrackPage() {
       .where(eq(submissions.userId, user.id));
     solvedLevelIds = new Set(userRows.map((r) => r.levelId));
   }
+
+  const solveCountRows = await db
+    .select({
+      levelId: submissions.levelId,
+      operatives: count(submissions.userId),
+    })
+    .from(submissions)
+    .groupBy(submissions.levelId);
+  const solveCountByLevelId = new Map(
+    solveCountRows.map((r) => [r.levelId, Number(r.operatives)]),
+  );
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -230,6 +241,7 @@ export default async function GhostTrackPage() {
           levels={levelRows}
           solvedLevelIds={solvedLevelIds}
           firstBloodByLevelId={firstBloodByLevelId}
+          solveCountByLevelId={solveCountByLevelId}
         />
       </section>
 

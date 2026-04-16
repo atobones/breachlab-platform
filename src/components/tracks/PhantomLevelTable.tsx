@@ -25,10 +25,12 @@ export function PhantomLevelTable({
   levels,
   solvedLevelIds,
   firstBloodByLevelId,
+  solveCountByLevelId,
 }: {
   levels: Level[];
   solvedLevelIds: Set<string>;
   firstBloodByLevelId: Map<string, FirstBloodInfo>;
+  solveCountByLevelId?: Map<string, number>;
 }) {
   const byTier: Record<PhantomTier, Level[]> = {
     recruit: [],
@@ -61,6 +63,7 @@ export function PhantomLevelTable({
                   <th className="text-left py-1">#</th>
                   <th className="text-left py-1">Level</th>
                   <th className="text-right py-1">Points</th>
+                  <th className="text-right py-1">Operatives</th>
                   <th className="text-left py-1 pl-4">First Blood</th>
                   <th className="text-right py-1">Status</th>
                 </tr>
@@ -81,6 +84,11 @@ export function PhantomLevelTable({
                         </Link>
                       </td>
                       <td className="py-1 text-right">{l.pointsBase}</td>
+                      <td className="py-1 text-right text-muted">
+                        {(solveCountByLevelId?.get(l.id) ?? 0) > 0
+                          ? solveCountByLevelId!.get(l.id)
+                          : "—"}
+                      </td>
                       <td className="py-1 pl-4">
                         {fb ? (
                           <span className="text-amber">@{fb.username}</span>

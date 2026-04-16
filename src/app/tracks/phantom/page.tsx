@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, count } from "drizzle-orm";
 import Link from "next/link";
 import { getTrackBySlug, getLevelsForTrack } from "@/lib/tracks/queries";
 import { PhantomLevelTable } from "@/components/tracks/PhantomLevelTable";
@@ -39,6 +39,17 @@ export default async function PhantomTrackPage() {
       .where(eq(submissions.userId, user.id));
     solvedLevelIds = new Set(userRows.map((r) => r.levelId));
   }
+
+  const solveCountRows = await db
+    .select({
+      levelId: submissions.levelId,
+      operatives: count(submissions.userId),
+    })
+    .from(submissions)
+    .groupBy(submissions.levelId);
+  const solveCountByLevelId = new Map(
+    solveCountRows.map((r) => [r.levelId, Number(r.operatives)]),
+  );
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -201,6 +212,7 @@ export default async function PhantomTrackPage() {
           levels={levelRows}
           solvedLevelIds={solvedLevelIds}
           firstBloodByLevelId={firstBloodByLevelId}
+          solveCountByLevelId={solveCountByLevelId}
         />
       </section>
 
