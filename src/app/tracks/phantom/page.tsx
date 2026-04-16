@@ -54,68 +54,87 @@ export default async function PhantomTrackPage() {
   return (
     <div className="space-y-6 max-w-3xl">
       <h1 className="text-red text-2xl">
-        Phantom — Post-Exploitation &amp; Container Escape
+        Phantom — Post-Exploitation &amp; Operational Tradecraft
       </h1>
 
       <p className="text-sm">
-        Phantom is the second BreachLab track. Ghost ended at &ldquo;you got a
-        shell&rdquo;. Phantom starts there. Twenty-one levels teach the full
-        discipline of post-exploitation: Linux privilege escalation, container
-        escape on modern runtimes, Kubernetes pod escape, and kubectl-free
-        cluster pivot — the exact chain a real operator runs against a real
-        compromised pod in a real 2026 incident.
+        Ghost ended at &ldquo;you got a shell.&rdquo; Phantom starts there and
+        does not stop until the operation is complete. Thirty-two levels teach
+        the full discipline of post-exploitation: privilege escalation,
+        credential harvesting, persistence, defense evasion, lateral movement
+        across multi-host networks, container escape, Kubernetes cluster
+        takeover, cloud pivot, data exfiltration, and operational cleanup. This
+        is the complete chain a real operator runs against a real compromised
+        environment in 2026.
       </p>
 
       <section>
         <h2 className="text-red text-lg mb-2">Who this is for</h2>
         <p className="text-sm">
-          Operatives who have already finished Ghost or can do equivalent work
-          on a fresh Linux box without thinking. Phantom assumes you already
-          live in a shell — it will not teach you how to move a file or read a
-          log. Phantom teaches what happens after, and it does not soften the
-          2026 reality: container runtimes, Linux capabilities, cgroups,
-          Kubernetes service account tokens, and the specific runc, polkit,
-          and sudo CVEs that still matter this year.
+          Operatives who have finished Ghost or can do equivalent work on a
+          fresh Linux box without thinking. Phantom assumes you live in a
+          shell. It will not teach you how to move a file or read a log.
+          Phantom teaches what happens after the initial foothold — and it does
+          not soften the 2026 reality: modern kernel protections, container
+          runtimes, Kubernetes RBAC, cloud IAM, and the specific CVEs that
+          still matter this year.
         </p>
       </section>
 
       <section>
-        <h2 className="text-red text-lg mb-2">Difficulty tiers</h2>
+        <h2 className="text-red text-lg mb-2">Five acts, one operation</h2>
         <p className="text-sm mb-3">
-          Every Phantom level is labelled with one of four tiers. Each tier
-          changes one thing about how you approach the level.
+          Phantom is structured as a single escalating operation. Each act
+          builds on the last. By graduation you will have executed the full
+          attack lifecycle.
         </p>
-        <ul className="space-y-2 text-sm">
+        <ul className="space-y-3 text-sm">
           <li className="flex items-start gap-3">
-            <TierBadge tier="recruit" />
+            <span className="text-red font-bold shrink-0">I.</span>
             <span>
-              Single primitive, mitigations off, reachable in under fifteen
-              minutes if you know the concept. No hints. Five levels.
+              <strong className="text-red">Escalation</strong> (0–9) — Ten
+              levels covering every real-world privilege escalation vector:
+              SUID/GTFOBins, sudo misconfigurations, library hijacking,
+              capabilities, writable sensitive files, cron and systemd abuse,
+              polkit CVEs, ptrace injection, and kernel exploits.
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <TierBadge tier="operator" />
+            <span className="text-red font-bold shrink-0">II.</span>
             <span>
-              Mitigations on, realistic 2026 hardening, 2–3 step chains. A
-              single &ldquo;show approach&rdquo; hint unlocks after twenty
-              minutes — category-only, never commands. Eight levels. This is
-              the honest learning zone.
+              <strong className="text-red">Harvest &amp; Persist</strong>{" "}
+              (10–15) — Six levels on credential harvesting (memory dumps, SSH
+              keys, tokens, config files), persistence mechanisms (SSH, cron,
+              systemd, PAM backdoors), defense evasion (auditd bypass, LOLBins,
+              fileless execution), and anti-forensics (log wipe, timestomping).
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <TierBadge tier="phantom" />
+            <span className="text-red font-bold shrink-0">III.</span>
             <span>
-              Recent-CVE, chained, prestige-grade. No hints. Six levels
-              covering the full modern container-escape surface.
+              <strong className="text-red">Lateral Movement</strong> (16–19) —
+              Four levels on SSH tunneling, ligolo-ng, internal network
+              reconnaissance, credential spraying, and a full three-machine
+              pivot chain.
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <TierBadge tier="graduate" />
+            <span className="text-red font-bold shrink-0">IV.</span>
             <span>
-              Kubectl-free Kubernetes escape and the final chained graduation
-              lab. Two levels. One earns you the{" "}
-              <span className="text-red font-bold">Phantom Operative</span>{" "}
-              badge and a signed certificate.
+              <strong className="text-red">Container &amp; Cloud</strong>{" "}
+              (20–26) — Seven levels covering container detection, Docker
+              socket and privileged escapes, Leaky Vessels CVE-2024, exposed
+              Docker API, Kubernetes pod escape, cluster takeover via service
+              account abuse, and cloud IAM pivot through IMDS.
+            </span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-red font-bold shrink-0">V.</span>
+            <span>
+              <strong className="text-red">Operations</strong> (27–31) — Five
+              levels on custom tooling, data exfiltration (DNS/HTTPS/ICMP),
+              network traffic interception, multi-host cleanup, and a
+              time-limited graduation mission across the full attack chain.
             </span>
           </li>
         </ul>
@@ -124,54 +143,56 @@ export default async function PhantomTrackPage() {
       <section>
         <h2 className="text-red text-lg mb-2">What Phantom makes of you</h2>
         <p className="text-sm mb-2">
-          Twenty public levels plus one hidden graduation. After Phantom you
-          can:
+          Thirty-one public levels plus one hidden graduation. After Phantom
+          you can:
         </p>
         <ul className="list-disc list-outside pl-5 text-sm space-y-1">
           <li>
-            Walk onto any Linux host you have unprivileged access on and list
-            the five realistic privilege-escalation paths in under ten minutes.
+            Walk onto any Linux host with an unprivileged shell and identify
+            every realistic escalation path in under ten minutes.
           </li>
           <li>
-            Identify dangerous sudo rules (NOPASSWD, env_keep, wildcard
-            injection, sudoedit quirks) and turn them into root in one attempt.
+            Exploit SUID binaries, sudo rules, capabilities, writable files,
+            cron jobs, and kernel CVEs — the full privesc arsenal.
           </li>
           <li>
-            Read Linux capabilities and know which ones are trivially
-            exploitable with a one-liner script.
+            Harvest credentials from memory, history files, config files,
+            environment variables, SSH keys, and service tokens.
           </li>
           <li>
-            Exploit classic local authentication services when they ship
-            broken — the CVEs every Linux desktop inherits.
+            Install persistence that survives reboots and detection — SSH keys,
+            cron, systemd, PAM backdoors.
           </li>
           <li>
-            Attach to a running root process with live code injection using
-            the debugger interface alone.
+            Operate invisibly: bypass auditd, use LOLBins, execute fileless
+            payloads, and clean every log artifact.
           </li>
           <li>
-            Recognise that you are inside a container, enumerate the container
-            runtime, and pick the fastest escape path given the current
-            misconfigurations.
+            Pivot through multi-segment networks using SSH tunnels, ligolo-ng,
+            and covert channels.
           </li>
           <li>
-            Escape a container through a mounted control socket, a
-            &ldquo;privileged&rdquo; flag, a legacy cgroup interface, a
-            runtime-level CVE replay, and the 2024 headline file-descriptor
-            leak — five distinct techniques.
+            Detect that you are inside a container, identify the runtime, and
+            escape through five distinct techniques.
           </li>
           <li>
-            Escape a Kubernetes pod using misconfigured host-namespace flags
-            and land in the host&rsquo;s init process namespace.
+            Escape a Kubernetes pod, reach the API server with curl and a
+            service account token, and take over the cluster.
           </li>
           <li>
-            Reach the Kubernetes API from inside a pod using only curl and a
-            service account token, create a privileged workload, and harvest
-            secrets from the control plane.
+            Harvest cloud credentials from IMDS and pivot into cloud
+            infrastructure.
           </li>
           <li>
-            Collect cloud IAM credentials from a node&rsquo;s metadata service
-            — and understand exactly where Phantom ends and the Mirage cloud
-            track begins.
+            Write custom reverse shells, adapt public exploits, and build
+            simple C2 callbacks.
+          </li>
+          <li>
+            Exfiltrate data through DNS tunneling, HTTPS, and ICMP — the
+            channels that bypass every firewall.
+          </li>
+          <li>
+            Clean up a multi-host operation leaving zero forensic artifacts.
           </li>
         </ul>
       </section>
@@ -199,11 +220,6 @@ export default async function PhantomTrackPage() {
         <pre className="bg-bg border border-border p-2 text-xs mt-3">
           ssh phantom0@phantom.breachlab.org -p 2223
         </pre>
-        <p className="text-[10px] text-muted italic mt-2">
-          SSH endpoint is being provisioned. Platform content and tooling are
-          live; the vulnerable infrastructure container ships in the next ops
-          sprint. Follow @BreachLab for launch announcement.
-        </p>
       </section>
 
       <section>
@@ -219,14 +235,15 @@ export default async function PhantomTrackPage() {
       {bonusUnlocked && (
         <section className="border border-red p-4">
           <h2 className="text-red text-lg mb-1 uppercase">
-            Graduation — Level 20 unlocked
+            Graduation — Level 31 unlocked
           </h2>
           <p className="text-sm mb-2">
-            Every public gate is behind you. The final chained graduation
-            mission awaits. Clear it and you are a Phantom Operative.
+            Every public gate is behind you. The final operation awaits —
+            multiple machines, time limit, detection score. Clear it and you
+            are a Phantom Operative.
           </p>
           <Link
-            href="/tracks/phantom/20"
+            href="/tracks/phantom/31"
             className="inline-block border border-red text-red px-3 py-1 text-xs uppercase tracking-wider hover:bg-red hover:text-bg"
           >
             [ Proceed to graduation ]
