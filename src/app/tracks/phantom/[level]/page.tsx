@@ -159,10 +159,6 @@ export default async function PhantomLevelPage({
             <code className="text-amber">phantom0</code>.
           </p>
         )}
-        <p className="text-[10px] text-muted italic mt-2">
-          SSH endpoint is being provisioned. Follow @BreachLab for launch
-          announcement.
-        </p>
       </section>
 
       {user ? (
