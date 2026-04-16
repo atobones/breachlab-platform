@@ -1,17 +1,19 @@
 import type { PhantomTier } from "@/lib/tracks/phantom-level-content";
 
 const TIER_STYLE: Record<PhantomTier, string> = {
-  recruit: "border-green text-green",
-  operator: "border-amber text-amber",
-  phantom: "border-red text-red",
-  graduate: "border-red text-red font-bold",
+  act1: "border-red text-red",
+  act2: "border-amber text-amber",
+  act3: "border-green text-green",
+  act4: "border-red text-red",
+  act5: "border-amber text-amber font-bold",
 };
 
 const TIER_LABEL: Record<PhantomTier, string> = {
-  recruit: "RECRUIT",
-  operator: "OPERATOR",
-  phantom: "PHANTOM",
-  graduate: "GRADUATE",
+  act1: "ACT I",
+  act2: "ACT II",
+  act3: "ACT III",
+  act4: "ACT IV",
+  act5: "ACT V",
 };
 
 export function TierBadge({

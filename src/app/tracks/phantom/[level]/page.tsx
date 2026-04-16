@@ -118,7 +118,7 @@ export default async function PhantomLevelPage({
             </section>
           )}
 
-          {content.tier === "operator" && content.approach && (
+          {content.approach && (
             <ApproachHint
               approach={content.approach}
               levelIdx={idx}

@@ -1,24 +1,33 @@
 import Link from "next/link";
 import type { Level } from "@/lib/db/schema";
-import { TierBadge } from "./TierBadge";
 import {
   getPhantomLevelContent,
   type PhantomTier,
 } from "@/lib/tracks/phantom-level-content";
 import type { FirstBloodInfo } from "./LevelTable";
 
-const TIER_ORDER: PhantomTier[] = [
-  "recruit",
-  "operator",
-  "phantom",
-  "graduate",
+const ACT_ORDER: PhantomTier[] = [
+  "act1",
+  "act2",
+  "act3",
+  "act4",
+  "act5",
 ];
 
-const TIER_LABEL: Record<PhantomTier, string> = {
-  recruit: "Recruit — Sudo domain mastery",
-  operator: "Operator — Capabilities, files, legacy docker",
-  phantom: "Phantom — Container escape discipline",
-  graduate: "Graduate — Kubectl-free + handoff",
+const ACT_LABEL: Record<PhantomTier, string> = {
+  act1: "Act I — Escalation",
+  act2: "Act II — Harvest & Persist",
+  act3: "Act III — Lateral Movement",
+  act4: "Act IV — Container & Cloud",
+  act5: "Act V — Operations",
+};
+
+const ACT_COLOR: Record<PhantomTier, string> = {
+  act1: "text-red",
+  act2: "text-amber",
+  act3: "text-green",
+  act4: "text-red",
+  act5: "text-amber",
 };
 
 export function PhantomLevelTable({
@@ -32,31 +41,29 @@ export function PhantomLevelTable({
   firstBloodByLevelId: Map<string, FirstBloodInfo>;
   solveCountByLevelId?: Map<string, number>;
 }) {
-  const byTier: Record<PhantomTier, Level[]> = {
-    recruit: [],
-    operator: [],
-    phantom: [],
-    graduate: [],
+  const byAct: Record<PhantomTier, Level[]> = {
+    act1: [],
+    act2: [],
+    act3: [],
+    act4: [],
+    act5: [],
   };
   for (const l of levels) {
     const c = getPhantomLevelContent(l.idx);
     if (!c) continue;
-    byTier[c.tier].push(l);
+    byAct[c.tier].push(l);
   }
 
   return (
     <div className="space-y-6">
-      {TIER_ORDER.map((tier) => {
-        const rows = byTier[tier];
+      {ACT_ORDER.map((act) => {
+        const rows = byAct[act];
         if (rows.length === 0) return null;
         return (
-          <section key={tier}>
-            <div className="flex items-center gap-3 mb-2">
-              <TierBadge tier={tier} size="sm" />
-              <span className="text-xs text-muted uppercase tracking-wider">
-                {TIER_LABEL[tier]}
-              </span>
-            </div>
+          <section key={act}>
+            <h3 className={`text-sm uppercase tracking-wider mb-2 ${ACT_COLOR[act]}`}>
+              {ACT_LABEL[act]}
+            </h3>
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-muted border-b border-border">
