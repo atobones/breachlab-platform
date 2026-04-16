@@ -1,0 +1,1 @@
+ALTER TABLE "submissions" ADD CONSTRAINT "submissions_user_level_unique" UNIQUE("user_id","level_id");

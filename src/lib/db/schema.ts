@@ -5,6 +5,7 @@ import {
   boolean,
   uuid,
   integer,
+  unique,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -118,7 +119,9 @@ export const submissions = pgTable("submissions", {
     .notNull()
     .defaultNow(),
   sourceIp: text("source_ip"),
-});
+}, (t) => [
+  unique("submissions_user_level_unique").on(t.userId, t.levelId),
+]);
 
 export const badges = pgTable("badges", {
   id: uuid("id").defaultRandom().primaryKey(),
