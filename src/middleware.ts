@@ -48,8 +48,10 @@ export function middleware(request: NextRequest) {
   const shouldLimit = RATE_LIMITED_PATHS.some((p) => pathname.startsWith(p));
   if (!shouldLimit) return NextResponse.next();
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
-    ?? request.headers.get("x-real-ip")
+  // Caddy sets x-real-ip to the actual client IP. Prefer it over
+  // x-forwarded-for which can be spoofed by the client.
+  const ip = request.headers.get("x-real-ip")
+    ?? request.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
     ?? "unknown";
 
   if (isRateLimited(ip)) {

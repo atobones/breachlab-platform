@@ -108,7 +108,7 @@ export async function submitFlag(
   const isGhostGraduate =
     trackRow?.slug === "ghost" && level.idx === 22;
   const isPhantomGraduate =
-    trackRow?.slug === "phantom" && level.idx === 20;
+    trackRow?.slug === "phantom" && level.idx === 31;
 
   let alreadyGraduate = false;
   if (isGhostGraduate) {
