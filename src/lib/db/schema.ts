@@ -171,3 +171,6 @@ export type Track = typeof tracks.$inferSelect;
 export type Level = typeof levels.$inferSelect;
 export type Submission = typeof submissions.$inferSelect;
 export type Badge = typeof badges.$inferSelect;
+
+export { sponsors } from "@/lib/sponsors/schema";
+export type { Sponsor, NewSponsor } from "@/lib/sponsors/schema";

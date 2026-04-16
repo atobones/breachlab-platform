@@ -43,6 +43,13 @@
       "when": 1776119572528,
       "tag": "0005_pink_robbie_robertson",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1776343965685,
+      "tag": "0006_daily_iron_man",
+      "breakpoints": true
     }
   ]
 }
