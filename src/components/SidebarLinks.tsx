@@ -9,7 +9,7 @@ export function SidebarLinks() {
           <Link href="/rules">Rules</Link>
         </li>
         <li>
-          <a href="https://discord.gg/breachlab" rel="noreferrer">
+          <a href="https://discord.gg/hJrteuV6" rel="noreferrer">
             Discord
           </a>
         </li>
