@@ -28,7 +28,7 @@ export default async function AccountPage() {
       <form action={logoutAction}>
         <button
           type="submit"
-          className="border border-red text-red px-4 py-2 hover:bg-red hover:text-bg"
+          className="border border-red text-red px-4 py-2 hover:bg-red/10 hover:border-red transition-colors"
         >
           [ Logout ]
         </button>
@@ -36,7 +36,7 @@ export default async function AccountPage() {
       <form action={signOutAllMyDevicesAction}>
         <button
           type="submit"
-          className="border border-red text-red px-4 py-2 hover:bg-red hover:text-bg"
+          className="border border-red text-red px-4 py-2 hover:bg-red/10 hover:border-red transition-colors"
           title="Kills every session for your account. Use if you lost a device or suspect your cookie leaked."
         >
           [ Sign out ALL devices ]

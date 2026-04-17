@@ -89,7 +89,7 @@ export default async function PhantomTrackPage() {
         </p>
         <ul className="space-y-3 text-sm">
           <li className="flex items-start gap-3">
-            <span className="text-red font-bold shrink-0">I.</span>
+            <span className="text-red font-bold shrink-0 w-8 text-right">I.</span>
             <span>
               <strong className="text-red">Escalation</strong> (0–9) — Ten
               levels covering every real-world privilege escalation vector:
@@ -99,7 +99,7 @@ export default async function PhantomTrackPage() {
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-red font-bold shrink-0">II.</span>
+            <span className="text-red font-bold shrink-0 w-8 text-right">II.</span>
             <span>
               <strong className="text-red">Harvest &amp; Persist</strong>{" "}
               (10–15) — Six levels on credential harvesting (memory dumps, SSH
@@ -109,7 +109,7 @@ export default async function PhantomTrackPage() {
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-red font-bold shrink-0">III.</span>
+            <span className="text-red font-bold shrink-0 w-8 text-right">III.</span>
             <span>
               <strong className="text-red">Lateral Movement</strong> (16–19) —
               Four levels on SSH tunneling, ligolo-ng, internal network
@@ -118,7 +118,7 @@ export default async function PhantomTrackPage() {
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-red font-bold shrink-0">IV.</span>
+            <span className="text-red font-bold shrink-0 w-8 text-right">IV.</span>
             <span>
               <strong className="text-red">Container &amp; Cloud</strong>{" "}
               (20–26) — Seven levels covering container detection, Docker
@@ -128,7 +128,7 @@ export default async function PhantomTrackPage() {
             </span>
           </li>
           <li className="flex items-start gap-3">
-            <span className="text-red font-bold shrink-0">V.</span>
+            <span className="text-red font-bold shrink-0 w-8 text-right">V.</span>
             <span>
               <strong className="text-red">Operations</strong> (27–31) — Five
               levels on custom tooling, data exfiltration (DNS/HTTPS/ICMP),
@@ -243,7 +243,7 @@ export default async function PhantomTrackPage() {
           </p>
           <Link
             href="/tracks/phantom/31"
-            className="inline-block border border-red text-red px-3 py-1 text-xs uppercase tracking-wider hover:bg-red hover:text-bg"
+            className="inline-block border border-red text-red px-3 py-1 text-xs uppercase tracking-wider hover:bg-red/10 hover:border-red transition-colors"
           >
             [ Proceed to graduation ]
           </Link>

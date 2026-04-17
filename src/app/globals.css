@@ -21,4 +21,8 @@ html, body {
 }
 
 a { color: var(--bl-amber); text-decoration: none; }
-a:hover { text-decoration: underline; }
+/* Only underline anchors that live inside long-form prose blocks — nav
+   items, buttons, and table cells decide hover styling themselves. */
+.prose a:hover,
+p a:hover,
+li a:hover { text-decoration: underline; }

@@ -22,12 +22,15 @@ const ACT_LABEL: Record<PhantomTier, string> = {
   act5: "Act V — Operations",
 };
 
+// All acts share Phantom's red accent — the rotating red/amber/green
+// intended a visual progression but read as chaotic. Flat red matches
+// the rest of the Phantom page.
 const ACT_COLOR: Record<PhantomTier, string> = {
   act1: "text-red",
-  act2: "text-amber",
-  act3: "text-green",
+  act2: "text-red",
+  act3: "text-red",
   act4: "text-red",
-  act5: "text-amber",
+  act5: "text-red",
 };
 
 export function PhantomLevelTable({
