@@ -26,6 +26,42 @@ export default function HelpPage() {
       </section>
 
       <section className="space-y-3">
+        <h2 className="text-amber text-lg">Flags vs SSH passwords</h2>
+        <p className="text-sm">
+          Each level gives you <em>two different</em> tokens:
+        </p>
+        <ul className="text-sm list-disc pl-5 space-y-1 text-muted">
+          <li>
+            <span className="text-amber">password</span> — used to{" "}
+            <code>ssh ghostN@…</code> into the next level. This is the
+            chain-progression mechanic. <em>Do not submit passwords on the
+            web.</em>
+          </li>
+          <li>
+            <span className="text-amber">flag</span> — a{" "}
+            <code>FLAG{`{...}`}</code> token hidden somewhere on the level.
+            Paste it on <a href="/submit" className="text-amber">/submit</a>{" "}
+            to earn points.
+          </li>
+        </ul>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-amber text-lg">First Blood</h2>
+        <p className="text-sm">
+          The <em>first</em> operative to submit a correct flag for a level
+          gets a bonus on top of the base points (usually{" "}
+          <code>+50</code>). After that, the first-blood slot is taken for
+          good — everyone else only earns the base points for that level.
+        </p>
+        <p className="text-sm text-muted">
+          You can see who holds first blood for every level on the track
+          page. Red <code>FIRST BLOOD AVAILABLE</code> means it is still
+          up for grabs.
+        </p>
+      </section>
+
+      <section className="space-y-3">
         <h2 className="text-amber text-lg">Discord</h2>
         <p className="text-sm">
           You can find our Discord server at{" "}
