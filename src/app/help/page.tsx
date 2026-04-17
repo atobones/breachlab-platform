@@ -37,15 +37,15 @@ export default function HelpPage() {
             https://discord.gg/hJrteuV6
           </a>
         </p>
-        <pre className="text-sm">
+        <pre>
 {`Channels:
-        #help           (stuck on a level? ask here)
-        #ghost          (Ghost track discussion)
-        #phantom        (Phantom track discussion)
-        #general        (general talk)
-        #victories      (share your wins)
-        #bugs           (report platform issues)
-        #feedback       (suggestions and ideas)`}
+  #help           stuck on a level? ask here
+  #ghost          Ghost track discussion
+  #phantom        Phantom track discussion
+  #general        general talk
+  #victories      share your wins
+  #bugs           report platform issues
+  #feedback       suggestions and ideas`}
         </pre>
       </section>
 

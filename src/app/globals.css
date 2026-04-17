@@ -86,3 +86,32 @@ table th { font-variant-numeric: tabular-nums; }
   border-top: 1px dashed var(--bl-border);
   margin: 0.5rem 0;
 }
+
+/* Inline `code` — subtle amber tint + thin box so commands pop out of
+   paragraphs without looking decorative. */
+code {
+  color: var(--bl-amber);
+  background: color-mix(in oklab, var(--bl-amber) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--bl-amber) 20%, transparent);
+  border-radius: 2px;
+  padding: 0 0.35em;
+  font-size: 0.9em;
+}
+
+/* <pre> block — framed like a terminal quote. Inner <code> loses its
+   inline treatment so the frame renders cleanly. */
+pre {
+  background: color-mix(in oklab, var(--bl-amber) 3%, var(--bl-bg));
+  border: 1px solid var(--bl-border);
+  padding: 0.75rem 1rem;
+  font-size: var(--bl-text-sm);
+  overflow-x: auto;
+  line-height: 1.5;
+}
+pre code {
+  background: transparent;
+  border: 0;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}

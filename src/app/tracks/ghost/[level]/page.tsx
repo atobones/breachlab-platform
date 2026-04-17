@@ -8,6 +8,8 @@ import { submissions } from "@/lib/db/schema";
 import { getFirstBloodByLevel } from "@/lib/badges/queries";
 import { isHiddenLevel } from "@/lib/tracks/all";
 import { hasUnlockedHiddenBonus } from "@/lib/tracks/bonus";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { PrevNextLevel } from "@/components/PrevNextLevel";
 
 export default async function GhostLevelPage({
   params,
@@ -48,8 +50,20 @@ export default async function GhostLevelPage({
     solved = !!row;
   }
 
+  // Max Ghost level is 22 (graduation). Prev at 0 is disabled.
+  const MAX_GHOST_LEVEL = 22;
+  const prevHref = idx > 0 ? `/tracks/ghost/${idx - 1}` : null;
+  const nextHref = idx < MAX_GHOST_LEVEL ? `/tracks/ghost/${idx + 1}` : null;
+
   return (
     <div className="space-y-6 max-w-3xl">
+      <Breadcrumbs
+        items={[
+          { label: "tracks", href: "/" },
+          { label: "ghost", href: "/tracks/ghost" },
+          { label: `level ${idx}` },
+        ]}
+      />
       <div>
         <p className="text-muted text-xs uppercase">Ghost Track</p>
         <h1 className="text-amber text-xl">
@@ -145,6 +159,14 @@ export default async function GhostLevelPage({
           on this level.
         </p>
       )}
+
+      <PrevNextLevel
+        prevHref={prevHref}
+        prevLabel={prevHref ? `Level ${idx - 1}` : undefined}
+        nextHref={nextHref}
+        nextLabel={nextHref ? `Level ${idx + 1}` : undefined}
+        indexHref="/tracks/ghost"
+      />
     </div>
   );
 }

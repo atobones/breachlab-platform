@@ -171,28 +171,26 @@ export default function HomePage() {
         </h2>
         <div className="space-y-3 max-w-3xl">
           {TRACKS.map((track) => (
-            <div
+            <Link
               key={track.name}
-              className="flex gap-4 border border-amber/20 hover:border-amber/50 p-4 transition-colors"
+              href={track.href}
+              className="group flex gap-4 border border-amber/20 hover:border-amber/60 hover:bg-amber/[0.02] p-4 transition-colors no-underline"
             >
-              <span className="text-muted text-sm w-6 shrink-0 pt-0.5">
+              <span className="text-muted text-sm w-6 shrink-0 pt-0.5 tabular-nums">
                 {track.number}.
               </span>
               <div className="flex-1 space-y-1">
                 <div className="flex items-center gap-3 flex-wrap">
-                  <Link
-                    href={track.href}
-                    className="text-amber text-base hover:underline"
-                  >
+                  <span className="text-amber text-base group-hover:underline">
                     {track.name}
-                  </Link>
+                  </span>
                   <span
                     className={`text-[10px] uppercase tracking-wider ${STATUS_STYLE[track.status]}`}
                   >
                     {track.status}
                   </span>
                   {track.levels && (
-                    <span className="text-[10px] text-muted">
+                    <span className="text-[10px] text-muted tabular-nums">
                       {track.levels} levels
                     </span>
                   )}
@@ -204,7 +202,13 @@ export default function HomePage() {
                   {track.summary}
                 </p>
               </div>
-            </div>
+              <span
+                className="text-amber/0 group-hover:text-amber self-center text-sm transition-colors shrink-0"
+                aria-hidden
+              >
+                →
+              </span>
+            </Link>
           ))}
         </div>
       </section>
