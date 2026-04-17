@@ -7,9 +7,13 @@ import { parseHeartbeatPayload } from "@/lib/live-ops/heartbeat";
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
+  // Dedicated token, NOT ADMIN_API_SECRET. Heartbeat clients live inside
+  // Ghost/Phantom containers which players can root via SUID exploits (L18,
+  // L22). Dedicated token caps blast radius: leaked credential lets attacker
+  // spoof operative counts, nothing else.
   const authHeader = req.headers.get("authorization") ?? "";
-  const adminSecret = process.env.ADMIN_API_SECRET;
-  if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
+  const token = process.env.LIVE_OPS_TOKEN;
+  if (!token || authHeader !== `Bearer ${token}`) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
