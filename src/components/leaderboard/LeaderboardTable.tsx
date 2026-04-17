@@ -1,15 +1,23 @@
 import type { LeaderRow } from "@/lib/leaderboard/queries";
+import { EmptyState } from "@/components/EmptyState";
+
+const RANK_TONE = [
+  "text-amber",
+  "text-amber/85",
+  "text-amber/65",
+];
 
 export function LeaderboardTable({ rows }: { rows: LeaderRow[] }) {
   if (rows.length === 0) {
     return (
-      <p className="text-muted text-sm">
-        No operatives on the board yet. Be the first.
-      </p>
+      <EmptyState
+        message="no operatives on the board yet"
+        hint="be the first"
+      />
     );
   }
   return (
-    <table className="w-full text-sm">
+    <table className="w-full text-sm tabular-nums">
       <thead>
         <tr className="text-muted border-b border-border">
           <th className="text-left py-1">#</th>
@@ -19,16 +27,21 @@ export function LeaderboardTable({ rows }: { rows: LeaderRow[] }) {
         </tr>
       </thead>
       <tbody>
-        {rows.map((r, i) => (
-          <tr key={r.userId} className="border-b border-border/50">
-            <td className="py-1 text-muted">{i + 1}</td>
-            <td className="py-1">
-              <span className="text-amber">@{r.username}</span>
-            </td>
-            <td className="py-1 text-right">{r.solved}</td>
-            <td className="py-1 text-right">{r.points}</td>
-          </tr>
-        ))}
+        {rows.map((r, i) => {
+          const rankTone = RANK_TONE[i] ?? "text-muted";
+          return (
+            <tr key={r.userId} className="border-b border-border/50">
+              <td className={`py-1 ${i < 3 ? rankTone : "text-muted"}`}>
+                {i + 1}
+              </td>
+              <td className="py-1">
+                <span className={rankTone}>@{r.username}</span>
+              </td>
+              <td className="py-1 text-right">{r.solved}</td>
+              <td className="py-1 text-right">{r.points}</td>
+            </tr>
+          );
+        })}
       </tbody>
     </table>
   );

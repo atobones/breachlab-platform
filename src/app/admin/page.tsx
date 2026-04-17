@@ -167,7 +167,7 @@ export default async function AdminOverviewPage() {
         <h2 className="text-sm uppercase tracking-wider text-muted">
           ▸ Track breakdown
         </h2>
-        <table className="w-full text-sm font-mono">
+        <table className="w-full text-sm font-mono tabular-nums">
           <thead>
             <tr className="text-left text-xs text-muted">
               <th className="py-1">Track</th>

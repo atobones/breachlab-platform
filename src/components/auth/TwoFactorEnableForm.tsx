@@ -60,7 +60,7 @@ function SubmitButton() {
       disabled={pending}
       className="border border-amber text-amber px-4 py-2 hover:bg-amber/10 hover:border-amber transition-colors disabled:opacity-50"
     >
-      {pending ? "..." : "[ Enable 2FA ]"}
+      {pending ? (<span>[ <span className="dots" /> ]</span>) : "[ Enable 2FA ]"}
     </button>
   );
 }
