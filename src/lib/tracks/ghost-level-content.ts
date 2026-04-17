@@ -90,8 +90,8 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   11: {
     goal:
-      "A hex dump. Convert it back. What you get is compressed. Decompress it. What you get is compressed again. Keep peeling until the onion ends. Figure out which tool each layer needs on your own.",
-    commands: ["xxd", "file", "gzip", "bzip2", "tar"],
+      "A file wrapped in three compression formats, nested. Identify each layer, unwrap it, identify the next. Keep going until you reach plaintext. Figure out which tool each layer needs on your own.",
+    commands: ["file", "tar", "gzip", "bzip2"],
     realWorldSkill:
       "Real malware payloads are nested three or four layers deep to defeat simple sandboxes. This is the exact loop an analyst runs on a fresh sample — strip each layer, identify the next, keep going.",
   },
@@ -104,7 +104,7 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   13: {
     goal:
-      "A service is listening on a port on localhost. The only way to get the password is to give it something it already knows. The hint lives in a file you can read. Send the thing. Get the password.",
+      "A service on localhost is listening on a port. It will trade you the next password — but only if you speak to it with the right word on the first line. No browser, no client library.",
     commands: ["nc", "curl"],
     realWorldSkill:
       "Every production service talks to other services over TCP. Knowing how to hand-craft a request without a client library is the difference between a pentester who finds issues and one who only runs tools.",
