@@ -22,7 +22,18 @@ export const users = pgTable("users", {
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  lastSeenAt: timestamp("last_seen_at", { withTimezone: true }),
 });
+
+export const liveOpsCounts = pgTable("live_ops_counts", {
+  source: text("source").primaryKey(),
+  count: integer("count").notNull().default(0),
+  updatedAt: timestamp("updated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type LiveOpsCount = typeof liveOpsCounts.$inferSelect;
 
 export const discordOauthStates = pgTable("discord_oauth_states", {
   state: text("state").primaryKey(),

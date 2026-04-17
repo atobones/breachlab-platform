@@ -57,6 +57,13 @@
       "when": 1776369821427,
       "tag": "0007_sloppy_patch",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1776456296526,
+      "tag": "0008_live_ops",
+      "breakpoints": true
     }
   ]
 }
