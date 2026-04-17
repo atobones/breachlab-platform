@@ -160,8 +160,8 @@ function EarnedCard({
         href={`/u/${username}/certificate/${meta.slug}`}
         className={`inline-block px-3 py-1 text-[10px] uppercase tracking-widest border ${
           meta.color === "red"
-            ? "border-red hover:bg-red hover:text-bg"
-            : "border-amber hover:bg-amber hover:text-bg"
+            ? "border-red hover:bg-red/10 hover:border-red transition-colors"
+            : "border-amber hover:bg-amber/10 hover:border-amber transition-colors"
         }`}
       >
         View Certificate →
@@ -255,7 +255,7 @@ export function CertificateShowcase({
           </p>
           <Link
             href="/tracks/ghost"
-            className="inline-block px-4 py-2 border border-amber text-amber text-xs uppercase tracking-widest hover:bg-amber hover:text-bg"
+            className="inline-block px-4 py-2 border border-amber text-amber text-xs uppercase tracking-widest hover:bg-amber/10 hover:border-amber transition-colors"
           >
             Start Ghost Track →
           </Link>

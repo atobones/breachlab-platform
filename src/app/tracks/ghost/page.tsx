@@ -257,7 +257,7 @@ export default async function GhostTrackPage() {
           </p>
           <a
             href="/tracks/ghost/22"
-            className="inline-block border border-amber text-amber px-3 py-1 text-xs uppercase tracking-wider hover:bg-amber hover:text-bg"
+            className="inline-block border border-amber text-amber px-3 py-1 text-xs uppercase tracking-wider hover:bg-amber/10 hover:border-amber transition-colors"
           >
             [ Proceed to graduation ]
           </a>
