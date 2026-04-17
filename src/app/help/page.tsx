@@ -26,24 +26,24 @@ export default function HelpPage() {
       </section>
 
       <section className="space-y-3">
-        <h2 className="text-amber text-lg">Flags vs SSH passwords</h2>
+        <h2 className="text-amber text-lg">Flags</h2>
         <p className="text-sm">
-          Each level gives you <em>two different</em> tokens:
+          The flag you submit for level N is{" "}
+          <span className="text-amber">
+            the same chain password you used to <code>ssh</code> into level N+1
+          </span>
+          . Solve the level, recover the secret (it is almost always a
+          file somewhere on the box), paste it on{" "}
+          <a href="/submit" className="text-amber">/submit</a> for points.
         </p>
-        <ul className="text-sm list-disc pl-5 space-y-1 text-muted">
-          <li>
-            <span className="text-amber">password</span> — used to{" "}
-            <code>ssh ghostN@…</code> into the next level. This is the
-            chain-progression mechanic. <em>Do not submit passwords on the
-            web.</em>
-          </li>
-          <li>
-            <span className="text-amber">flag</span> — a{" "}
-            <code>FLAG{`{...}`}</code> token hidden somewhere on the level.
-            Paste it on <a href="/submit" className="text-amber">/submit</a>{" "}
-            to earn points.
-          </li>
-        </ul>
+        <p className="text-sm text-muted">
+          The last level of each track ends at a graduation token (e.g.{" "}
+          <code>Gh0st_0p3r4t1v3</code>) — that one is the flag for the
+          final level and has no next-level SSH use.
+        </p>
+        <p className="text-sm text-muted">
+          Case-sensitive. Whitespace is trimmed.
+        </p>
       </section>
 
       <section className="space-y-3">

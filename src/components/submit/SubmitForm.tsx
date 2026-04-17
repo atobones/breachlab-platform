@@ -19,8 +19,10 @@ export function SubmitForm() {
         <input
           name="flag"
           required
-          placeholder="FLAG{...}"
+          placeholder="e.g. W3lc0m3T0Gh0st"
           autoFocus
+          autoComplete="off"
+          spellCheck={false}
           className="w-full bg-bg border border-border p-2 text-text focus:outline-none focus:border-amber"
         />
       </label>
