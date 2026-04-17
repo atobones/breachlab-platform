@@ -61,7 +61,12 @@ export default async function AdminOverviewPage() {
           ▸ Users
         </h2>
         <StatGrid>
-          <StatCard label="Total" value={fmt(stats.users.total)} tone="amber" />
+          <StatCard
+            label="Total"
+            value={fmt(stats.users.total)}
+            tone="amber"
+            delta={{ value: stats.users.newToday, label: "today" }}
+          />
           <StatCard label="New today" value={fmt(stats.users.newToday)} />
           <StatCard label="New 7d" value={fmt(stats.users.new7d)} />
           <StatCard label="New 30d" value={fmt(stats.users.new30d)} />
@@ -97,6 +102,7 @@ export default async function AdminOverviewPage() {
             label="All time"
             value={fmt(stats.submissions.total)}
             tone="amber"
+            delta={{ value: stats.submissions.today, label: "today" }}
           />
           <StatCard label="Today" value={fmt(stats.submissions.today)} />
           <StatCard label="Last 7d" value={fmt(stats.submissions.last7d)} />

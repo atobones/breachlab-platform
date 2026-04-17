@@ -1,5 +1,4 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import { eq, and } from "drizzle-orm";
 import { getTrackBySlug, getLevelByTrackAndIdx } from "@/lib/tracks/queries";
 import { getPhantomLevelContent } from "@/lib/tracks/phantom-level-content";
@@ -11,6 +10,8 @@ import { isHiddenLevel } from "@/lib/tracks/all";
 import { hasUnlockedHiddenBonus } from "@/lib/tracks/bonus";
 import { TierBadge } from "@/components/tracks/TierBadge";
 import { ApproachHint } from "@/components/tracks/ApproachHint";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { PrevNextLevel } from "@/components/PrevNextLevel";
 
 export const dynamic = "force-dynamic";
 
@@ -52,13 +53,26 @@ export default async function PhantomLevelPage({
     solved = !!row;
   }
 
+  // Phantom runs Level 0 → Level 31 (graduation at 31). Clamp nav.
+  const MAX_PHANTOM_LEVEL = 31;
+  const prevHref = idx > 0 ? `/tracks/phantom/${idx - 1}` : null;
+  const nextHref =
+    idx < MAX_PHANTOM_LEVEL ? `/tracks/phantom/${idx + 1}` : null;
+
   return (
     <div className="space-y-6 max-w-3xl">
+      <Breadcrumbs
+        items={[
+          { label: "tracks", href: "/" },
+          { label: "phantom", href: "/tracks/phantom" },
+          {
+            label:
+              idx === 20 ? "graduation" : `level ${idx}`,
+          },
+        ]}
+      />
       <div className="space-y-2">
         <div className="flex items-center gap-3">
-          <Link href="/tracks/phantom" className="text-muted text-xs hover:text-amber">
-            ← Phantom Track
-          </Link>
           {content && <TierBadge tier={content.tier} size="sm" />}
         </div>
         <h1 className="text-red text-2xl">
@@ -173,6 +187,14 @@ export default async function PhantomLevelPage({
           <a href="/login">Log in</a> to submit flags and track progress.
         </p>
       )}
+
+      <PrevNextLevel
+        prevHref={prevHref}
+        prevLabel={prevHref ? `Level ${idx - 1}` : undefined}
+        nextHref={nextHref}
+        nextLabel={nextHref ? `Level ${idx + 1}` : undefined}
+        indexHref="/tracks/phantom"
+      />
     </div>
   );
 }
