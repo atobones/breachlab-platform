@@ -26,3 +26,63 @@ a { color: var(--bl-amber); text-decoration: none; }
 .prose a:hover,
 p a:hover,
 li a:hover { text-decoration: underline; }
+
+/* Form inputs — amber focus ring consistent with the terminal palette.
+   Browser default focus ring (blue) looked out of place. */
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 1px solid var(--bl-amber);
+  outline-offset: -1px;
+  border-color: var(--bl-amber);
+}
+
+/* Tabular figures so numeric columns (points, timers, counts) align
+   vertically in monospace tables. */
+.tabular-nums,
+table td,
+table th { font-variant-numeric: tabular-nums; }
+
+/* Terminal cursor blink. Use class="cursor" on an empty span or after
+   a heading for a hint of "live terminal" feel. */
+.cursor::after {
+  content: "▍";
+  color: var(--bl-amber);
+  margin-left: 0.25rem;
+  animation: bl-cursor-blink 1.1s steps(2, start) infinite;
+}
+@keyframes bl-cursor-blink {
+  0%, 50%  { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+/* Slow green pulse for the LIVE OPS dot — subtle "heartbeat" signal. */
+.pulse-dot { animation: bl-pulse 2s ease-in-out infinite; }
+@keyframes bl-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.35; }
+}
+
+/* Animated ellipsis for loading states. <span class="dots">…</span>
+   renders a rolling dots spinner without pulling in any JS. */
+.dots::after {
+  content: "";
+  display: inline-block;
+  width: 1.2em;
+  text-align: left;
+  animation: bl-dots 1s steps(4, end) infinite;
+}
+@keyframes bl-dots {
+  0%   { content: "";    }
+  25%  { content: ".";   }
+  50%  { content: "..";  }
+  75%  { content: "..."; }
+  100% { content: "";    }
+}
+
+/* ASCII horizontal rule for section dividers inside the sidebar. */
+.ascii-rule {
+  border: 0;
+  border-top: 1px dashed var(--bl-border);
+  margin: 0.5rem 0;
+}

@@ -67,7 +67,7 @@ export function PhantomLevelTable({
             <h3 className={`text-sm uppercase tracking-wider mb-2 ${ACT_COLOR[act]}`}>
               {ACT_LABEL[act]}
             </h3>
-            <table className="w-full text-sm">
+            <table className="w-full text-sm tabular-nums">
               <thead>
                 <tr className="text-muted border-b border-border">
                   <th className="text-left py-1">#</th>

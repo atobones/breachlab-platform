@@ -13,8 +13,14 @@ export async function Sidebar() {
   const tracksData = await getAllTracksWithLevels(user?.id);
   return (
     <aside className="w-64 shrink-0 border-r border-border p-4 sticky top-0 h-screen overflow-y-auto">
-      <div className="mb-6">
-        <span className="text-amber text-lg font-bold">BreachLab</span>
+      <div className="mb-5 pb-4 border-b border-border/60">
+        <div className="flex items-baseline gap-1">
+          <span className="text-amber text-lg font-bold">BreachLab</span>
+          <span className="cursor" aria-hidden />
+        </div>
+        <div className="text-[10px] text-muted uppercase tracking-widest mt-0.5">
+          Real skills. Real scenarios.
+        </div>
       </div>
       <div className="space-y-6">
         <UserMenu />

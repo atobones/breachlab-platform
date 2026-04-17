@@ -143,7 +143,9 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-amber text-2xl">BreachLab</h1>
+        <h1 className="text-amber text-2xl inline-flex items-baseline">
+          BreachLab<span className="cursor" aria-hidden />
+        </h1>
         <p className="text-sm text-text max-w-2xl">
           The most comprehensive offensive security training platform in the
           world. 13 tracks, 320+ levels, zero hand-holding. From

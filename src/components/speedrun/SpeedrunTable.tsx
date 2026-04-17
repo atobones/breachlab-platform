@@ -15,7 +15,7 @@ function statusFor(row: SpeedrunRow): "approved" | "pending" | "suspicious" {
 
 export function SpeedrunTable({ rows }: { rows: SpeedrunRow[] }) {
   return (
-    <table className="w-full text-sm">
+    <table className="w-full text-sm tabular-nums">
       <thead>
         <tr className="text-muted border-b border-border">
           <th className="text-left py-1">#</th>

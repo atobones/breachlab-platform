@@ -43,7 +43,7 @@ export default async function AdminSubmissionsPage({
         )}
       </div>
 
-      <table className="w-full text-sm font-mono">
+      <table className="w-full text-sm font-mono tabular-nums">
         <thead>
           <tr className="text-left text-xs text-muted">
             <th className="py-1">When</th>
