@@ -2,6 +2,19 @@
 import { useTransition } from "react";
 import { endSponsorship, deleteSponsor } from "@/app/admin/sponsors/actions";
 
+function promptTotp(actionLabel: string): string | null {
+  const code = window.prompt(
+    `6-digit TOTP code to confirm: ${actionLabel}`
+  );
+  if (code === null) return null;
+  const cleaned = code.trim();
+  if (!/^\d{6}$/.test(cleaned)) {
+    alert("TOTP code must be 6 digits");
+    return null;
+  }
+  return cleaned;
+}
+
 export function SponsorRowActions({
   sponsorId,
   label,
@@ -18,9 +31,12 @@ export function SponsorRowActions({
         <button
           disabled={pending}
           onClick={() => {
-            if (!confirm(`End sponsorship for ${label}?`)) return;
+            const actionLabel = `end sponsorship for ${label}`;
+            if (!confirm(`Confirm ${actionLabel}?`)) return;
+            const code = promptTotp(actionLabel);
+            if (!code) return;
             start(async () => {
-              const r = await endSponsorship(sponsorId);
+              const r = await endSponsorship(sponsorId, code);
               if (!r.ok) alert(r.error);
             });
           }}
@@ -32,9 +48,12 @@ export function SponsorRowActions({
       <button
         disabled={pending}
         onClick={() => {
-          if (!confirm(`Permanently DELETE sponsor row for ${label}?`)) return;
+          const actionLabel = `permanently DELETE sponsor row for ${label}`;
+          if (!confirm(`Confirm ${actionLabel}?`)) return;
+          const code = promptTotp(actionLabel);
+          if (!code) return;
           start(async () => {
-            const r = await deleteSponsor(sponsorId);
+            const r = await deleteSponsor(sponsorId, code);
             if (!r.ok) alert(r.error);
           });
         }}

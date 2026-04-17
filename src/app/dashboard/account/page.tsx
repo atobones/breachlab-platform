@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { logoutAction } from "@/app/login/actions";
+import { signOutAllMyDevicesAction } from "./actions";
 
 export default async function AccountPage() {
   const { user } = await getCurrentSession();
@@ -30,6 +31,15 @@ export default async function AccountPage() {
           className="border border-red text-red px-4 py-2 hover:bg-red hover:text-bg"
         >
           [ Logout ]
+        </button>
+      </form>
+      <form action={signOutAllMyDevicesAction}>
+        <button
+          type="submit"
+          className="border border-red text-red px-4 py-2 hover:bg-red hover:text-bg"
+          title="Kills every session for your account. Use if you lost a device or suspect your cookie leaked."
+        >
+          [ Sign out ALL devices ]
         </button>
       </form>
     </div>

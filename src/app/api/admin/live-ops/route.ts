@@ -3,17 +3,18 @@ import { sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { liveOpsCounts } from "@/lib/db/schema";
 import { parseHeartbeatPayload } from "@/lib/live-ops/heartbeat";
+import { safeBearerMatch } from "@/lib/auth/tokens";
 
 export const runtime = "nodejs";
 
 export async function POST(req: NextRequest) {
-  // Dedicated token, NOT ADMIN_API_SECRET. Heartbeat clients live inside
-  // Ghost/Phantom containers which players can root via SUID exploits (L18,
-  // L22). Dedicated token caps blast radius: leaked credential lets attacker
-  // spoof operative counts, nothing else.
-  const authHeader = req.headers.get("authorization") ?? "";
-  const token = process.env.LIVE_OPS_TOKEN;
-  if (!token || authHeader !== `Bearer ${token}`) {
+  // Dedicated token, NOT ADMIN_API_SECRET. Heartbeat clients live outside
+  // the Ghost/Phantom containers (host-side systemd timer); a leaked
+  // credential can only spoof operative counts. Compare constant-time so
+  // the public source can't be used to mount a byte-by-byte timing oracle
+  // against the token.
+  const authHeader = req.headers.get("authorization");
+  if (!safeBearerMatch(authHeader, process.env.LIVE_OPS_TOKEN)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

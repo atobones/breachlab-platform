@@ -8,6 +8,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/submissions", label: "Submissions" },
   { href: "/admin/sponsors", label: "Sponsors" },
   { href: "/admin/review", label: "Review queue" },
+  { href: "/admin/audit", label: "Audit" },
 ];
 
 export function AdminNav() {

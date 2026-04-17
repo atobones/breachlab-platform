@@ -35,6 +35,26 @@ export const liveOpsCounts = pgTable("live_ops_counts", {
 
 export type LiveOpsCount = typeof liveOpsCounts.$inferSelect;
 
+// Admin action trail. Writes here are append-only — deletes should only
+// ever happen via manual retention policy, not from the app.
+export const adminAuditLog = pgTable("admin_audit_log", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  // Nullable so the audit record survives user deletion (actor goes NULL
+  // instead of cascading the entry away).
+  actorId: uuid("actor_id").references(() => users.id, { onDelete: "set null" }),
+  actorUsername: text("actor_username").notNull(),
+  action: text("action").notNull(),
+  targetUserId: uuid("target_user_id"),
+  targetSponsorId: uuid("target_sponsor_id"),
+  metadata: text("metadata"),
+  ipAddress: text("ip_address"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type AdminAuditRow = typeof adminAuditLog.$inferSelect;
+
 export const discordOauthStates = pgTable("discord_oauth_states", {
   state: text("state").primaryKey(),
   userId: uuid("user_id")

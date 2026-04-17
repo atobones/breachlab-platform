@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { badges, speedrunRuns, tracks } from "@/lib/db/schema";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getTopSpeedruns } from "@/lib/speedrun/queries";
+import { recordAudit } from "@/lib/admin/audit";
 
 async function requireAdmin() {
   const { user } = await getCurrentSession();
@@ -64,6 +65,12 @@ export async function approveRun(runId: string): Promise<void> {
     }
   }
 
+  await recordAudit({
+    actor: { id: admin.id, username: admin.username },
+    action: "speedrun.approve",
+    metadata: { runId },
+  });
+
   revalidatePath("/admin/review");
   revalidatePath("/leaderboard/speedrun");
 }
@@ -78,6 +85,11 @@ export async function rejectRun(runId: string): Promise<void> {
       reviewedAt: new Date(),
     })
     .where(eq(speedrunRuns.id, runId));
+  await recordAudit({
+    actor: { id: admin.id, username: admin.username },
+    action: "speedrun.reject",
+    metadata: { runId },
+  });
   revalidatePath("/admin/review");
   revalidatePath("/leaderboard/speedrun");
 }

@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { safeBearerMatch } from "@/lib/auth/tokens";
 
 const LIBERAPAY_TEAM = "breachlab";
 
@@ -8,9 +9,8 @@ type LiberapayPublicData = {
 };
 
 export async function POST(req: NextRequest) {
-  const authHeader = req.headers.get("authorization") ?? "";
-  const adminSecret = process.env.ADMIN_API_SECRET;
-  if (!adminSecret || authHeader !== `Bearer ${adminSecret}`) {
+  const authHeader = req.headers.get("authorization");
+  if (!safeBearerMatch(authHeader, process.env.ADMIN_API_SECRET)) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 

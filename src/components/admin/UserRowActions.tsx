@@ -4,6 +4,7 @@ import {
   toggleUserAdmin,
   resetUserTotp,
   forceEmailReverify,
+  logoutUserAllSessions,
 } from "@/app/admin/users/actions";
 
 type Props = {
@@ -14,6 +15,19 @@ type Props = {
   emailVerified: boolean;
   isSelf: boolean;
 };
+
+function promptTotp(actionLabel: string): string | null {
+  const code = window.prompt(
+    `6-digit TOTP code to confirm: ${actionLabel}`
+  );
+  if (code === null) return null;
+  const cleaned = code.trim();
+  if (!/^\d{6}$/.test(cleaned)) {
+    alert("TOTP code must be 6 digits");
+    return null;
+  }
+  return cleaned;
+}
 
 export function UserRowActions({
   userId,
@@ -29,23 +43,26 @@ export function UserRowActions({
     return <span className="text-[11px] text-muted">(you)</span>;
   }
 
+  const btn =
+    "px-2 py-0.5 border border-amber/30 text-amber hover:bg-amber/10 disabled:opacity-40";
+  const dangerBtn =
+    "px-2 py-0.5 border border-red-400/40 text-red-400 hover:bg-red-400/10 disabled:opacity-40";
+
   return (
     <div className="flex flex-wrap gap-2 text-[11px]">
       <button
         disabled={pending}
         onClick={() => {
-          if (
-            !confirm(
-              `${isAdmin ? "Demote" : "Promote"} "${username}" ${isAdmin ? "from" : "to"} admin?`
-            )
-          )
-            return;
+          const label = `${isAdmin ? "demote" : "promote"} ${username}`;
+          if (!confirm(`Confirm ${label}?`)) return;
+          const code = promptTotp(label);
+          if (!code) return;
           start(async () => {
-            const r = await toggleUserAdmin(userId, !isAdmin);
+            const r = await toggleUserAdmin(userId, !isAdmin, code);
             if (!r.ok) alert(r.error);
           });
         }}
-        className="px-2 py-0.5 border border-amber/30 text-amber hover:bg-amber/10 disabled:opacity-40"
+        className={btn}
       >
         {isAdmin ? "demote" : "promote"}
       </button>
@@ -53,13 +70,16 @@ export function UserRowActions({
         <button
           disabled={pending}
           onClick={() => {
-            if (!confirm(`Reset TOTP for "${username}"?`)) return;
+            const label = `reset 2FA for ${username}`;
+            if (!confirm(`Confirm ${label}? (kills all their sessions)`)) return;
+            const code = promptTotp(label);
+            if (!code) return;
             start(async () => {
-              const r = await resetUserTotp(userId);
+              const r = await resetUserTotp(userId, code);
               if (!r.ok) alert(r.error);
             });
           }}
-          className="px-2 py-0.5 border border-amber/30 hover:bg-amber/10 disabled:opacity-40"
+          className={btn}
         >
           reset 2fa
         </button>
@@ -68,17 +88,36 @@ export function UserRowActions({
         <button
           disabled={pending}
           onClick={() => {
-            if (!confirm(`Force re-verify email for "${username}"?`)) return;
+            const label = `reverify email of ${username}`;
+            if (!confirm(`Confirm ${label}?`)) return;
+            const code = promptTotp(label);
+            if (!code) return;
             start(async () => {
-              const r = await forceEmailReverify(userId);
+              const r = await forceEmailReverify(userId, code);
               if (!r.ok) alert(r.error);
             });
           }}
-          className="px-2 py-0.5 border border-amber/30 hover:bg-amber/10 disabled:opacity-40"
+          className={btn}
         >
           reverify email
         </button>
       ) : null}
+      <button
+        disabled={pending}
+        onClick={() => {
+          const label = `sign out ALL sessions of ${username}`;
+          if (!confirm(`Confirm ${label}? (user will be logged out everywhere)`)) return;
+          const code = promptTotp(label);
+          if (!code) return;
+          start(async () => {
+            const r = await logoutUserAllSessions(userId, code);
+            if (!r.ok) alert(r.error);
+          });
+        }}
+        className={dangerBtn}
+      >
+        sign out all
+      </button>
     </div>
   );
 }
