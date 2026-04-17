@@ -76,17 +76,17 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   9: {
     goal:
-      "A file full of passwords. Exactly one of them occurs only once — the rest are noise and duplicates. Find the unique one without reading the file by eye.",
-    commands: ["sort", "uniq", "wc"],
-    realWorldSkill:
-      "Log deduplication at scale. The first tool in the belt of every SIEM engineer who has to find the one anomalous event out of a million identical ones.",
-  },
-  10: {
-    goal:
       "A binary blob. Not text. Somewhere inside it there is human-readable ASCII sitting next to a very specific marker. Pull the text out without writing any code of your own.",
     commands: ["strings", "grep", "file"],
     realWorldSkill:
       "Malware string analysis. Before you reverse a sample you run strings to find URLs, flags, and the personality of whoever wrote it. This is the single highest-ROI move in early-stage sample triage.",
+  },
+  10: {
+    goal:
+      "A file full of passwords. Exactly one of them occurs only once — the rest are noise and duplicates. Find the unique one without reading the file by eye.",
+    commands: ["sort", "uniq", "wc"],
+    realWorldSkill:
+      "Log deduplication at scale. The first tool in the belt of every SIEM engineer who has to find the one anomalous event out of a million identical ones.",
   },
   11: {
     goal:
@@ -118,7 +118,7 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   15: {
     goal:
-      "Somewhere in a range of ports, one of them is speaking TLS and will give you a new private key if you say hello. Scan the range. Find the live one. Talk to it. Notice the difference between a refused connection, a timeout, and a handshake failure — each one tells you something different about what is on the other side.",
+      "Somewhere in a range of ports, exactly one of them is speaking TLS and will hand you the next password if you greet it correctly. Scan the range. Find the live one. Speak TLS to it. Notice the difference between a refused connection, a timeout, and a handshake failure — each one tells you something different about what is on the other side.",
     commands: ["nmap", "openssl", "nc"],
     realWorldSkill:
       "Discovery is the first step in every engagement. If you cannot tell the difference between a closed port, a filtered port, and an open port speaking an unexpected protocol, you will miss the entry point.",
@@ -167,10 +167,10 @@ export const GHOST_LEVEL_CONTENT: Record<number, LevelContent> = {
   },
   22: {
     goal:
-      "You made it past every selection gate. Twenty-two levels. There is one file left on this machine that is not yours to read. It is classified. The system will decide if you are allowed to see it. You will need everything you learned across all twenty-two previous levels to answer the question it asks.",
-    commands: ["nc", "cat"],
+      "You made it past every selection gate. Twenty-two levels. There is one file left on this machine that is not yours to read — it is classified, split into three shards, and each shard is guarded by a different technique from earlier in the track.\n\nShard 1 is hiding in a binary blob. Pull it out.\nShard 2 is wrapped in base64. Unwrap it.\nShard 3 belongs to root. A tool on the system will read it for you, if you ask it right.\n\nThen find the gatekeeper listening on the machine and hand it all three shards. If you have them all and they are in the right order, it will release the graduation flag.",
+    commands: ["strings", "base64", "find", "nc"],
     realWorldSkill:
-      "Ghost was selection. This is graduation. Clear this and you are no longer a beginner — you are an operative. Every future BreachLab track is open to you. The real work starts now.",
+      "Ghost was selection. This is graduation. You will not solve this with one tool — only by combining everything you practiced. Clear this and you are no longer a beginner, you are an operative. Every future BreachLab track is open to you. The real work starts now.",
     hidden: true,
   },
 };
