@@ -31,8 +31,14 @@ export async function submitFlag(
   sourceIp: string | null
 ): Promise<SubmitResult> {
   const normalized = normalizeFlag(rawFlag);
-  if (!flagSchema.safeParse(normalized).success) {
-    return { ok: false, error: "Invalid flag format" };
+  const parsed = flagSchema.safeParse(normalized);
+  if (!parsed.success) {
+    return {
+      ok: false,
+      error:
+        parsed.error.issues[0]?.message ??
+        "Flag must look like FLAG{...}.",
+    };
   }
 
   const flagHash = await hashToken(normalized);
