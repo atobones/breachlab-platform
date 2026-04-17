@@ -1,6 +1,6 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { submissions, users } from "@/lib/db/schema";
+import { liveOpsCounts, submissions, users } from "@/lib/db/schema";
 
 export type LeaderRow = {
   userId: string;
@@ -31,19 +31,27 @@ export async function getGlobalTop(limit: number): Promise<LeaderRow[]> {
   }));
 }
 
+const WEB_LIVE_WINDOW = sql`interval '5 minutes'`;
+const SSH_LIVE_WINDOW = sql`interval '2 minutes'`;
+
 export async function getLiveStats(): Promise<{
   operatives: number;
   completionsToday: number;
 }> {
-  const [usersCount] = await db
+  const [webRow] = await db
     .select({ c: sql<number>`count(*)::int` })
-    .from(users);
+    .from(users)
+    .where(sql`${users.lastSeenAt} > now() - ${WEB_LIVE_WINDOW}`);
+  const [sshRow] = await db
+    .select({ c: sql<number>`coalesce(sum(${liveOpsCounts.count}), 0)::int` })
+    .from(liveOpsCounts)
+    .where(sql`${liveOpsCounts.updatedAt} > now() - ${SSH_LIVE_WINDOW}`);
   const [todayCount] = await db
     .select({ c: sql<number>`count(*)::int` })
     .from(submissions)
     .where(sql`${submissions.submittedAt} >= now() - interval '24 hours'`);
   return {
-    operatives: Number(usersCount?.c ?? 0),
+    operatives: Number(webRow?.c ?? 0) + Number(sshRow?.c ?? 0),
     completionsToday: Number(todayCount?.c ?? 0),
   };
 }
