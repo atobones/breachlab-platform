@@ -24,12 +24,24 @@ class ResendEmailClient implements EmailClient {
     this.from = from;
   }
   async send(args: SendArgs): Promise<void> {
-    await this.resend.emails.send({
+    // Resend SDK does NOT throw on API errors — it returns {data, error}.
+    // Silent failures (unverified sender domain, revoked key, rate limit)
+    // looked like success to the registration flow, so users never got
+    // verification mail and admins never saw it in logs. Surface and log.
+    const result = await this.resend.emails.send({
       from: this.from,
       to: args.to,
       subject: args.subject,
       text: args.text,
     });
+    if (result.error) {
+      const msg = `[email:resend] send failed to=${args.to} name=${result.error.name} message=${result.error.message}`;
+      console.error(msg);
+      throw new Error(msg);
+    }
+    console.log(
+      `[email:resend] sent to=${args.to} id=${result.data?.id ?? "?"}`
+    );
   }
 }
 
