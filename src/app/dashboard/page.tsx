@@ -2,8 +2,7 @@ import { redirect } from "next/navigation";
 import { eq } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth/session";
 import { getBadgesForUser } from "@/lib/badges/queries";
-import { BadgePill } from "@/components/badges/BadgePill";
-import { isBadgeKind } from "@/lib/badges/types";
+import { ProfileBadges } from "@/components/profile/ProfileBadges";
 import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
@@ -53,15 +52,7 @@ export default async function DashboardPage() {
             Take a first blood or complete a track to earn your first badge.
           </p>
         ) : (
-          <ul className="flex flex-wrap gap-2">
-            {userBadges.map((b) =>
-              isBadgeKind(b.kind) ? (
-                <li key={b.id}>
-                  <BadgePill kind={b.kind} />
-                </li>
-              ) : null
-            )}
-          </ul>
+          <ProfileBadges badges={userBadges} />
         )}
       </section>
       <ul className="text-sm space-y-2">

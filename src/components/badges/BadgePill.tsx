@@ -14,12 +14,13 @@ const COLOR: Record<BadgeKind, string> = {
   sponsor_architect: "border-amber text-amber font-bold",
 };
 
-export function BadgePill({ kind }: { kind: BadgeKind }) {
+export function BadgePill({ kind, count }: { kind: BadgeKind; count?: number }) {
   return (
     <span
       className={`inline-block px-2 py-0.5 text-xs uppercase tracking-wider border ${COLOR[kind]}`}
     >
       {BADGE_LABEL[kind]}
+      {count && count > 1 ? <span className="ml-1 opacity-70">×{count}</span> : null}
     </span>
   );
 }
