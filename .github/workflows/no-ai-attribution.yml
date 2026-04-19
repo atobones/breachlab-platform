@@ -1,0 +1,44 @@
+name: no-ai-attribution
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+
+jobs:
+  scan-commits:
+    name: Reject AI attribution in commits
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Scan commits for AI attribution markers
+        run: |
+          set -e
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+
+          PATTERN='[Cc]o-[Aa]uthored-[Bb]y:.*([Cc]laude|[Aa]nthropic|noreply@anthropic\.com)|[Gg]enerated with \[?[Cc]laude|[Gg]enerated with.*[Aa]nthropic|🤖 Generated with'
+
+          OFFENDERS=$(git log --format='%H %s%n%b%n---END---' "$BASE_SHA..$HEAD_SHA" | \
+            awk -v RS='---END---' -v pat="$PATTERN" 'BEGIN{IGNORECASE=1} $0 ~ pat {print}')
+
+          if [ -n "$OFFENDERS" ]; then
+            echo "::error::Commits in this PR contain AI attribution trailers/footers."
+            echo ""
+            echo "Offending commits:"
+            echo "$OFFENDERS"
+            echo ""
+            echo "Strip the following from commit messages before merging:"
+            echo "  - Co-Authored-By: Claude/Anthropic trailers"
+            echo "  - 'Generated with Claude Code' footers"
+            echo "  - Any 🤖 Generated with ... markers"
+            echo ""
+            echo "Fix: git rebase -i \$BASE && reword the offending commits, then force-push the PR branch."
+            exit 1
+          fi
+
+          echo "✓ No AI attribution found in $(git rev-list --count "$BASE_SHA..$HEAD_SHA") commit(s)."
