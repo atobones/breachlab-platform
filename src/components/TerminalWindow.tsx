@@ -52,10 +52,9 @@ export function TerminalWindow({ username, children }: Props) {
   return (
     <div className="terminal-window">
       <div className="terminal-titlebar">
-        <div className="terminal-dots" aria-hidden>
-          <span className="dot dot-r" />
-          <span className="dot dot-y" />
-          <span className="dot dot-g" />
+        <div className="terminal-tag" aria-hidden>
+          <span className="tmux-tag">[BL]</span>
+          <span className="tmux-window">0:bash*</span>
         </div>
         <div className="terminal-title">
           <span className="title-prompt">
@@ -67,7 +66,7 @@ export function TerminalWindow({ username, children }: Props) {
             <>
               <span>pid {pid}</span>
               <span className="title-sep">·</span>
-              <span>tty/0</span>
+              <span>tty0</span>
             </>
           )}
         </div>
