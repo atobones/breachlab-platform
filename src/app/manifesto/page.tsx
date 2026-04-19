@@ -10,9 +10,6 @@ export default function ManifestoPage() {
   return (
     <article className="space-y-8 max-w-2xl" data-testid="manifesto-page">
       <header className="space-y-3">
-        <div className="text-xs text-muted uppercase tracking-widest">
-          // breachlab.org/manifesto
-        </div>
         <h1 className="text-amber text-3xl phosphor wordmark">
           <span className="glitch" data-text="Manifesto">Manifesto</span>
         </h1>
