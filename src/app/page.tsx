@@ -147,6 +147,19 @@ export default function HomePage() {
           <span className="glitch" data-text="BreachLab">BreachLab</span>
           <span className="cursor" aria-hidden />
         </h1>
+        <p className="text-xs text-amber/80 max-w-2xl">
+          A new generation of operators is forming.{" "}
+          <Link href="/manifesto" className="hover:underline">
+            Read the manifesto →
+          </Link>
+        </p>
+        <p className="text-xs text-muted max-w-2xl">
+          The first 100 graduates of any track receive permanent{" "}
+          <Link href="/founding" className="text-amber hover:underline">
+            Founding Operative
+          </Link>{" "}
+          status. Be early.
+        </p>
         <p className="text-sm text-text max-w-2xl">
           The most comprehensive offensive security training platform in the
           world. 13 tracks, 320+ levels, zero hand-holding. From
