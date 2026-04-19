@@ -6,8 +6,8 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  scan-commits:
-    name: Reject AI attribution in commits
+  no-ai-attribution:
+    name: no-ai-attribution
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
