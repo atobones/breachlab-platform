@@ -224,11 +224,16 @@ async function main() {
         allow: SEND_MESSAGES.toString(),
       });
     } else if (mode === "public-talk") {
-      // Recruit read-only, Operative posts
+      // Open chat — anyone in the server can post, including bare @everyone
+      // (no role required). Without this, new joiners landed as @everyone
+      // and silently bounced because Discord doesn't auto-assign Recruit on
+      // join (incident 2026-04-19, multiple players DMd asking why they
+      // couldn't write). Operative still gets explicit allow as a safety
+      // net for any future tightening.
       overwrites.push({
         id: everyoneId,
         type: 0,
-        deny: SEND_MESSAGES.toString(),
+        allow: TEXT_ALLOW,
       });
       overwrites.push({
         id: operative.id,

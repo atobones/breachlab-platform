@@ -58,6 +58,17 @@ const GROUPS: Array<{
     limit: 60,
     windowMs: 60_000,
   },
+  {
+    // Flag submissions — without this, the endpoint is brute-forceable:
+    // a script can iterate the flag-value space (or replay a partial
+    // hint) at line speed. Legitimate humans solve at most a few per
+    // hour; 30/min is generous for a frantic typo-correction streak
+    // but kills any meaningful brute-force.
+    name: "submit",
+    paths: ["/submit"],
+    limit: 30,
+    windowMs: 60_000,
+  },
 ];
 
 function clientIp(request: NextRequest): string {
@@ -123,5 +134,6 @@ export const config = {
     "/reset-password/:path*",
     "/api/sponsors/claim",
     "/admin/:path*",
+    "/submit/:path*",
   ],
 };
