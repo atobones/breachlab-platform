@@ -79,18 +79,18 @@ export function BootSequence() {
       const t = setTimeout(() => {
         setBootedCookie();
         setDone(true);
-      }, 700);
+      }, 400);
       return () => clearTimeout(t);
     }
     const next = SCRIPT[shown];
     // Variable cadence — kernel lines are fast, blank/ok lines breathe.
     const delay =
-      next.kind === "kernel" ? 35 :
-      next.kind === "ok"     ? 90 :
-      next.kind === "warn"   ? 220 :
-      next.kind === "ready"  ? 450 :
-      next.kind === "blank"  ? 60 :
-      80;
+      next.kind === "kernel" ? 18 :
+      next.kind === "ok"     ? 50 :
+      next.kind === "warn"   ? 130 :
+      next.kind === "ready"  ? 280 :
+      next.kind === "blank"  ? 30 :
+      45;
     const t = setTimeout(() => setShown((n) => n + 1), delay);
     return () => clearTimeout(t);
   }, [active, shown, done]);
