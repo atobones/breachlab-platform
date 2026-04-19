@@ -1,0 +1,11 @@
+[Unit]
+Description=BreachLab Postgres daily backup — runs daily at 03:30 UTC
+
+[Timer]
+OnCalendar=*-*-* 03:30:00
+RandomizedDelaySec=10m
+Persistent=true
+Unit=breachlab-db-backup.service
+
+[Install]
+WantedBy=timers.target

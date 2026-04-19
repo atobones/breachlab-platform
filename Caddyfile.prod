@@ -5,10 +5,18 @@
 breachlab.org, www.breachlab.org {
     encode zstd gzip
     header {
-        Strict-Transport-Security "max-age=31536000; includeSubDomains"
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
+        Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
+        # Content-Security-Policy — Next.js 15 inlines hydration JSON and
+        # streaming RSC payloads, so we keep `unsafe-inline` for scripts.
+        # Frame-ancestors 'none' enforces the X-Frame-Options DENY at the
+        # CSP layer too. SSE connects same-origin only.
+        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' fonts.googleapis.com; font-src 'self' data: fonts.gstatic.com; img-src 'self' data: https://cdn.discordapp.com https://avatars.githubusercontent.com; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'; upgrade-insecure-requests"
+        # Don't advertise the framework
+        -Server
     }
     reverse_proxy web:3000
 }

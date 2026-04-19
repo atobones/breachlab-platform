@@ -360,19 +360,23 @@ export async function getAllSponsors(opts: {
 // ─── Daily trend (last 30 days) ────────────────────────────────────────────
 
 export async function getDailyTrend(days: number = 30): Promise<DailyTrendPoint[]> {
+  // Clamp + integer-coerce to prevent SQL injection if a future caller
+  // forwards a HTTP query param into this function. `sql.raw(String(N))`
+  // would compose-expand any non-numeric input into the query string.
+  const safeDays = Math.max(1, Math.min(365, Math.floor(Number(days) || 30)));
   const [regResult, subResult] = await Promise.all([
     db.execute<{ day: string; c: number }>(sql`
       select to_char(date_trunc('day', ${users.createdAt}), 'YYYY-MM-DD') as day,
              count(*)::int as c
         from ${users}
-       where ${users.createdAt} >= now() - interval '${sql.raw(String(days))} days'
+       where ${users.createdAt} >= now() - (${safeDays} || ' days')::interval
        group by day
     `),
     db.execute<{ day: string; c: number }>(sql`
       select to_char(date_trunc('day', ${submissions.submittedAt}), 'YYYY-MM-DD') as day,
              count(*)::int as c
         from ${submissions}
-       where ${submissions.submittedAt} >= now() - interval '${sql.raw(String(days))} days'
+       where ${submissions.submittedAt} >= now() - (${safeDays} || ' days')::interval
        group by day
     `),
   ]);

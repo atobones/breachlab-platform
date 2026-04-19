@@ -1,0 +1,27 @@
+[Unit]
+Description=BreachLab Postgres daily backup
+Wants=breachlab-db-backup.timer
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/breachlab-platform/scripts/db-backup.sh
+# Reasonable defaults — override by editing the .env file at the path
+# the script sources.
+Environment=BACKUP_DIR=/opt/backups/breachlab-db
+Environment=RETAIN_DAYS=14
+# Don't run as root if we don't have to. The script needs to docker-exec
+# so it needs Docker socket access — root or a user in the docker group.
+User=root
+# Hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/opt/backups/breachlab-db
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
