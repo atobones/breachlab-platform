@@ -22,12 +22,12 @@ export async function POST(req: NextRequest) {
     .where(eq(sponsors.claimToken, token))
     .limit(1);
 
-  if (!sponsor) {
-    return NextResponse.json({ error: "invalid token" }, { status: 404 });
-  }
-
-  if (sponsor.userId) {
-    return NextResponse.json({ error: "already claimed" }, { status: 409 });
+  // Use a single generic error for both "no such token" and "token already
+  // claimed" so an attacker can't enumerate valid claim tokens by diffing
+  // 404 vs 409 responses. Rate-limit on /api/sponsors/claim is already 10/min
+  // (auth group in middleware) so brute-force is bounded too.
+  if (!sponsor || sponsor.userId) {
+    return NextResponse.json({ error: "invalid or already-claimed token" }, { status: 400 });
   }
 
   await db
