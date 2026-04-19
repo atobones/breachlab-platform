@@ -331,6 +331,78 @@ body::after {
   font-family: var(--bl-font-display);
 }
 
+/* ─────────────────────────────────────────────────────────────
+   Terminal Window — chrome wrapper around main content.
+   Title bar with traffic-light dots + shell prompt + meta.
+   Sits inside the page (sidebar stays outside as the "OS").
+   ───────────────────────────────────────────────────────────── */
+.terminal-window {
+  border: 1px solid color-mix(in oklab, var(--bl-amber) 25%, transparent);
+  background: color-mix(in oklab, var(--bl-amber) 1.5%, var(--bl-bg));
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  box-shadow:
+    inset 0 1px 0 color-mix(in oklab, var(--bl-amber) 8%, transparent),
+    0 0 24px color-mix(in oklab, var(--bl-amber) 6%, transparent);
+}
+.terminal-titlebar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--bl-amber) 18%, transparent);
+  background: color-mix(in oklab, var(--bl-amber) 4%, var(--bl-bg));
+  font-size: 11px;
+  letter-spacing: 0.03em;
+  user-select: none;
+}
+.terminal-dots {
+  display: inline-flex;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+.terminal-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  display: inline-block;
+  opacity: 0.7;
+}
+.terminal-dots .dot-r { background: #ff5f57; }
+.terminal-dots .dot-y { background: #febc2e; }
+.terminal-dots .dot-g { background: #28c840; }
+.terminal-title {
+  flex: 1;
+  text-align: center;
+  color: var(--bl-muted);
+  font-family: var(--bl-font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.title-prompt {
+  font-variant-numeric: tabular-nums;
+}
+.title-cwd {
+  color: var(--bl-amber);
+}
+.terminal-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: color-mix(in oklab, var(--bl-amber) 35%, var(--bl-muted));
+  font-size: 10px;
+  flex-shrink: 0;
+}
+.title-sep {
+  color: color-mix(in oklab, var(--bl-amber) 30%, transparent);
+}
+.terminal-content {
+  padding: 1.5rem 2rem 2rem;
+  min-height: calc(100vh - 5rem);
+}
+
 /* Matrix-rain background for the 404 page.
    Single element, CSS-only, low opacity so it reads as ambient
    grid rather than a distraction. */
