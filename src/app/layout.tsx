@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { StatusBar } from "@/components/StatusBar";
 import { TerminalWindow } from "@/components/TerminalWindow";
+import { CommandPalette } from "@/components/CommandPalette";
 import { getCurrentSession } from "@/lib/auth/session";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -44,6 +45,7 @@ export default async function RootLayout({
           </TerminalWindow>
         </main>
         <StatusBar />
+        <CommandPalette username={user?.username ?? null} />
       </body>
     </html>
   );
