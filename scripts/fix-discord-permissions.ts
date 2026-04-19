@@ -48,19 +48,26 @@ const ATTACH_FILES = 1n << 15n;
 const ADD_REACTIONS = 1n << 6n;
 
 // Channels we want @everyone to chat in (the core community spaces).
-// Anything not in this list keeps its existing overwrites.
+// Match by the trailing slug — Discord names look like "💬・general",
+// "👻・ghost", etc. We normalize to the part after the `・` separator.
 const OPEN_CHAT_CHANNELS = new Set([
   "general",
   "introductions",
   "victories",
   "off-topic",
-  "ghost-track",
-  "phantom-track",
+  "ghost",
+  "phantom",
   "help",
   "bugs",
   "feedback",
   "suggestions",
 ]);
+
+function channelSlug(name: string): string {
+  // Strip emoji prefix + Discord's "・" separator if present.
+  const parts = name.split("・");
+  return (parts.length > 1 ? parts[parts.length - 1] : name).trim().toLowerCase();
+}
 
 type Role = { id: string; name: string };
 type Member = {
@@ -153,7 +160,8 @@ async function main() {
   let opened = 0;
   console.log("→ opening chat channels for @everyone...");
   for (const ch of channels) {
-    if (!OPEN_CHAT_CHANNELS.has(ch.name)) continue;
+    const slug = channelSlug(ch.name);
+    if (!OPEN_CHAT_CHANNELS.has(slug)) continue;
     // Allow @everyone to send + react + read history. Clear the SEND deny.
     await patchChannelOverwrite(
       ch.id,
@@ -162,7 +170,7 @@ async function main() {
       VIEW_CHANNEL | SEND_MESSAGES | READ_HISTORY | EMBED_LINKS | ATTACH_FILES | ADD_REACTIONS,
       0n,
     );
-    console.log(`  ✓ #${ch.name}`);
+    console.log(`  ✓ #${ch.name} (slug: ${slug})`);
     opened++;
   }
   console.log(`  total: ${opened} channels opened\n`);
