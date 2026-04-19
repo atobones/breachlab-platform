@@ -5,6 +5,7 @@ const NAV_LINKS = [
   { href: "/", label: "Home" },
   { href: "/tracks/ghost", label: "Wargames" },
   { href: "/leaderboard", label: "Leaderboard" },
+  { href: "/manifesto", label: "Manifesto" },
   { href: "/rules", label: "Rules" },
 ];
 
