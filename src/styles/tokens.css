@@ -8,6 +8,9 @@
   --bl-border: #1f1f1f;
 
   --bl-font-mono: "JetBrains Mono", "IBM Plex Mono", ui-monospace, monospace;
+  /* Display face — pixel-grid retro-future. Reserved for wordmark, hero
+     headers, big numerics. Loaded as next/font/local in layout.tsx. */
+  --bl-font-display: var(--font-departure), "JetBrains Mono", ui-monospace, monospace;
 
   --bl-text-sm: 14px;
   --bl-text-base: 16px;

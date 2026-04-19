@@ -143,8 +143,9 @@ export default function HomePage() {
   return (
     <div className="space-y-8">
       <header className="space-y-3">
-        <h1 className="text-amber text-2xl inline-flex items-baseline">
-          BreachLab<span className="cursor" aria-hidden />
+        <h1 className="text-amber text-3xl inline-flex items-baseline phosphor wordmark">
+          <span className="glitch" data-text="BreachLab">BreachLab</span>
+          <span className="cursor" aria-hidden />
         </h1>
         <p className="text-sm text-text max-w-2xl">
           The most comprehensive offensive security training platform in the

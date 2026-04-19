@@ -23,11 +23,8 @@ export function Header() {
         </ul>
       </nav>
       <div className="flex items-center gap-3">
-        <Link
-          href="/help"
-          className="inline-block border border-amber/50 text-amber px-3 py-1 hover:border-amber hover:bg-amber/10 transition-colors uppercase tracking-wider text-sm"
-        >
-          [ Help ]
+        <Link href="/help" className="btn-bracket text-sm">
+          Help
         </Link>
         <DonateButton />
       </div>

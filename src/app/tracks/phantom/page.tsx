@@ -201,7 +201,7 @@ export default async function PhantomTrackPage() {
         <dl className="text-sm space-y-1">
           <div>
             <dt className="inline text-muted">Host: </dt>
-            <dd className="inline">phantom.breachlab.org</dd>
+            <dd className="inline">204.168.229.209</dd>
           </div>
           <div>
             <dt className="inline text-muted">Port: </dt>
@@ -217,7 +217,7 @@ export default async function PhantomTrackPage() {
           </div>
         </dl>
         <pre className="bg-bg border border-border p-2 text-xs mt-3">
-          ssh phantom0@phantom.breachlab.org -p 2223
+          ssh phantom0@204.168.229.209 -p 2223
         </pre>
       </section>
 
