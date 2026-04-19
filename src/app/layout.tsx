@@ -5,6 +5,8 @@ import "./globals.css";
 import { Sidebar } from "@/components/Sidebar";
 import { Header } from "@/components/Header";
 import { StatusBar } from "@/components/StatusBar";
+import { TerminalWindow } from "@/components/TerminalWindow";
+import { getCurrentSession } from "@/lib/auth/session";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -24,9 +26,10 @@ export const metadata: Metadata = {
   description: "Real skills. Real scenarios. No CTF bullshit.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const { user } = await getCurrentSession();
   return (
     <html
       lang="en"
@@ -34,9 +37,11 @@ export default function RootLayout({
     >
       <body className="min-h-screen flex pb-6">
         <Sidebar />
-        <main className="flex-1 p-8 max-w-4xl">
-          <Header />
-          {children}
+        <main className="flex-1 p-4 max-w-5xl">
+          <TerminalWindow username={user?.username ?? null}>
+            <Header />
+            {children}
+          </TerminalWindow>
         </main>
         <StatusBar />
       </body>

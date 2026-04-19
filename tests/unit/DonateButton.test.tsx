@@ -14,9 +14,9 @@ describe("DonateButton", () => {
     expect(link).toHaveAttribute("href", "/donate");
   });
 
-  it("uses amber accent class", () => {
+  it("uses btn-bracket primitive (terminal-style amber styling)", () => {
     render(<DonateButton />);
     const link = screen.getByRole("link", { name: /donate/i });
-    expect(link.className).toMatch(/amber/);
+    expect(link.className).toMatch(/btn-bracket/);
   });
 });
