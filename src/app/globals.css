@@ -357,21 +357,24 @@ body::after {
   letter-spacing: 0.03em;
   user-select: none;
 }
-.terminal-dots {
+.terminal-tag {
   display: inline-flex;
-  gap: 0.4rem;
+  align-items: center;
+  gap: 0.5rem;
   flex-shrink: 0;
+  font-size: 11px;
+  letter-spacing: 0.05em;
 }
-.terminal-dots .dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  display: inline-block;
-  opacity: 0.7;
+.tmux-tag {
+  background: var(--bl-amber);
+  color: var(--bl-bg);
+  font-family: var(--bl-font-display);
+  padding: 0.05rem 0.4rem;
+  font-weight: 600;
 }
-.terminal-dots .dot-r { background: #ff5f57; }
-.terminal-dots .dot-y { background: #febc2e; }
-.terminal-dots .dot-g { background: #28c840; }
+.tmux-window {
+  color: var(--bl-muted);
+}
 .terminal-title {
   flex: 1;
   text-align: center;
@@ -425,4 +428,183 @@ body::after {
 @keyframes bl-rain {
   0%   { background-position: 0 0; }
   100% { background-position: 0 200%; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Operations Center — homepage hero block. Stat tiles + 2-pane
+   grid (live activity stream + htop-style top operatives).
+   Reads as a working command center, not a marketing card.
+   ───────────────────────────────────────────────────────────── */
+.ops-center {
+  border: 1px solid color-mix(in oklab, var(--bl-amber) 25%, transparent);
+  background: color-mix(in oklab, var(--bl-amber) 2.5%, var(--bl-bg));
+  margin-bottom: 1.5rem;
+  font-family: var(--bl-font-mono);
+}
+.ops-header {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.75rem;
+  border-bottom: 1px solid color-mix(in oklab, var(--bl-amber) 18%, transparent);
+  background: color-mix(in oklab, var(--bl-amber) 5%, var(--bl-bg));
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.ops-tag {
+  background: var(--bl-amber);
+  color: var(--bl-bg);
+  padding: 0.05rem 0.45rem;
+  font-family: var(--bl-font-display);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.ops-title {
+  color: var(--bl-muted);
+  flex: 1;
+}
+.ops-pulse {
+  color: var(--bl-green);
+  animation: bl-pulse 2s ease-in-out infinite;
+  font-size: 10px;
+}
+.ops-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  background: color-mix(in oklab, var(--bl-amber) 18%, transparent);
+  border-bottom: 1px solid color-mix(in oklab, var(--bl-amber) 18%, transparent);
+}
+.ops-stat {
+  background: var(--bl-bg);
+  padding: 0.7rem 0.85rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+.ops-stat-value {
+  font-size: 1.3rem;
+  font-family: var(--bl-font-display);
+  color: var(--bl-text);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.ops-stat-accent { color: var(--bl-amber); }
+.ops-stat-mono   { color: var(--bl-green); font-size: 0.95rem; }
+.ops-stat-label {
+  font-size: 10px;
+  letter-spacing: 0.07em;
+  color: var(--bl-muted);
+  text-transform: uppercase;
+}
+.ops-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1px;
+  background: color-mix(in oklab, var(--bl-amber) 18%, transparent);
+}
+.ops-pane {
+  background: var(--bl-bg);
+  padding: 0.7rem 0.85rem 0.85rem;
+  min-height: 180px;
+}
+.ops-pane-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  color: var(--bl-amber);
+  margin-bottom: 0.55rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px dashed color-mix(in oklab, var(--bl-amber) 20%, transparent);
+}
+.ops-pane-meta {
+  color: var(--bl-muted);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+.ops-empty {
+  color: var(--bl-muted);
+  font-size: 12px;
+  padding: 1rem 0;
+  text-align: center;
+}
+
+/* Live activity stream (left pane) — tail-f style scrolling list */
+.ops-stream {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.ops-stream-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: baseline;
+}
+.ops-stream-ts {
+  color: var(--bl-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.ops-stream-line { color: var(--bl-text); }
+.ops-stream-empty {
+  display: flex;
+  align-items: center;
+  font-size: 12px;
+  padding: 0.5rem 0;
+}
+
+/* Top operatives (right pane) — htop-style horizontal bars */
+.ops-htop {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.55;
+}
+.ops-htop-row {
+  display: grid;
+  grid-template-columns: 36px minmax(80px, 120px) 1fr 56px;
+  gap: 0.5rem;
+  align-items: center;
+}
+.ops-htop-rank {
+  color: var(--bl-muted);
+  font-variant-numeric: tabular-nums;
+  font-size: 11px;
+}
+.ops-htop-name {
+  color: var(--bl-amber);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ops-htop-name:hover { text-decoration: underline; }
+.ops-htop-bar {
+  height: 8px;
+  background: color-mix(in oklab, var(--bl-amber) 8%, transparent);
+  border: 1px solid color-mix(in oklab, var(--bl-amber) 20%, transparent);
+  position: relative;
+}
+.ops-htop-fill {
+  height: 100%;
+  background: color-mix(in oklab, var(--bl-amber) 75%, transparent);
+}
+.ops-htop-points {
+  text-align: right;
+  color: var(--bl-text);
+  font-size: 11px;
+}
+
+/* Mobile collapse */
+@media (max-width: 720px) {
+  .ops-stats { grid-template-columns: repeat(2, 1fr); }
+  .ops-grid  { grid-template-columns: 1fr; }
 }

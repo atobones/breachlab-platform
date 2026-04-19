@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { OpsCenter } from "@/components/OpsCenter";
 
 const TRACKS = [
   {
@@ -142,10 +143,10 @@ const STATUS_STYLE = {
 export default function HomePage() {
   return (
     <div className="space-y-8">
+      <OpsCenter />
       <header className="space-y-3">
         <h1 className="text-amber text-3xl inline-flex items-baseline phosphor wordmark">
           <span className="glitch" data-text="BreachLab">BreachLab</span>
-          <span className="cursor" aria-hidden />
         </h1>
         <p className="text-xs text-amber/80 max-w-2xl">
           A new generation of operators is forming.{" "}
