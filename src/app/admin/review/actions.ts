@@ -4,20 +4,24 @@ import { and, eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db/client";
 import { badges, speedrunRuns, tracks } from "@/lib/db/schema";
-import { getCurrentSession } from "@/lib/auth/session";
+import { requireAdminWithTotp } from "@/lib/admin/guards";
 import { getTopSpeedruns } from "@/lib/speedrun/queries";
 import { recordAudit } from "@/lib/admin/audit";
 
-async function requireAdmin() {
-  const { user } = await getCurrentSession();
-  if (!user || !user.isAdmin || !user.totpEnabled) {
-    throw new Error("Unauthorized");
-  }
-  return user;
-}
+type Result = { ok: true } | { ok: false; error: string };
 
-export async function approveRun(runId: string): Promise<void> {
-  const admin = await requireAdmin();
+// approveRun/rejectRun mutate leaderboard state (speedrun_top10 badge
+// insertion, run status) so they need the same fresh-TOTP gate the
+// user/sponsor mutations already use. A stolen admin cookie otherwise
+// lets an attacker rubber-stamp suspicious runs and hand out badges.
+// Reported 2026-04-20 by post-incident audit.
+export async function approveRun(
+  runId: string,
+  totpCode: string,
+): Promise<Result> {
+  const check = await requireAdminWithTotp(totpCode);
+  if ("error" in check) return { ok: false, error: check.error };
+  const admin = check.actor;
   const now = new Date();
 
   const [updated] = await db
@@ -30,7 +34,14 @@ export async function approveRun(runId: string): Promise<void> {
     .where(eq(speedrunRuns.id, runId))
     .returning();
 
-  if (!updated) return;
+  if (!updated) {
+    await recordAudit({
+      actor: admin,
+      action: "speedrun.approve",
+      metadata: { runId, note: "run not found" },
+    });
+    return { ok: false, error: "run not found" };
+  }
 
   const [track] = await db
     .select({ slug: tracks.slug })
@@ -66,17 +77,23 @@ export async function approveRun(runId: string): Promise<void> {
   }
 
   await recordAudit({
-    actor: { id: admin.id, username: admin.username },
+    actor: admin,
     action: "speedrun.approve",
     metadata: { runId },
   });
 
   revalidatePath("/admin/review");
   revalidatePath("/leaderboard/speedrun");
+  return { ok: true };
 }
 
-export async function rejectRun(runId: string): Promise<void> {
-  const admin = await requireAdmin();
+export async function rejectRun(
+  runId: string,
+  totpCode: string,
+): Promise<Result> {
+  const check = await requireAdminWithTotp(totpCode);
+  if ("error" in check) return { ok: false, error: check.error };
+  const admin = check.actor;
   await db
     .update(speedrunRuns)
     .set({
@@ -86,10 +103,11 @@ export async function rejectRun(runId: string): Promise<void> {
     })
     .where(eq(speedrunRuns.id, runId));
   await recordAudit({
-    actor: { id: admin.id, username: admin.username },
+    actor: admin,
     action: "speedrun.reject",
     metadata: { runId },
   });
   revalidatePath("/admin/review");
   revalidatePath("/leaderboard/speedrun");
+  return { ok: true };
 }

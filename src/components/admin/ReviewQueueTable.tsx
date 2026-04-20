@@ -1,3 +1,5 @@
+"use client";
+import { useTransition } from "react";
 import type { SuspiciousRunRow } from "@/lib/speedrun/queries";
 import { approveRun, rejectRun } from "@/app/admin/review/actions";
 
@@ -8,7 +10,20 @@ function formatTime(totalSeconds: number | null): string {
   return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
 }
 
+function promptTotp(actionLabel: string): string | null {
+  const code = window.prompt(`6-digit TOTP code to confirm: ${actionLabel}`);
+  if (code === null) return null;
+  const cleaned = code.trim();
+  if (!/^\d{6}$/.test(cleaned)) {
+    alert("TOTP code must be 6 digits");
+    return null;
+  }
+  return cleaned;
+}
+
 export function ReviewQueueTable({ runs }: { runs: SuspiciousRunRow[] }) {
+  const [pending, start] = useTransition();
+
   return (
     <table className="w-full text-sm font-mono">
       <thead>
@@ -30,22 +45,40 @@ export function ReviewQueueTable({ runs }: { runs: SuspiciousRunRow[] }) {
               {run.startedAt.toISOString().slice(0, 19).replace("T", " ")}
             </td>
             <td className="py-2 flex gap-2">
-              <form action={approveRun.bind(null, run.id)}>
-                <button
-                  type="submit"
-                  className="text-xs px-2 py-1 border border-amber/40 text-amber hover:bg-amber/10"
-                >
-                  Approve
-                </button>
-              </form>
-              <form action={rejectRun.bind(null, run.id)}>
-                <button
-                  type="submit"
-                  className="text-xs px-2 py-1 border border-red/40 text-red hover:bg-red/10"
-                >
-                  Reject
-                </button>
-              </form>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  const label = `approve run for ${run.username}`;
+                  if (!confirm(`Confirm ${label}?`)) return;
+                  const code = promptTotp(label);
+                  if (!code) return;
+                  start(async () => {
+                    const r = await approveRun(run.id, code);
+                    if (!r.ok) alert(r.error);
+                  });
+                }}
+                className="text-xs px-2 py-1 border border-amber/40 text-amber hover:bg-amber/10 disabled:opacity-40"
+              >
+                Approve
+              </button>
+              <button
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  const label = `reject run for ${run.username}`;
+                  if (!confirm(`Confirm ${label}?`)) return;
+                  const code = promptTotp(label);
+                  if (!code) return;
+                  start(async () => {
+                    const r = await rejectRun(run.id, code);
+                    if (!r.ok) alert(r.error);
+                  });
+                }}
+                className="text-xs px-2 py-1 border border-red-400/40 text-red-400 hover:bg-red-400/10 disabled:opacity-40"
+              >
+                Reject
+              </button>
             </td>
           </tr>
         ))}
