@@ -52,7 +52,17 @@ export async function registerAction(
     expiresAt: new Date(Date.now() + ONE_DAY_MS),
   });
 
-  await sendVerificationEmail(email, token);
+  try {
+    await sendVerificationEmail(email, token);
+  } catch (err) {
+    // Email infra failure (Resend outage, DNS, rate limit). The user's
+    // account is already committed; don't wedge them on the page. They
+    // can resend from /dashboard once signed in.
+    console.warn("[register] verification email send failed", {
+      userId: created.id,
+      err: err instanceof Error ? err.message : String(err),
+    });
+  }
 
   const session = await lucia.createSession(created.id, {});
   const sessionCookie = lucia.createSessionCookie(session.id);
