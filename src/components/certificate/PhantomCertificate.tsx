@@ -1,5 +1,6 @@
 import type { TrackCertificate } from "@/lib/certificate/queries";
-import { operativeSerial, operativeSeal } from "@/lib/certificate/serial";
+import { operativeSerial } from "@/lib/certificate/serial";
+import { CertificateSeal } from "./CertificateSeal";
 
 const SKILLS = [
   "Sudo abuse — env_keep, wildcard injection, sudoedit bypass",
@@ -15,10 +16,10 @@ function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
+export async function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
   const serial = operativeSerial(cert.userId, cert.trackId, cert.awardedAt, "PHNM");
-  const seal = operativeSeal(serial);
   const date = formatDate(cert.awardedAt);
+  const verifyUrl = `https://breachlab.org/u/${cert.username}/certificate/phantom`;
 
   return (
     <article
@@ -66,12 +67,12 @@ export function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
             for offensive security engagements.
           </p>
         </div>
-        <pre
-          aria-hidden
-          className="text-red text-sm leading-none border border-red/40 p-2 select-none"
-        >
-{seal.join("\n")}
-        </pre>
+        <CertificateSeal
+          verifyUrl={verifyUrl}
+          color="#ef4444"
+          labelClass="text-red"
+          borderClass="border-red/40"
+        />
       </div>
 
       <section className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
