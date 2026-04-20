@@ -5,6 +5,8 @@ import { getTrackCertificate } from "@/lib/certificate/queries";
 import { OperativeCertificate } from "@/components/certificate/OperativeCertificate";
 import { PhantomCertificate } from "@/components/certificate/PhantomCertificate";
 import { CertificateActions } from "@/components/certificate/CertificateActions";
+import { getCurrentSession } from "@/lib/auth/session";
+import { operativeSerial } from "@/lib/certificate/serial";
 
 export const dynamic = "force-dynamic";
 
@@ -34,9 +36,23 @@ export default async function TrackCertificatePage({
   const cert = await getTrackCertificate(username, track);
   if (!cert) notFound();
 
+  const { user } = await getCurrentSession();
+  const isOwner = user?.username === cert.username;
+  const serial = operativeSerial(
+    cert.userId,
+    cert.trackId,
+    cert.awardedAt,
+    track === "phantom" ? "PHNM" : "GHST"
+  );
+
   return (
     <div className="py-4">
-      <CertificateActions />
+      <CertificateActions
+        isOwner={isOwner}
+        username={cert.username}
+        track={track}
+        serial={serial}
+      />
       {track === "phantom" ? (
         <PhantomCertificate cert={cert} />
       ) : (
