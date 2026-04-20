@@ -46,7 +46,14 @@ export async function getFoundingCohort(): Promise<FoundingCohort> {
   const operatives = rows.map((r, i) => ({
     rank: i + 1,
     username: r.username,
-    earnedAt: r.earnedAt,
+    // postgres-js returns timestamp columns as Date, but values produced
+    // by aggregate sql templates (min/max/etc) come back as ISO strings
+    // — coerce here so consumers can call Intl.DateTimeFormat.format on
+    // it without a RangeError.
+    earnedAt:
+      r.earnedAt instanceof Date
+        ? r.earnedAt
+        : new Date(r.earnedAt as unknown as string),
     tracks: (r.tracks ?? []).map(prettifyKind).sort(),
   }));
 
