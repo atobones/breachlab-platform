@@ -67,7 +67,7 @@ export default async function PhantomLevelPage({
           { label: "phantom", href: "/tracks/phantom" },
           {
             label:
-              idx === 20 ? "graduation" : `level ${idx}`,
+              idx === MAX_PHANTOM_LEVEL ? "graduation" : `level ${idx}`,
           },
         ]}
       />
@@ -76,7 +76,7 @@ export default async function PhantomLevelPage({
           {content && <TierBadge tier={content.tier} size="sm" />}
         </div>
         <h1 className="text-red text-2xl">
-          {idx === 20 ? "Phantom Graduation" : `Level ${idx} → Level ${idx + 1}`}
+          {idx === MAX_PHANTOM_LEVEL ? "Phantom Graduation" : `Level ${idx} → Level ${idx + 1}`}
         </h1>
         <p className="text-sm text-muted">
           {lvl.title} · {lvl.pointsBase} pts

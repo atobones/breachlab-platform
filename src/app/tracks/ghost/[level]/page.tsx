@@ -61,13 +61,13 @@ export default async function GhostLevelPage({
         items={[
           { label: "tracks", href: "/" },
           { label: "ghost", href: "/tracks/ghost" },
-          { label: `level ${idx}` },
+          { label: idx === MAX_GHOST_LEVEL ? "graduation" : `level ${idx}` },
         ]}
       />
       <div>
         <p className="text-muted text-xs uppercase">Ghost Track</p>
         <h1 className="text-amber text-xl">
-          Level {idx} → Level {idx + 1}
+          {idx === MAX_GHOST_LEVEL ? "Ghost Graduation" : `Level ${idx} → Level ${idx + 1}`}
         </h1>
         <p className="text-sm text-muted">
           {lvl.title} · {lvl.pointsBase} pts
