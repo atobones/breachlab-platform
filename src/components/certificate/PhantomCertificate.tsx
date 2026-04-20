@@ -30,7 +30,7 @@ export async function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
         <p className="text-xs tracking-[0.4em] text-red">
           ━━━ CLASSIFIED — OPERATIONAL ━━━
         </p>
-        <pre className="text-red text-[10px] leading-none select-none">
+        <pre className="font-mono text-red text-[10px] leading-[1.15] select-none whitespace-pre overflow-x-auto">
 {` ____  _   _    _    _   _ _____ ___  __  __
 |  _ \\| | | |  / \\  | \\ | |_   _/ _ \\|  \\/  |
 | |_) | |_| | / _ \\ |  \\| | | || | | | |\\/| |

@@ -30,7 +30,7 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
         <p className="text-xs tracking-[0.4em] text-amber">
           ━━━ CLASSIFIED ━━━
         </p>
-        <pre className="text-amber text-[10px] leading-none select-none">
+        <pre className="font-mono text-amber text-[10px] leading-[1.15] select-none whitespace-pre overflow-x-auto">
 {` ____  ____  _____ ____  ____  _   _  _        ____    ____
 | __ )|  _ \\| ____|  _ \\/ ___|| | | || |      / ___|  | __ )
 |  _ \\| |_) |  _| | |_) \\___ \\| |_| || |     | |      |  _ \\
