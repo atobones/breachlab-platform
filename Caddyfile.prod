@@ -18,5 +18,18 @@ breachlab.org, www.breachlab.org {
         # Don't advertise the framework
         -Server
     }
+    # SSE endpoint — keep the upstream connection open longer than the
+    # default 15s read timeout, otherwise Caddy aborts streams every
+    # 15s and the homepage's live activity feed reconnect-storms.
+    @sse path /api/live/events*
+    reverse_proxy @sse web:3000 {
+        transport http {
+            read_timeout 1h
+            write_timeout 1h
+            response_header_timeout 1h
+        }
+        flush_interval -1
+    }
+
     reverse_proxy web:3000
 }

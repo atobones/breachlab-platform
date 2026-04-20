@@ -36,7 +36,14 @@ export async function forgotPasswordAction(
       tokenHash,
       expiresAt: new Date(Date.now() + ONE_HOUR_MS),
     });
-    await sendPasswordResetEmail(email, token);
+    try {
+      await sendPasswordResetEmail(email, token);
+    } catch (err) {
+      console.warn("[forgot-password] reset email send failed", {
+        userId: user.id,
+        err: err instanceof Error ? err.message : String(err),
+      });
+    }
   }
 
   return { ok: true, error: null };
