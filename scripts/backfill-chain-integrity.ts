@@ -51,12 +51,21 @@ type SubRow = {
 
 async function main() {
   const dryRun = process.env.APPLY !== "1";
+  const skipUsers = (process.env.SKIP_USERS ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
 
   console.log(
     dryRun
       ? "[dry-run] no writes will be performed — set APPLY=1 to persist."
       : "[apply] will UPDATE submissions.points_awarded in place.",
   );
+  if (skipUsers.length > 0) {
+    console.log(
+      `[skip] these users' submissions will be left untouched: ${skipUsers.join(", ")}`,
+    );
+  }
 
   // Load levels
   const levelRows = await db
@@ -205,8 +214,13 @@ async function main() {
     return;
   }
 
-  console.log(`\n[apply] writing ${changes.length} updates...`);
-  for (const c of changes) {
+  const skipSet = new Set(skipUsers);
+  const toApply = changes.filter((c) => !skipSet.has(c.username));
+  const skipped = changes.length - toApply.length;
+  console.log(
+    `\n[apply] writing ${toApply.length} updates (${skipped} skipped by SKIP_USERS)...`,
+  );
+  for (const c of toApply) {
     await db
       .update(submissions)
       .set({ pointsAwarded: c.to })
