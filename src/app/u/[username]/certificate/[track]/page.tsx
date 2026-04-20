@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getTrackCertificate } from "@/lib/certificate/queries";
 import { OperativeCertificate } from "@/components/certificate/OperativeCertificate";
 import { PhantomCertificate } from "@/components/certificate/PhantomCertificate";
+import { CertificateActions } from "@/components/certificate/CertificateActions";
 
 export const dynamic = "force-dynamic";
 
@@ -35,12 +36,13 @@ export default async function TrackCertificatePage({
 
   return (
     <div className="py-4">
+      <CertificateActions />
       {track === "phantom" ? (
         <PhantomCertificate cert={cert} />
       ) : (
         <OperativeCertificate cert={cert} />
       )}
-      <div className="mt-6 text-center">
+      <div data-print-hide className="mt-6 text-center">
         <Link
           href={`/u/${cert.username}`}
           className="text-xs text-muted hover:text-amber"
