@@ -1,5 +1,6 @@
 import type { GhostCertificate } from "@/lib/certificate/queries";
-import { operativeSerial, operativeSeal } from "@/lib/certificate/serial";
+import { operativeSerial } from "@/lib/certificate/serial";
+import { CertificateSeal } from "./CertificateSeal";
 
 const SKILLS = [
   "Shell forensics · file discovery · permission analysis",
@@ -15,10 +16,10 @@ function formatDate(d: Date): string {
   return d.toISOString().slice(0, 10);
 }
 
-export function OperativeCertificate({ cert }: { cert: GhostCertificate }) {
+export async function OperativeCertificate({ cert }: { cert: GhostCertificate }) {
   const serial = operativeSerial(cert.userId, cert.trackId, cert.awardedAt);
-  const seal = operativeSeal(serial);
   const date = formatDate(cert.awardedAt);
+  const verifyUrl = `https://breachlab.org/u/${cert.username}/certificate/ghost`;
 
   return (
     <article
@@ -63,12 +64,12 @@ export function OperativeCertificate({ cert }: { cert: GhostCertificate }) {
             specialist.
           </p>
         </div>
-        <pre
-          aria-hidden
-          className="text-amber text-sm leading-none border border-amber/40 p-2 select-none"
-        >
-{seal.join("\n")}
-        </pre>
+        <CertificateSeal
+          verifyUrl={verifyUrl}
+          color="#f59e0b"
+          labelClass="text-amber"
+          borderClass="border-amber/40"
+        />
       </div>
 
       <section className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
