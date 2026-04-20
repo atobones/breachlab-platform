@@ -7,6 +7,7 @@ import { db } from "@/lib/db/client";
 import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
 import { CertificateShowcase } from "@/components/dashboard/CertificateShowcase";
+import { EmailVerificationBanner } from "@/components/dashboard/EmailVerificationBanner";
 import { isConfigured as isDiscordConfigured } from "@/lib/discord/oauth";
 import { getEarnedCertificates } from "@/lib/dashboard/certificates";
 
@@ -40,11 +41,7 @@ export default async function DashboardPage() {
         discordUsername={userRow?.discordUsername ?? null}
         configured={isDiscordConfigured()}
       />
-      {!user.emailVerified && (
-        <p className="text-red text-xs">
-          Email not verified. Check your inbox for the verification link.
-        </p>
-      )}
+      {!user.emailVerified && <EmailVerificationBanner />}
       <section>
         <h2 className="text-lg mb-2">Badges</h2>
         {userBadges.length === 0 ? (
