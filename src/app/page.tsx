@@ -155,11 +155,13 @@ export default function HomePage() {
           </Link>
         </p>
         <p className="text-xs text-muted max-w-2xl">
-          The first 100 graduates of any track receive permanent{" "}
+          The first 100 to clear <span className="text-red">Phantom</span> or
+          any pro track beyond it receive permanent{" "}
           <Link href="/founding" className="text-amber hover:underline">
             Founding Operative
           </Link>{" "}
-          status. Be early.
+          status. Ghost is the entry exam — Phantom is where seats are
+          earned. Be early.
         </p>
         <p className="text-sm text-text max-w-2xl">
           The most comprehensive offensive security training platform in the

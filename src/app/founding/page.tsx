@@ -6,7 +6,7 @@ export const dynamic = "force-dynamic";
 export const metadata = {
   title: "Founding Operatives — BreachLab",
   description:
-    "The first 100 graduates of any BreachLab track receive permanent Founding Operative status.",
+    "The first 100 operatives to clear Phantom or beyond receive permanent Founding Operative status. Ghost doesn't count — that's the entry exam.",
 };
 
 const SHORT_DATE = new Intl.DateTimeFormat("en-US", {
@@ -26,8 +26,10 @@ export default async function FoundingOperativesPage() {
           Founding Operatives
         </h1>
         <p className="text-sm text-text max-w-2xl">
-          The first 100 operatives to graduate any BreachLab track receive
-          permanent Founding status. The seat is yours forever — no
+          The first 100 operatives to clear{" "}
+          <span className="text-red">Phantom</span> or any track beyond it
+          receive permanent Founding status. Ghost doesn&rsquo;t count —
+          that&rsquo;s the entry exam. The seat is yours forever: no
           subscription, no renewal, no way to lose it.
         </p>
         <p className="text-xs text-muted max-w-2xl">
@@ -65,9 +67,9 @@ export default async function FoundingOperativesPage() {
         </div>
         {cohort.remaining > 0 && (
           <p className="text-xs text-muted mt-3">
-            Claim a seat by graduating any track.{" "}
-            <Link href="/tracks/ghost" className="text-amber hover:underline">
-              Start with Ghost →
+            Claim a seat by clearing Phantom or beyond. Ghost is the warm-up.{" "}
+            <Link href="/tracks/phantom" className="text-amber hover:underline">
+              Phantom track →
             </Link>
           </p>
         )}
@@ -109,16 +111,19 @@ export default async function FoundingOperativesPage() {
             // no operatives yet · the first seat is open
           </p>
           <p className="text-xs text-muted mt-2">
-            Graduate any track to claim Founding rank #001.
+            Clear Phantom (or any pro track that ships after) to claim
+            Founding rank #001.
           </p>
         </section>
       )}
 
       <footer className="border-t border-border pt-4 max-w-2xl space-y-2">
         <p className="text-xs text-muted">
-          Founding rank is computed from the timestamp of your first track
-          graduation badge. Seats are awarded in order; once 100 are claimed
-          the cohort closes permanently.
+          Founding rank is computed from the timestamp of your first
+          Phantom-or-higher graduation badge. Ghost completion is required
+          to unlock Phantom but does not itself claim a seat. Seats are
+          awarded in order; once 100 are claimed the cohort closes
+          permanently.
         </p>
         <p className="text-xs text-muted">
           <Link href="/manifesto" className="text-amber hover:underline">
@@ -126,7 +131,11 @@ export default async function FoundingOperativesPage() {
           </Link>{" "}
           —{" "}
           <Link href="/tracks/ghost" className="text-amber hover:underline">
-            start the Ghost track
+            start with Ghost
+          </Link>{" "}
+          —{" "}
+          <Link href="/tracks/phantom" className="text-amber hover:underline">
+            then Phantom
           </Link>
         </p>
       </footer>
