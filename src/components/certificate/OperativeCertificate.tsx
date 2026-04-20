@@ -31,11 +31,11 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
           ━━━ CLASSIFIED ━━━
         </p>
         <pre className="font-mono text-amber text-[10px] leading-[1.15] select-none whitespace-pre overflow-x-auto">
-{` ____  ____  _____ ____  ____  _   _  _        ____    ____
-| __ )|  _ \\| ____|  _ \\/ ___|| | | || |      / ___|  | __ )
-|  _ \\| |_) |  _| | |_) \\___ \\| |_| || |     | |      |  _ \\
-| |_) |  _ <| |___|  _ < ___) |  _  || |___  | |___   | |_) |
-|____/|_| \\_\\_____|_| \\_\\____/|_| |_||_____|  \\____|  |____/ `}
+{` ____  ____  _____    _    ____ _   _ _        _    ____
+| __ )|  _ \\| ____|  / \\  / ___| | | | |      / \\  | __ )
+|  _ \\| |_) |  _|   / _ \\| |   | |_| | |     / _ \\ |  _ \\
+| |_) |  _ <| |___ / ___ \\ |___|  _  | |___ / ___ \\| |_) |
+|____/|_| \\_\\_____/_/   \\_\\____|_| |_|_____/_/   \\_\\____/`}
         </pre>
         <p className="text-[11px] tracking-[0.4em] text-muted">
           OPERATIVE CERTIFICATION — GHOST TRACK
