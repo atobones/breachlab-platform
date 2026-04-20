@@ -1,4 +1,4 @@
-import { eq, and, sql } from "drizzle-orm";
+import { eq, and, sql, gt } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   flags,
@@ -56,17 +56,30 @@ export async function submitFlag(
     .limit(1);
   if (!level) return { ok: false, error: "Unknown flag" };
 
-  // Chain-order enforcement. Submissions for level N require a prior
-  // submission for level N-1 on the same track. Without this, a flag
-  // recovered through a container-side over-privilege (e.g. L1 GTFOBins
-  // on Phantom that exposes /root/levelN_flag for N > 1, or any future
-  // track that accidentally co-locates flag files under a root-readable
-  // path) could be turned straight into leaderboard points — the player
-  // ranks up without actually solving the intermediate levels. Level 0
-  // has no prior and is always accepted.
-  if (level.idx > 0) {
+  const existing = await db
+    .select({ id: submissions.id })
+    .from(submissions)
+    .where(
+      and(eq(submissions.userId, userId), eq(submissions.levelId, level.id))
+    )
+    .limit(1);
+  if (existing.length > 0) {
+    return { ok: false, error: "Already solved" };
+  }
+
+  // Points-unlock-with-chain. The platform accepts any valid flag at any
+  // time (a flat-container CTF naturally surfaces flags out of order
+  // during recon), but points and first-blood only land when the chain
+  // up to this level is intact for this user. Out-of-order captures are
+  // recorded with pointsAwarded=0 and no first-blood bonus. When the
+  // player later fills in the missing prior level(s), the reconcile
+  // cascade below retroactively promotes those 0-point captures to the
+  // level's base points. First-blood stays attached to the moment of
+  // the first chain-intact submission and is never reassigned.
+  let chainIntact = level.idx === 0;
+  if (!chainIntact) {
     const [prior] = await db
-      .select({ id: levels.id, idx: levels.idx })
+      .select({ id: levels.id })
       .from(levels)
       .where(
         and(eq(levels.trackId, level.trackId), eq(levels.idx, level.idx - 1)),
@@ -83,40 +96,78 @@ export async function submitFlag(
           ),
         )
         .limit(1);
-      if (priorSubmitted.length === 0) {
-        return {
-          ok: false,
-          error: `Solve level ${prior.idx} first — submissions must be in track order.`,
-        };
-      }
+      chainIntact = priorSubmitted.length > 0;
+    } else {
+      // Defensive: if somehow there is no idx-1 row on this track,
+      // do not block the submission — treat as intact.
+      chainIntact = true;
     }
   }
 
-  const existing = await db
-    .select({ id: submissions.id })
-    .from(submissions)
-    .where(
-      and(eq(submissions.userId, userId), eq(submissions.levelId, level.id))
-    )
-    .limit(1);
-  if (existing.length > 0) {
-    return { ok: false, error: "Already solved" };
-  }
+  // First-blood is the first chain-intact submission ever recorded for
+  // this level. Out-of-order captures (pointsAwarded=0) do NOT consume
+  // first-blood, so an honest-chain player who solves later still gets
+  // the bonus. Use pointsAwarded > 0 as the "chain-intact submission"
+  // marker, since a chain-intact submit always awards at least
+  // level.pointsBase.
+  const anyChainIntactPrior = chainIntact
+    ? await db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.levelId, level.id),
+            gt(submissions.pointsAwarded, 0),
+          ),
+        )
+        .limit(1)
+    : [];
+  const isFirstBlood = chainIntact && anyChainIntactPrior.length === 0;
 
-  const anyPrior = await db
-    .select({ id: submissions.id })
-    .from(submissions)
-    .where(eq(submissions.levelId, level.id))
-    .limit(1);
-  const isFirstBlood = anyPrior.length === 0;
-
-  const points = computeAwardedPoints(level, isFirstBlood);
+  const points = chainIntact ? computeAwardedPoints(level, isFirstBlood) : 0;
   await db.insert(submissions).values({
     userId,
     levelId: level.id,
     pointsAwarded: points,
     sourceIp: sourceIp ?? undefined,
   });
+
+  // Reconcile cascade. If this submission made the chain intact, walk
+  // upward: any existing 0-point capture on this track whose prior is
+  // now solved gets promoted to level.pointsBase. First-blood is NOT
+  // retroactively awarded — that moment already passed.
+  if (chainIntact) {
+    let walkIdx = level.idx + 1;
+    // Bounded loop: tracks top out at 32 levels today. 64 is a safe cap.
+    for (let guard = 0; guard < 64; guard++) {
+      const [nextLevel] = await db
+        .select()
+        .from(levels)
+        .where(
+          and(eq(levels.trackId, level.trackId), eq(levels.idx, walkIdx)),
+        )
+        .limit(1);
+      if (!nextLevel) break;
+      const [nextSub] = await db
+        .select({ id: submissions.id, points: submissions.pointsAwarded })
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.userId, userId),
+            eq(submissions.levelId, nextLevel.id),
+          ),
+        )
+        .limit(1);
+      if (!nextSub) break;
+      if (nextSub.points === 0) {
+        await db
+          .update(submissions)
+          .set({ pointsAwarded: nextLevel.pointsBase })
+          .where(eq(submissions.id, nextSub.id));
+      }
+      walkIdx++;
+    }
+  }
 
   // Track completion detection — excludes hidden levels (marked with
   // a "[HIDDEN]" description prefix). Hidden bonuses are graduation,
@@ -147,10 +198,14 @@ export async function submitFlag(
     .where(eq(tracks.id, level.trackId))
     .limit(1);
 
+  // Graduation badges and announcements require the full chain intact
+  // at the moment of the graduation submission — submitting the grad
+  // flag after fishing it out of the container without clearing L0..N-1
+  // does not earn the operative/master badge.
   const isGhostGraduate =
-    trackRow?.slug === "ghost" && level.idx === 22;
+    chainIntact && trackRow?.slug === "ghost" && level.idx === 22;
   const isPhantomGraduate =
-    trackRow?.slug === "phantom" && level.idx === 31;
+    chainIntact && trackRow?.slug === "phantom" && level.idx === 31;
 
   let alreadyGraduate = false;
   if (isGhostGraduate) {
