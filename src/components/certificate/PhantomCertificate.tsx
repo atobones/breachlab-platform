@@ -54,14 +54,16 @@ export function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
           </h1>
           <p className="text-sm leading-relaxed max-w-prose">
             has completed the <span className="text-red">Phantom</span> track
-            in full — twenty public levels plus the classified graduation
+            in full — thirty-one public levels plus the classified graduation
             chain — and is hereby recognized as a{" "}
             <span className="text-red font-bold">
               BreachLab Phantom Operative
             </span>
             . The holder has demonstrated end-to-end post-exploitation
-            tradecraft on modern Linux and Kubernetes systems and is cleared
-            to proceed to the Mirage cloud security track.
+            tradecraft on modern Linux and container infrastructure, including
+            privilege escalation, persistence, lateral movement, container
+            escape, and Kubernetes cluster compromise — and is field-ready
+            for offensive security engagements.
           </p>
         </div>
         <pre
@@ -114,10 +116,8 @@ export function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
       </section>
 
       <section className="mt-6 border border-red/30 p-4 text-xs italic text-muted">
-        &ldquo;Ghost was selection. Phantom was training. This is graduation
-        — and the flag you produced is a handoff token to the Mirage cloud
-        track, because once you have IAM credentials the next discipline
-        begins. The real work starts now.&rdquo;
+        &ldquo;Ghost was selection. Phantom was training. This is graduation.
+        The real work starts now.&rdquo;
       </section>
 
       <section className="mt-8 grid grid-cols-2 gap-6 text-xs">

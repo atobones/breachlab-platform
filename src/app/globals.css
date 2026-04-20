@@ -808,3 +808,45 @@ body::after {
   border-top: 1px solid color-mix(in oklab, var(--bl-amber) 15%, transparent);
   background: color-mix(in oklab, var(--bl-amber) 3%, var(--bl-bg));
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Print mode — used by /u/<name>/certificate/<track> "Save as
+   PDF" button. Strip every UI chrome (sidebar, statusbar, scan
+   lines, palette, navigation) and let the certificate render
+   full-bleed with its dark theme intact.
+   ───────────────────────────────────────────────────────────── */
+@media print {
+  /* Force browsers to print our amber/red/dark palette instead of
+     stripping background colors (Chromium needs both properties). */
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  body::after,            /* scan-line overlay */
+  .statusbar,
+  .palette-hint,
+  .palette-backdrop,
+  .matrix-rain,
+  .boot-overlay,
+  [data-print-hide] {
+    display: none !important;
+  }
+
+  /* Inside the cert page: hide the back link + the print button row
+     itself (marked with data-print-hide), and any sidebar/header
+     wrappers that might still inject layout chrome. */
+  nav, header, aside, footer,
+  .terminal-titlebar { display: none !important; }
+
+  .terminal-window,
+  .terminal-content {
+    border: 0 !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    background: var(--bl-bg) !important;
+  }
+
+  /* Page setup — A4-friendly margins, no headers/footers */
+  @page { margin: 1cm; }
+}
