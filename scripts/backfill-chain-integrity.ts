@@ -108,8 +108,18 @@ async function main() {
     `loaded ${subRows.length} submissions, ${levelRows.length} levels, ${trackRows.length} tracks, ${userRows.length} users.`,
   );
 
-  // Replay state
-  const userSolved = new Map<string, Map<string, Set<number>>>(); // userId → trackId → Set<idx>
+  // Replay state.
+  //   userSolved       — all idxs submitted (used by reconcile pass for
+  //                      contiguity from 0).
+  //   userChainIntact  — only idxs the user solved *with an intact chain*
+  //                      at the moment of submit. Used to decide whether
+  //                      the NEXT submit is chain-intact. Mirror of the
+  //                      submit.ts `chainIntact` fix (a 0-point out-of-order
+  //                      capture of idx N must NOT satisfy the chain check
+  //                      for idx N+1 — otherwise the player can walk
+  //                      submissions backwards and first-blood everything).
+  const userSolved = new Map<string, Map<string, Set<number>>>();
+  const userChainIntact = new Map<string, Map<string, Set<number>>>();
   const firstBloodAwarded = new Map<string, boolean>(); // levelId → true once awarded
   const newPointsBySubId = new Map<string, number>(); // the H-correct points
 
@@ -122,8 +132,11 @@ async function main() {
     }
     const userMap = userSolved.get(sub.userId) ?? new Map<string, Set<number>>();
     const trackSet = userMap.get(lvl.trackId) ?? new Set<number>();
+    const userIntactMap =
+      userChainIntact.get(sub.userId) ?? new Map<string, Set<number>>();
+    const intactSet = userIntactMap.get(lvl.trackId) ?? new Set<number>();
 
-    const chainIntact = lvl.idx === 0 || trackSet.has(lvl.idx - 1);
+    const chainIntact = lvl.idx === 0 || intactSet.has(lvl.idx - 1);
     const isFirstBlood = chainIntact && !firstBloodAwarded.get(lvl.id);
 
     const base = lvl.pointsBase ?? 0;
@@ -136,6 +149,12 @@ async function main() {
     trackSet.add(lvl.idx);
     userMap.set(lvl.trackId, trackSet);
     userSolved.set(sub.userId, userMap);
+
+    if (chainIntact) {
+      intactSet.add(lvl.idx);
+      userIntactMap.set(lvl.trackId, intactSet);
+      userChainIntact.set(sub.userId, userIntactMap);
+    }
   }
 
   // Reconcile pass: any 0-point submission where the user's current

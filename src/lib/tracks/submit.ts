@@ -86,6 +86,15 @@ export async function submitFlag(
       )
       .limit(1);
     if (prior) {
+      // Chain is intact only if the user has a *chain-intact* solve of the
+      // prior level — i.e. pointsAwarded > 0. Merely having a 0-point
+      // out-of-order capture on the prior level does NOT count as
+      // "prior level solved", otherwise a player can submit N→N-1→...→0
+      // backwards and each submit claims chainIntact because the row
+      // above it exists (reported 2026-04-20: `hypee` got first_blood on
+      // phantom/15 by having a 0-point phantom/14 one-shot submit).
+      // Reconcile pass (below) handles the honest case where an earlier
+      // 0-point capture later becomes chain-intact via fill-in.
       const priorSubmitted = await db
         .select({ id: submissions.id })
         .from(submissions)
@@ -93,6 +102,7 @@ export async function submitFlag(
           and(
             eq(submissions.userId, userId),
             eq(submissions.levelId, prior.id),
+            gt(submissions.pointsAwarded, 0),
           ),
         )
         .limit(1);
