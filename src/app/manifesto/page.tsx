@@ -108,12 +108,14 @@ export default function ManifestoPage() {
 password: ghost0`}
         </pre>
         <p className="text-xs text-muted">
-          The first 100 graduates of any track receive permanent{" "}
+          The first 100 graduates of <span className="text-red">Phantom</span>{" "}
+          or any pro track beyond it receive permanent{" "}
           <Link href="/founding" className="text-amber hover:underline">
             Founding Operative
           </Link>{" "}
-          status. When the next generation looks back at where this
-          started — your handle is on the wall.
+          status. Ghost is the entry exam — it doesn&rsquo;t claim a seat.
+          When the next generation looks back at where this started — your
+          handle is on the wall.
         </p>
       </section>
 

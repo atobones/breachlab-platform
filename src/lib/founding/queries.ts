@@ -4,7 +4,12 @@ import { badges, users } from "@/lib/db/schema";
 
 export const FOUNDING_CAP = 100;
 
-const TRACK_GRADUATE_KINDS = ["ghost_graduate", "phantom_master"] as const;
+// Founding seats are reserved for graduates of Phantom or higher tracks.
+// Ghost is the entry exam — gating Founding on Ghost would burn the 100
+// seats on people who only cleared the easy track and never came back
+// for the hard work. Add future pro tracks (mirage_*, etc.) here as
+// they ship.
+const FOUNDING_TRACK_KINDS = ["phantom_master"] as const;
 
 export type FoundingOperative = {
   rank: number;
@@ -28,7 +33,7 @@ export async function getFoundingCohort(): Promise<FoundingCohort> {
       tracks: sql<string[]>`array_agg(distinct ${badges.kind})`.as("tracks"),
     })
     .from(badges)
-    .where(inArray(badges.kind, [...TRACK_GRADUATE_KINDS]))
+    .where(inArray(badges.kind, [...FOUNDING_TRACK_KINDS]))
     .groupBy(badges.userId)
     .as("earliest_per_user");
 
