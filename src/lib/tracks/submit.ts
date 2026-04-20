@@ -56,6 +56,42 @@ export async function submitFlag(
     .limit(1);
   if (!level) return { ok: false, error: "Unknown flag" };
 
+  // Chain-order enforcement. Submissions for level N require a prior
+  // submission for level N-1 on the same track. Without this, a flag
+  // recovered through a container-side over-privilege (e.g. L1 GTFOBins
+  // on Phantom that exposes /root/levelN_flag for N > 1, or any future
+  // track that accidentally co-locates flag files under a root-readable
+  // path) could be turned straight into leaderboard points — the player
+  // ranks up without actually solving the intermediate levels. Level 0
+  // has no prior and is always accepted.
+  if (level.idx > 0) {
+    const [prior] = await db
+      .select({ id: levels.id, idx: levels.idx })
+      .from(levels)
+      .where(
+        and(eq(levels.trackId, level.trackId), eq(levels.idx, level.idx - 1)),
+      )
+      .limit(1);
+    if (prior) {
+      const priorSubmitted = await db
+        .select({ id: submissions.id })
+        .from(submissions)
+        .where(
+          and(
+            eq(submissions.userId, userId),
+            eq(submissions.levelId, prior.id),
+          ),
+        )
+        .limit(1);
+      if (priorSubmitted.length === 0) {
+        return {
+          ok: false,
+          error: `Solve level ${prior.idx} first — submissions must be in track order.`,
+        };
+      }
+    }
+  }
+
   const existing = await db
     .select({ id: submissions.id })
     .from(submissions)
