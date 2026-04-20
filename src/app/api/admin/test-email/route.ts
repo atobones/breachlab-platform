@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { requireAdmin } from "@/lib/admin/guards";
+import { requireAdminWithTotp } from "@/lib/admin/guards";
 import { getEmailClient } from "@/lib/email/client";
 
 export const runtime = "nodejs";
@@ -12,12 +12,14 @@ export const runtime = "nodejs";
  * verified' / 'rate limit' / 'key revoked', none of which used to be
  * surfaced.
  *
- * Gated by the standard admin gate (isAdmin + TOTP enrolled). Not worth
- * a fresh-TOTP prompt — this endpoint only reveals the sender's own
- * diagnostic state, not user data.
+ * Gated with fresh-TOTP. The endpoint sends arbitrary-recipient mail
+ * from the breachlab.org domain; a stolen admin session cookie
+ * otherwise lets an attacker blast probe mail to anyone they pick, and
+ * even a canned body is a phishing-adjacent primitive. Caller must
+ * pass `X-TOTP-Code: <6-digit>` header.
  */
 export async function POST(req: NextRequest) {
-  const check = await requireAdmin();
+  const check = await requireAdminWithTotp(req.headers.get("x-totp-code"));
   if ("error" in check) {
     return NextResponse.json({ error: check.error }, { status: 401 });
   }

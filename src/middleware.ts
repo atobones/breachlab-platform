@@ -73,14 +73,18 @@ const GROUPS: Array<{
 ];
 
 function clientIp(request: NextRequest): string {
-  // Caddy sets x-real-ip to the real client IP (Cloudflare → Caddy →
-  // Next). Prefer it over x-forwarded-for which the client could spoof
-  // if the front layer didn't strip it.
-  return (
-    request.headers.get("x-real-ip") ??
-    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown"
-  );
+  // Caddy always sets x-real-ip for external traffic (Cloudflare → Caddy →
+  // web container). A legitimate request can never lack it. We
+  // deliberately DO NOT fall back to x-forwarded-for: that header is
+  // attacker-controlled (client-supplied, Caddy forwards it as-is),
+  // and a fallback there lets anyone spoof their rate-limit bucket by
+  // putting a unique X-Forwarded-For value on every request, effectively
+  // getting unlimited /submit brute-force attempts. Reported 2026-04-20.
+  //
+  // If x-real-ip is missing we collapse all such requests onto a single
+  // "no-x-real-ip" bucket — legit traffic never hits this path, so the
+  // bucket being contended is a feature, not a bug.
+  return request.headers.get("x-real-ip") ?? "no-x-real-ip";
 }
 
 // Optional IP allowlist for /admin: comma-separated IPs via env. Unset =
