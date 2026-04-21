@@ -8,6 +8,7 @@ import { users } from "@/lib/db/schema";
 import { requireAdmin, requireAdminWithTotp } from "@/lib/admin/guards";
 import { recordAudit } from "@/lib/admin/audit";
 import { announceHallOfFame } from "@/lib/discord/announce";
+import { importFromPr } from "@/lib/hall-of-fame/import-pr";
 
 type Result<T = void> =
   | (T extends void ? { ok: true } : { ok: true; data: T })
@@ -255,3 +256,43 @@ export async function lookupUserByHandle(
     .limit(1);
   return { ok: true, match: row ?? null };
 }
+
+// Admin: import a PR via GitHub API and return the derived fields without
+// persisting anything. The form hydrates its inputs from the result; the
+// admin reviews + submits like normal. Two-step (import → create) so the
+// admin still sees + confirms the data before a row lands.
+export async function importCreditPreview(
+  prRef: string,
+): Promise<
+  | {
+      ok: true;
+      data: {
+        findingTitle: string;
+        prRef: string;
+        prUrl: string;
+        reporterHandle: string | null;
+        classRef: string | null;
+        severity: string | null;
+        findingDescription: string | null;
+      };
+    }
+  | { ok: false; error: string }
+> {
+  const check = await requireAdmin();
+  if ("error" in check) return { ok: false, error: check.error };
+  const result = await importFromPr(prRef);
+  if (!result.ok) return result;
+  return {
+    ok: true,
+    data: {
+      findingTitle: result.data.findingTitle,
+      prRef: result.data.prRef,
+      prUrl: result.data.prUrl,
+      reporterHandle: result.data.reporterHandle,
+      classRef: result.data.classRef,
+      severity: result.data.severity,
+      findingDescription: result.data.rawBodyFirstParagraph,
+    },
+  };
+}
+

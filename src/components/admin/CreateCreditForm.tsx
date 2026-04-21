@@ -1,8 +1,9 @@
 "use client";
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import {
   createCredit,
   lookupUserByHandle,
+  importCreditPreview,
 } from "@/app/admin/hall-of-fame/actions";
 
 type LinkStatus =
@@ -13,11 +14,20 @@ type LinkStatus =
 
 export function CreateCreditForm() {
   const [pending, start] = useTransition();
+  const [importPending, startImport] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [okMsg, setOkMsg] = useState<string | null>(null);
   const [showMore, setShowMore] = useState(false);
   const [link, setLink] = useState<LinkStatus>({ kind: "idle" });
   const [handle, setHandle] = useState("");
+  const [importRef, setImportRef] = useState("");
+  const [importMsg, setImportMsg] = useState<string | null>(null);
+  const formRef = useRef<HTMLFormElement | null>(null);
+  const [severity, setSeverity] = useState("medium");
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [classRef, setClassRef] = useState("");
+  const [prRef, setPrRef] = useState("");
 
   async function resolveHandle(raw: string) {
     const h = raw.trim();
@@ -42,8 +52,43 @@ export function CreateCreditForm() {
     }
   }
 
+  function doImport() {
+    const ref = importRef.trim();
+    if (!ref) {
+      setImportMsg("Paste a PR ref like phantom#35 or a github.com/.../pull/N URL.");
+      return;
+    }
+    setImportMsg(null);
+    setError(null);
+    startImport(async () => {
+      const r = await importCreditPreview(ref);
+      if (!r.ok) {
+        setImportMsg(r.error);
+        return;
+      }
+      setTitle(r.data.findingTitle);
+      setPrRef(r.data.prRef);
+      if (r.data.classRef) setClassRef(r.data.classRef);
+      if (r.data.findingDescription) setDescription(r.data.findingDescription);
+      if (r.data.severity) setSeverity(r.data.severity);
+      if (r.data.reporterHandle) {
+        setHandle(r.data.reporterHandle);
+        resolveHandle(r.data.reporterHandle);
+      }
+      // Expand "more fields" so admin sees description / class / PR
+      // autopopulated (otherwise they're hidden).
+      setShowMore(true);
+      setImportMsg(
+        r.data.reporterHandle
+          ? `Pulled title + reporter (@${r.data.reporterHandle}) from ${r.data.prRef}. Review and submit.`
+          : `Pulled title from ${r.data.prRef}. No reporter line found — fill the handle manually.`,
+      );
+    });
+  }
+
   return (
     <form
+      ref={formRef}
       className="border border-amber/20 p-4 space-y-3 text-sm font-mono"
       onSubmit={(e) => {
         e.preventDefault();
@@ -56,12 +101,11 @@ export function CreateCreditForm() {
           ),
           discordHandle: handle.trim() || undefined,
           externalLink: String(fd.get("externalLink") ?? "").trim() || undefined,
-          findingTitle: String(fd.get("findingTitle") ?? "").trim(),
-          findingDescription:
-            String(fd.get("findingDescription") ?? "").trim() || undefined,
-          classRef: String(fd.get("classRef") ?? "").trim() || undefined,
-          severity: String(fd.get("severity") ?? "medium"),
-          prRef: String(fd.get("prRef") ?? "").trim() || undefined,
+          findingTitle: title.trim(),
+          findingDescription: description.trim() || undefined,
+          classRef: classRef.trim() || undefined,
+          severity,
+          prRef: prRef.trim() || undefined,
           userId:
             link.kind === "linked"
               ? link.userId
@@ -83,9 +127,16 @@ export function CreateCreditForm() {
             setOkMsg(
               `Created pending credit ${r.data.id.slice(0, 8)}. Confirm the row below to award points + publish + announce on Discord.`,
             );
-            (e.target as HTMLFormElement).reset();
+            formRef.current?.reset();
             setHandle("");
             setLink({ kind: "idle" });
+            setTitle("");
+            setDescription("");
+            setClassRef("");
+            setPrRef("");
+            setSeverity("medium");
+            setImportRef("");
+            setImportMsg(null);
           }
         });
       }}
@@ -98,6 +149,51 @@ export function CreateCreditForm() {
           creates a <span className="text-amber">pending</span> row — no score /
           Discord announce until you confirm below
         </span>
+      </div>
+
+      <div className="border border-[#facc15]/30 bg-[#facc15]/5 p-2 space-y-2">
+        <div className="flex items-center gap-2">
+          <label className="text-[11px] text-[#facc15] uppercase tracking-wider whitespace-nowrap">
+            Import from PR
+          </label>
+          <input
+            type="text"
+            value={importRef}
+            onChange={(e) => setImportRef(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault();
+                doImport();
+              }
+            }}
+            placeholder="phantom#35 · platform#36 · ghost#13 · or full github.com/.../pull/N URL"
+            className="flex-1 bg-black/40 border border-[#facc15]/30 px-2 py-1 text-[#facc15] placeholder:text-muted/40 focus:border-[#facc15] focus:outline-none text-xs"
+          />
+          <button
+            type="button"
+            onClick={doImport}
+            disabled={importPending}
+            className="px-3 py-1 border border-[#facc15]/50 text-[#facc15] hover:bg-[#facc15]/10 disabled:opacity-40 text-xs"
+          >
+            {importPending ? "importing…" : "import"}
+          </button>
+        </div>
+        <p className="text-[10px] text-muted">
+          Pulls the PR title, finds the <code>Reported-by: @handle</code> /{" "}
+          <code>Credit: @handle</code> line in the body, infers Class NN
+          reference and severity label. Auto-populates the fields below.
+        </p>
+        {importMsg && (
+          <p
+            className={
+              importMsg.startsWith("Pulled")
+                ? "text-[10px] text-green-400"
+                : "text-[10px] text-red-400"
+            }
+          >
+            {importMsg}
+          </p>
+        )}
       </div>
 
       <div className="grid md:grid-cols-2 gap-3">
@@ -140,7 +236,8 @@ export function CreateCreditForm() {
           <label className="text-xs text-muted">Severity</label>
           <select
             name="severity"
-            defaultValue="medium"
+            value={severity}
+            onChange={(e) => setSeverity(e.target.value)}
             className="bg-black/40 border border-amber/20 px-2 py-1 text-amber"
           >
             <option value="critical">critical (+30)</option>
@@ -156,6 +253,8 @@ export function CreateCreditForm() {
             name="findingTitle"
             placeholder="e.g. SUID system() euid drop on L7"
             required
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
             className="bg-black/40 border border-amber/20 px-2 py-1 text-amber placeholder:text-muted/40 focus:border-amber focus:outline-none"
           />
         </div>
@@ -183,23 +282,37 @@ export function CreateCreditForm() {
             label="External profile URL"
             placeholder="https://github.com/voxfox"
           />
-          <Field
-            name="findingDescription"
-            label="Public description"
-            placeholder="One or two lines shown on /hall-of-fame"
-            className="md:col-span-2"
-            textarea
-          />
-          <Field
-            name="classRef"
-            label="Class ref"
-            placeholder="Class 13: SUID shell-out euid drop"
-          />
-          <Field
-            name="prRef"
-            label="PR ref"
-            placeholder="phantom#32 · platform#36 · ghost#13"
-          />
+          <label className="flex flex-col gap-1 md:col-span-2">
+            <span className="text-xs text-muted">Public description</span>
+            <textarea
+              name="findingDescription"
+              placeholder="One or two lines shown on /hall-of-fame"
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              className="bg-black/40 border border-amber/20 px-2 py-1 text-amber placeholder:text-muted/40 focus:border-amber focus:outline-none"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-muted">Class ref</span>
+            <input
+              name="classRef"
+              placeholder="Class 13: SUID shell-out euid drop"
+              value={classRef}
+              onChange={(e) => setClassRef(e.target.value)}
+              className="bg-black/40 border border-amber/20 px-2 py-1 text-amber placeholder:text-muted/40 focus:border-amber focus:outline-none"
+            />
+          </label>
+          <label className="flex flex-col gap-1">
+            <span className="text-xs text-muted">PR ref</span>
+            <input
+              name="prRef"
+              placeholder="phantom#32 · platform#36 · ghost#13"
+              value={prRef}
+              onChange={(e) => setPrRef(e.target.value)}
+              className="bg-black/40 border border-amber/20 px-2 py-1 text-amber placeholder:text-muted/40 focus:border-amber focus:outline-none"
+            />
+          </label>
           <Field
             name="securityScore"
             label="Override score"
