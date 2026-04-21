@@ -270,6 +270,7 @@ export type AdminSubmissionRow = {
   id: string;
   userId: string;
   username: string;
+  isHallOfFame: boolean;
   levelId: string;
   levelTitle: string;
   levelIdx: number;
@@ -291,11 +292,12 @@ export async function getRecentSubmissions(opts: {
     ? eq(submissions.userId, opts.userId)
     : undefined;
 
-  return db
+  const rows = await db
     .select({
       id: submissions.id,
       userId: submissions.userId,
       username: users.username,
+      isHallOfFame: users.isHallOfFame,
       levelId: submissions.levelId,
       levelTitle: levels.title,
       levelIdx: levels.idx,
@@ -312,6 +314,7 @@ export async function getRecentSubmissions(opts: {
     .orderBy(desc(submissions.submittedAt))
     .limit(limit)
     .offset(offset);
+  return rows.map((r) => ({ ...r, isHallOfFame: r.isHallOfFame ?? false }));
 }
 
 // ─── Sponsors listing (admin — includes hidden/ended) ──────────────────────

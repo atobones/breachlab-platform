@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getGlobalTop, getLiveStats } from "@/lib/leaderboard/queries";
 import { RecentHallOfFame } from "./RecentHallOfFame";
+import { OperativeName } from "./operatives/OperativeName";
 
 export async function OpsCenter() {
   const [top, stats] = await Promise.all([
@@ -52,9 +53,13 @@ export async function OpsCenter() {
                 return (
                   <li key={row.userId} className="ops-htop-row">
                     <span className="ops-htop-rank">#{String(i + 1).padStart(2, "0")}</span>
-                    <Link href={`/u/${row.username}`} className="ops-htop-name">
-                      @{row.username}
-                    </Link>
+                    <span className="ops-htop-name">
+                      <OperativeName
+                        username={row.username}
+                        isHallOfFame={row.isHallOfFame}
+                        href={`/u/${row.username}`}
+                      />
+                    </span>
                     <div className="ops-htop-bar" aria-hidden>
                       <div className="ops-htop-fill" style={{ width: `${widthPct}%` }} />
                     </div>

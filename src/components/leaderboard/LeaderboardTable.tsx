@@ -1,5 +1,6 @@
 import type { LeaderRow } from "@/lib/leaderboard/queries";
 import { EmptyState } from "@/components/EmptyState";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 const RANK_TONE = [
   "text-amber",
@@ -35,7 +36,12 @@ export function LeaderboardTable({ rows }: { rows: LeaderRow[] }) {
                 {i + 1}
               </td>
               <td className="py-1">
-                <span className={rankTone}>@{r.username}</span>
+                <OperativeName
+                  username={r.username}
+                  isHallOfFame={r.isHallOfFame}
+                  href={`/u/${r.username}`}
+                  className={r.isHallOfFame ? "" : rankTone}
+                />
               </td>
               <td className="py-1 text-right">{r.solved}</td>
               <td className="py-1 text-right">{r.points}</td>

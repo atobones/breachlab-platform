@@ -25,7 +25,7 @@ export function OperativeName({
   }
 
   const baseClasses = isHallOfFame
-    ? "text-[#facc15] font-medium drop-shadow-[0_0_6px_rgba(250,204,21,0.45)] transition-all hover:text-[#fde047] hover:drop-shadow-[0_0_10px_rgba(250,204,21,0.75)]"
+    ? "hof-name"
     : "text-amber hover:underline";
 
   const inner = (

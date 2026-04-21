@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getRecentSubmissions } from "@/lib/admin/queries";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export const dynamic = "force-dynamic";
 
@@ -67,12 +68,11 @@ export default async function AdminSubmissionsPage({
                   {s.submittedAt.toISOString().slice(0, 19).replace("T", " ")}
                 </td>
                 <td className="py-2">
-                  <Link
+                  <OperativeName
+                    username={s.username}
+                    isHallOfFame={s.isHallOfFame}
                     href={`/admin/submissions?user=${s.userId}`}
-                    className="text-amber hover:underline"
-                  >
-                    {s.username}
-                  </Link>
+                  />
                 </td>
                 <td className="py-2">
                   <span className="text-muted">{s.trackSlug}</span> · L
