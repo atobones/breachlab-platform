@@ -21,13 +21,13 @@ const PHANTOM_LEVELS: PhantomLevel[] = [
   { idx: 0, title: "Recon Gateway", pointsBase: 300, pointsFirstBloodBonus: 50 },
   { idx: 1, title: "SUID Hunter", pointsBase: 320, pointsFirstBloodBonus: 50 },
   { idx: 2, title: "Sudo Games", pointsBase: 340, pointsFirstBloodBonus: 50 },
-  { idx: 3, title: "Library Poison", pointsBase: 360, pointsFirstBloodBonus: 50 },
-  { idx: 4, title: "The Capabilities", pointsBase: 380, pointsFirstBloodBonus: 50 },
+  { idx: 3, title: "Inheritance", pointsBase: 360, pointsFirstBloodBonus: 50 },
+  { idx: 4, title: "Misplaced Power", pointsBase: 380, pointsFirstBloodBonus: 50 },
   { idx: 5, title: "File Authority", pointsBase: 400, pointsFirstBloodBonus: 50 },
   { idx: 6, title: "Scheduled Sins", pointsBase: 420, pointsFirstBloodBonus: 50 },
   { idx: 7, title: "Local Authority", pointsBase: 460, pointsFirstBloodBonus: 50 },
   { idx: 8, title: "Live Injection", pointsBase: 500, pointsFirstBloodBonus: 50 },
-  { idx: 9, title: "Kernel Day", pointsBase: 600, pointsFirstBloodBonus: 50 },
+  { idx: 9, title: "Stack Day", pointsBase: 600, pointsFirstBloodBonus: 50 },
 
   // ═══════════════════════════════════════════════════════════════
   // ACT II: HARVEST & PERSIST (10-15) — Loot, persist, disappear
