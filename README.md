@@ -44,7 +44,7 @@ The principle: if real pentesters and red teamers don't use the technique, it do
 ## How it feels to play
 
 ```bash
-ssh ghost0@play.breachlab.org -p 2222
+ssh ghost0@204.168.229.209 -p 2222
 # password: ghost0
 ```
 
@@ -53,7 +53,7 @@ No signup, no browser, no hand-holding. Every level is a different unprivileged 
 Phantom picks up where Ghost ends:
 
 ```bash
-ssh phantom0@play.breachlab.org -p 2223
+ssh phantom0@204.168.229.209 -p 2223
 # password: phantom0
 ```
 
@@ -64,7 +64,7 @@ ssh phantom0@play.breachlab.org -p 2223
 - **Drizzle ORM** on **PostgreSQL 16**, Drizzle Kit migrations
 - **Vitest** unit tests, **Playwright** end-to-end
 - **Docker Compose** (app + Postgres + Caddy) on a single VPS
-- Caddy terminates TLS via Let's Encrypt
+- Deployed on Hetzner CPX32, Caddy terminating TLS via Let's Encrypt
 
 ## Self-host
 
@@ -160,6 +160,6 @@ No license file is in the repo yet — the platform is **source-available** but 
 ## Links
 
 - **Live platform** → https://breachlab.org
-- **Play Ghost** → `ssh ghost0@play.breachlab.org -p 2222` (password: `ghost0`)
-- **Play Phantom** → `ssh phantom0@play.breachlab.org -p 2223` (password: `phantom0`)
+- **Play Ghost** → `ssh ghost0@204.168.229.209 -p 2222` (password: `ghost0`)
+- **Play Phantom** → `ssh phantom0@204.168.229.209 -p 2223` (password: `phantom0`)
 - **Security reports** → [SECURITY.md](SECURITY.md)

@@ -169,7 +169,7 @@ export default async function GhostTrackPage() {
         <dl className="text-sm space-y-1">
           <div>
             <dt className="inline text-muted">Host: </dt>
-            <dd className="inline">play.breachlab.org</dd>
+            <dd className="inline">204.168.229.209</dd>
           </div>
           <div>
             <dt className="inline text-muted">Port: </dt>
@@ -185,7 +185,7 @@ export default async function GhostTrackPage() {
           </div>
         </dl>
         <pre className="bg-bg border border-border p-2 text-xs mt-3">
-          ssh ghost0@play.breachlab.org -p 2222
+          ssh ghost0@204.168.229.209 -p 2222
         </pre>
       </section>
 

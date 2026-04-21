@@ -4,7 +4,7 @@
 
 **Goal:** Stand up the empty BreachLab Platform skeleton — Next.js 15 + TypeScript + Tailwind v4 + Drizzle + Postgres, deployed via docker-compose behind Caddy on the existing VPS, with the BreachLab sidebar layout rendering on placeholder pages and HTTPS live on `breachlab.io`.
 
-**Architecture:** Single Next.js 15 application using App Router, served by Node in a Docker container. Postgres 16 in a sibling container. Caddy as reverse proxy with automatic Let's Encrypt HTTPS. All three services in one `docker-compose.yml` on the existing VPS at `&lt;vps-ip&gt;`. The same VPS already hosts the Ghost SSH containers, which remain untouched. The skeleton renders the OverTheWire-style sidebar layout (left: navigation + Donate button + placeholders for Top 5 / Recent / Live Ops; right: page content) on every route, with stub pages for `/`, `/tracks/ghost`, `/leaderboard`, `/rules`, `/donate`, `/login`, `/register`.
+**Architecture:** Single Next.js 15 application using App Router, served by Node in a Docker container. Postgres 16 in a sibling container. Caddy as reverse proxy with automatic Let's Encrypt HTTPS. All three services in one `docker-compose.yml` on the existing VPS at `204.168.229.209`. The same VPS already hosts the Ghost SSH containers, which remain untouched. The skeleton renders the OverTheWire-style sidebar layout (left: navigation + Donate button + placeholders for Top 5 / Recent / Live Ops; right: page content) on every route, with stub pages for `/`, `/tracks/ghost`, `/leaderboard`, `/rules`, `/donate`, `/login`, `/register`.
 
 **Tech Stack:** Next.js 15 (App Router), TypeScript (strict), Tailwind CSS v4, Drizzle ORM, Postgres 16, Vitest + React Testing Library, Playwright (smoke E2E), Docker, docker-compose, Caddy, JetBrains Mono.
 
@@ -1448,7 +1448,7 @@ curl http://localhost/api/health
 
 ## Production deploy (VPS)
 
-1. Copy the repo to the VPS at `&lt;vps-ip&gt;`.
+1. Copy the repo to the VPS at `204.168.229.209`.
 2. `cp .env.production.example .env` and fill in real values (set a strong `POSTGRES_PASSWORD`).
 3. `cp Caddyfile.prod Caddyfile`
 4. Make sure DNS A records for `breachlab.io` and `www.breachlab.io` point to the VPS.
@@ -1475,7 +1475,7 @@ This task is a manual sequence with verification commands. The engineer running 
 
 **Prerequisites:**
 - `breachlab.io` is renewed at Namecheap (action item from spec — must be done before April 24).
-- The VPS at `&lt;vps-ip&gt;` has Docker and Docker Compose installed.
+- The VPS at `204.168.229.209` has Docker and Docker Compose installed.
 
 - [ ] **Step 1: Add DNS A records at Namecheap**
 
@@ -1483,10 +1483,10 @@ In Namecheap → Domain List → `breachlab.io` → Advanced DNS, add:
 
 | Type | Host | Value | TTL |
 |---|---|---|---|
-| A | @ | &lt;vps-ip&gt; | Automatic |
-| A | www | &lt;vps-ip&gt; | Automatic |
-| A | ghost | &lt;vps-ip&gt; | Automatic |
-| A | pay | &lt;vps-ip&gt; | Automatic |
+| A | @ | 204.168.229.209 | Automatic |
+| A | www | 204.168.229.209 | Automatic |
+| A | ghost | 204.168.229.209 | Automatic |
+| A | pay | 204.168.229.209 | Automatic |
 
 - [ ] **Step 2: Verify DNS propagation**
 
@@ -1497,7 +1497,7 @@ dig +short breachlab.io
 dig +short www.breachlab.io
 ```
 
-Expected: both return `&lt;vps-ip&gt;`. May take a few minutes after creating records.
+Expected: both return `204.168.229.209`. May take a few minutes after creating records.
 
 - [ ] **Step 3: Push the repo to a remote and pull on the VPS**
 
@@ -1510,7 +1510,7 @@ gh repo create atobones/breachlab-platform --private --source=. --remote=origin 
 Then on the VPS:
 
 ```bash
-ssh root@&lt;vps-ip&gt;
+ssh root@204.168.229.209
 cd /opt
 git clone git@github.com:atobones/breachlab-platform.git
 cd breachlab-platform

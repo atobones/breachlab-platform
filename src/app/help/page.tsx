@@ -92,8 +92,8 @@ export default function HelpPage() {
         </p>
         <pre className="bg-bg border border-border p-3 text-xs">
 {`# If SSH key changed warning appears
-ssh-keygen -R "[play.breachlab.org]:2222"
-ssh-keygen -R "[play.breachlab.org]:2223"
+ssh-keygen -R "[204.168.229.209]:2222"
+ssh-keygen -R "[204.168.229.209]:2223"
 
 # If connection is refused, check port number
 # Ghost: port 2222
