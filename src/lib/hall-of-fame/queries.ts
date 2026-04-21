@@ -104,6 +104,46 @@ export type UserSecurityProfile = {
   }>;
 };
 
+// Top hall-of-fame contributors by security_score. Used on the homepage
+// OpsCenter and anywhere we surface a security-leaderboard strip. Returns
+// only users with at least one confirmed credit (is_hall_of_fame=true).
+export type TopContributor = {
+  userId: string;
+  username: string;
+  score: number;
+  reports: number;
+};
+
+export async function getTopContributors(
+  limit: number = 5,
+): Promise<TopContributor[]> {
+  const rows = await db
+    .select({
+      userId: users.id,
+      username: users.username,
+      score: users.securityScore,
+      reports: sql<number>`count(${securityCredits.id})::int`,
+    })
+    .from(users)
+    .leftJoin(
+      securityCredits,
+      and(
+        eq(securityCredits.userId, users.id),
+        eq(securityCredits.status, "confirmed"),
+      ),
+    )
+    .where(eq(users.isHallOfFame, true))
+    .groupBy(users.id, users.username, users.securityScore)
+    .orderBy(desc(users.securityScore))
+    .limit(limit);
+  return rows.map((r) => ({
+    userId: r.userId,
+    username: r.username,
+    score: r.score,
+    reports: Number(r.reports),
+  }));
+}
+
 // For the /u/[username] profile page: list of a user's confirmed credits +
 // their current denormalized total security score.
 export async function getUserSecurityProfile(
