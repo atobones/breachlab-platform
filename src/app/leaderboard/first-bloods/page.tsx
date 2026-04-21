@@ -1,5 +1,6 @@
 import { getFirstBloods } from "@/lib/badges/queries";
 import { BadgePill } from "@/components/badges/BadgePill";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export default async function FirstBloodsPage() {
   const rows = await getFirstBloods();
@@ -38,7 +39,13 @@ export default async function FirstBloodsPage() {
                   L{r.levelIdx} — {r.levelTitle}
                 </td>
                 <td className="py-1">
-                  <span className="text-amber">@{r.username}</span>
+                  @
+                  <OperativeName
+                    username={r.username}
+                    isHallOfFame={r.isHallOfFame}
+                    href={`/u/${r.username}`}
+                    className={r.isHallOfFame ? "" : "text-amber"}
+                  />
                 </td>
                 <td className="py-1">
                   <BadgePill kind="first_blood" />

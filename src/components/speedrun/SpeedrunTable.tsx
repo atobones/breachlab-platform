@@ -1,4 +1,5 @@
 import type { SpeedrunRow } from "@/lib/speedrun/queries";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 function formatMmSs(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));
@@ -41,7 +42,13 @@ export function SpeedrunTable({ rows }: { rows: SpeedrunRow[] }) {
               >
                 <td className="py-1 text-muted">{i + 1}</td>
                 <td className="py-1">
-                  <span className="text-amber">@{r.username}</span>
+                  @
+                  <OperativeName
+                    username={r.username}
+                    isHallOfFame={r.isHallOfFame}
+                    href={`/u/${r.username}`}
+                    className={r.isHallOfFame ? "" : "text-amber"}
+                  />
                 </td>
                 <td className="py-1 text-right">
                   {formatMmSs(r.totalSeconds)}

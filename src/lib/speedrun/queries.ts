@@ -4,6 +4,7 @@ import { speedrunRuns, tracks, users } from "@/lib/db/schema";
 
 export type SpeedrunRow = {
   username: string;
+  isHallOfFame: boolean;
   totalSeconds: number;
   isSuspicious: boolean;
   reviewStatus: string;
@@ -17,6 +18,7 @@ export async function getTopSpeedruns(
   const rows = await db
     .select({
       username: users.username,
+      isHallOfFame: users.isHallOfFame,
       totalSeconds: speedrunRuns.totalSeconds,
       isSuspicious: speedrunRuns.isSuspicious,
       reviewStatus: speedrunRuns.reviewStatus,
@@ -38,6 +40,7 @@ export async function getTopSpeedruns(
 
   return rows.map((r) => ({
     username: r.username,
+    isHallOfFame: r.isHallOfFame ?? false,
     totalSeconds: Number(r.totalSeconds),
     isSuspicious: r.isSuspicious,
     reviewStatus: r.reviewStatus,
