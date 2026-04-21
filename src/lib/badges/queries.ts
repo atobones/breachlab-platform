@@ -9,6 +9,7 @@ export type FirstBloodRow = {
   trackSlug: string;
   trackName: string;
   username: string;
+  isHallOfFame: boolean;
   awardedAt: Date;
 };
 
@@ -21,6 +22,7 @@ export async function getFirstBloods(): Promise<FirstBloodRow[]> {
       trackSlug: tracks.slug,
       trackName: tracks.name,
       username: users.username,
+      isHallOfFame: users.isHallOfFame,
       awardedAt: badges.awardedAt,
     })
     .from(badges)
@@ -29,7 +31,7 @@ export async function getFirstBloods(): Promise<FirstBloodRow[]> {
     .innerJoin(users, eq(users.id, badges.userId))
     .where(eq(badges.kind, "first_blood"))
     .orderBy(desc(badges.awardedAt));
-  return rows;
+  return rows.map((r) => ({ ...r, isHallOfFame: r.isHallOfFame ?? false }));
 }
 
 export async function getFirstBloodByLevel(): Promise<
