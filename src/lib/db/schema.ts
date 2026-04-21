@@ -19,6 +19,8 @@ export const users = pgTable("users", {
   discordId: text("discord_id").unique(),
   discordUsername: text("discord_username"),
   isSupporter: boolean("is_supporter").notNull().default(false),
+  isHallOfFame: boolean("is_hall_of_fame").notNull().default(false),
+  securityScore: integer("security_score").notNull().default(0),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -207,4 +209,5 @@ export type Submission = typeof submissions.$inferSelect;
 export type Badge = typeof badges.$inferSelect;
 
 export { sponsors } from "@/lib/sponsors/schema";
+export { securityCredits } from "@/lib/hall-of-fame/schema";
 export type { Sponsor, NewSponsor } from "@/lib/sponsors/schema";

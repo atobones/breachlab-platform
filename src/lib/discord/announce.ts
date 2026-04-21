@@ -47,6 +47,36 @@ async function post(channelId: string, content: string): Promise<void> {
   }
 }
 
+export async function announceHallOfFame(args: {
+  displayName: string;
+  discordHandle: string | null;
+  findingTitle: string;
+  classRef: string | null;
+  severity: string;
+  prRef: string | null;
+  securityScore: number;
+}): Promise<void> {
+  const channel = announcementsChannel();
+  if (!channel) return;
+  const severityEmoji: Record<string, string> = {
+    critical: "🔴",
+    high: "🟠",
+    medium: "🟡",
+    low: "🟢",
+  };
+  const who = args.discordHandle
+    ? `**${args.displayName}** (@${args.discordHandle})`
+    : `**${args.displayName}**`;
+  const prLink = args.prRef ? ` · fix landed in \`${args.prRef}\`` : "";
+  const classLine = args.classRef ? `\n> \`${args.classRef}\`` : "";
+  const msg =
+    `🥇 **Hall of Fame** — ${who} is now a confirmed BreachLab security contributor.\n` +
+    `> ${severityEmoji[args.severity] ?? ""} **${args.findingTitle}** ` +
+    `· +${args.securityScore} Security Score${prLink}${classLine}\n` +
+    `See https://breachlab.org/hall-of-fame`;
+  await post(channel, msg);
+}
+
 export async function announceFirstBlood(args: {
   username: string;
   trackSlug: string;

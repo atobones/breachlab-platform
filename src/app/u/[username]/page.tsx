@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { getProfileByUsername } from "@/lib/profiles/queries";
+import { getUserSecurityProfile } from "@/lib/hall-of-fame/queries";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileBadges } from "@/components/profile/ProfileBadges";
@@ -20,6 +21,10 @@ export default async function ProfilePage({
   const { username } = await params;
   const profile = await getProfileByUsername(username);
   if (!profile) notFound();
+
+  const securityProfile = profile.user.isHallOfFame
+    ? await getUserSecurityProfile(profile.user.id)
+    : null;
 
   const hasGraduate = profile.badges.some((b) => b.kind === "ghost_graduate");
   const hasPhantomMaster = profile.badges.some(
@@ -73,6 +78,44 @@ export default async function ProfilePage({
           </ul>
         )}
       </section>
+
+      {securityProfile && securityProfile.credits.length > 0 && (
+        <section className="space-y-2">
+          <h2 className="text-sm text-[#facc15] uppercase tracking-wider">
+            Security Contributions
+            <span className="ml-2 text-[10px] text-muted normal-case">
+              ({securityProfile.totalScore} score · {securityProfile.credits.length} credits · separate from track points)
+            </span>
+          </h2>
+          <ul className="text-sm font-mono space-y-2">
+            {securityProfile.credits.map((c) => (
+              <li
+                key={c.id}
+                className="border-l-2 border-[#facc15]/40 pl-3 py-1"
+              >
+                <div className="flex items-baseline gap-2 flex-wrap">
+                  <span className="text-foreground">{c.findingTitle}</span>
+                  <span className="text-[10px] uppercase text-muted">
+                    {c.severity}
+                  </span>
+                  <span className="text-[11px] text-[#facc15]">
+                    +{c.securityScore}
+                  </span>
+                </div>
+                <div className="text-[10px] text-muted mt-0.5 flex gap-3 flex-wrap">
+                  {c.classRef && <span>{c.classRef}</span>}
+                  {c.prRef && <span>{c.prRef}</span>}
+                  {c.awardedAt && (
+                    <span>
+                      {new Date(c.awardedAt).toISOString().slice(0, 10)}
+                    </span>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
     </div>
   );
 }

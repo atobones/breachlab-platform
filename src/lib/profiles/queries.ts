@@ -29,6 +29,8 @@ export type Profile = {
     username: string;
     joinedAt: Date;
     isSupporter: boolean;
+    isHallOfFame: boolean;
+    securityScore: number;
     discordUsername: string | null;
     discordId: string | null;
   };
@@ -47,6 +49,8 @@ export async function getProfileByUsername(
       username: users.username,
       joinedAt: users.createdAt,
       isSupporter: users.isSupporter,
+      isHallOfFame: users.isHallOfFame,
+      securityScore: users.securityScore,
       discordUsername: users.discordUsername,
       discordId: users.discordId,
     })
