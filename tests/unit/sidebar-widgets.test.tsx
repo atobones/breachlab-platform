@@ -25,10 +25,9 @@ describe("TracksNav", () => {
 });
 
 describe("SidebarLinks", () => {
-  it("includes Rules, Discord, GitHub", () => {
+  it("includes Rules and Discord", () => {
     render(<SidebarLinks />);
     expect(screen.getByRole("link", { name: /rules/i })).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /discord/i })).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /github/i })).toBeInTheDocument();
   });
 });

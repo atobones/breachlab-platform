@@ -50,7 +50,7 @@ The platform supports those tracks via the `tracks` and `levels` tables, but cre
                           │  (Docker)    │
                           └──────────────┘
 
-All services run on one VPS: 204.168.229.209
+All services run on one VPS: &lt;vps-ip&gt;
 Fronted by Caddy (auto HTTPS via Let's Encrypt)
 ```
 
@@ -63,7 +63,7 @@ Fronted by Caddy (auto HTTPS via Let's Encrypt)
 | Subdomain | Purpose | Notes |
 |---|---|---|
 | `breachlab.io` | Main site (Next.js, web + API) | landing, tracks, rules, donate, dashboard, /api/* |
-| `ghost.breachlab.io` | SSH entry for Ghost track | A-record → 204.168.229.209, port 2222 |
+| `ghost.breachlab.io` | SSH entry for Ghost track | A-record → &lt;vps-ip&gt;, port 2222 |
 | `pay.breachlab.io` | BTCPay Server admin/checkout UI | separate Docker stack |
 
 For MVP, `app` and `api` are paths inside `breachlab.io` (`/app`, `/api`), not subdomains. Single TLS cert, single deploy. Split later only if necessary.

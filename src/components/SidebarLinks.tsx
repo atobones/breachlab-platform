@@ -16,14 +16,6 @@ export function SidebarLinks() {
             Discord
           </a>
         </li>
-        <li>
-          <a
-            href="https://github.com/atobones/breachlab-platform"
-            rel="noreferrer"
-          >
-            GitHub
-          </a>
-        </li>
       </ul>
     </section>
   );
