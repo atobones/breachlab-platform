@@ -5,7 +5,7 @@ import { eq, sql, and } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { securityCredits, DEFAULT_SCORE_BY_SEVERITY, SEVERITY_LEVELS, type Severity } from "@/lib/hall-of-fame/schema";
 import { users } from "@/lib/db/schema";
-import { requireAdminWithTotp } from "@/lib/admin/guards";
+import { requireAdmin, requireAdminWithTotp } from "@/lib/admin/guards";
 import { recordAudit } from "@/lib/admin/audit";
 import { announceHallOfFame } from "@/lib/discord/announce";
 
@@ -18,9 +18,10 @@ function isSeverity(v: string): v is Severity {
 }
 
 // Admin: create a new credit row in `pending` state. No scoring effect
-// until confirmed.
+// until confirmed — so no fresh-TOTP gate here, only admin-session. The
+// TOTP friction moves to confirmCredit / deleteCredit / rejectCredit
+// where state actually changes.
 export async function createCredit(input: {
-  totpCode: string;
   displayName: string;
   discordHandle?: string;
   externalLink?: string;
@@ -33,7 +34,7 @@ export async function createCredit(input: {
   userId?: string;
   notes?: string;
 }): Promise<Result<{ id: string }>> {
-  const check = await requireAdminWithTotp(input.totpCode);
+  const check = await requireAdmin();
   if ("error" in check) return { ok: false, error: check.error };
 
   if (!isSeverity(input.severity)) {
@@ -219,4 +220,38 @@ export async function deleteCredit(
   revalidatePath("/admin/hall-of-fame");
   revalidatePath("/hall-of-fame");
   return { ok: true };
+}
+
+// Admin: lookup a user by username OR discord handle (case-insensitive).
+// Used by the create form to auto-link a credit to a platform account
+// without the admin copying UUIDs around.
+export async function lookupUserByHandle(
+  handle: string,
+): Promise<
+  | {
+      ok: true;
+      match: {
+        id: string;
+        username: string;
+        discordUsername: string | null;
+      } | null;
+    }
+  | { ok: false; error: string }
+> {
+  const check = await requireAdmin();
+  if ("error" in check) return { ok: false, error: check.error };
+  const q = handle.trim();
+  if (!q) return { ok: true, match: null };
+  const [row] = await db
+    .select({
+      id: users.id,
+      username: users.username,
+      discordUsername: users.discordUsername,
+    })
+    .from(users)
+    .where(
+      sql`lower(${users.discordUsername}) = lower(${q}) OR lower(${users.username}) = lower(${q})`,
+    )
+    .limit(1);
+  return { ok: true, match: row ?? null };
 }
