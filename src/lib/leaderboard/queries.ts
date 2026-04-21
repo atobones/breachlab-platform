@@ -7,6 +7,7 @@ export type LeaderRow = {
   username: string;
   points: number;
   solved: number;
+  isHallOfFame: boolean;
 };
 
 export async function getGlobalTop(limit: number): Promise<LeaderRow[]> {
@@ -14,18 +15,20 @@ export async function getGlobalTop(limit: number): Promise<LeaderRow[]> {
     .select({
       userId: users.id,
       username: users.username,
+      isHallOfFame: users.isHallOfFame,
       points: sql<number>`coalesce(sum(${submissions.pointsAwarded}), 0)::int`,
       solved: sql<number>`count(${submissions.id})::int`,
     })
     .from(users)
     .leftJoin(submissions, eq(submissions.userId, users.id))
-    .groupBy(users.id, users.username)
+    .groupBy(users.id, users.username, users.isHallOfFame)
     .having(sql`count(${submissions.id}) > 0`)
     .orderBy(desc(sql`sum(${submissions.pointsAwarded})`))
     .limit(limit);
   return rows.map((r) => ({
     userId: r.userId,
     username: r.username,
+    isHallOfFame: r.isHallOfFame ?? false,
     points: Number(r.points),
     solved: Number(r.solved),
   }));
