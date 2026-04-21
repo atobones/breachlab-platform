@@ -138,10 +138,10 @@ export default async function HallOfFamePage() {
 
       <footer className="border-t border-border pt-4">
         <p className="text-xs text-muted">
-          Credits are awarded manually after a fix lands in-repo. Responsible
-          disclosure: DM an admin on Discord or on GitHub — do not open public
-          issues for unfixed findings. Report-to-credit turnaround is usually
-          the same day for confirmed reproducible bugs.
+          Credits are awarded manually after a fix lands. Responsible
+          disclosure: DM an admin on Discord — do not post unfixed findings
+          in public channels. Report-to-credit turnaround is usually the
+          same day for confirmed reproducible bugs.
         </p>
         <p className="text-xs text-muted mt-2">
           Also see{" "}
