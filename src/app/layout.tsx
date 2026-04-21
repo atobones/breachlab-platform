@@ -8,6 +8,7 @@ import { StatusBar } from "@/components/StatusBar";
 import { TerminalWindow } from "@/components/TerminalWindow";
 import { CommandPalette } from "@/components/CommandPalette";
 import { BootSequence } from "@/components/BootSequence";
+import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { getCurrentSession } from "@/lib/auth/session";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -41,6 +42,7 @@ export default async function RootLayout({
         <Sidebar />
         <main className="flex-1 p-4 max-w-5xl">
           <TerminalWindow username={user?.username ?? null}>
+            <EarlyAccessBanner />
             <Header />
             {children}
           </TerminalWindow>
