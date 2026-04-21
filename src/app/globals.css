@@ -597,6 +597,11 @@ body::after {
   height: 100%;
   background: color-mix(in oklab, var(--bl-amber) 75%, transparent);
 }
+/* Gold fill for the Hall-of-Fame bar — same geometry as ops-htop-fill. */
+.ops-htop-fill.hof-bar {
+  background: linear-gradient(90deg, #a26a11 0%, #ffd76a 55%, #fff6c7 100%);
+  box-shadow: 0 0 6px rgba(250, 190, 60, 0.45);
+}
 .ops-htop-points {
   text-align: right;
   color: var(--bl-text);

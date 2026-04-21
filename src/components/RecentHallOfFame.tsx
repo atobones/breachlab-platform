@@ -1,11 +1,13 @@
-import { getPublicCredits } from "@/lib/hall-of-fame/queries";
+import { getTopContributors } from "@/lib/hall-of-fame/queries";
 import { OperativeName } from "@/components/operatives/OperativeName";
 
+// Renders the top 5 hall-of-fame contributors sorted by security_score.
+// Matches the ops-htop layout on the right (rank · name · bar · score)
+// so both panes of the OpsCenter read as one dashboard.
 export async function RecentHallOfFame() {
-  const all = await getPublicCredits();
-  const latest = all.slice(0, 5);
+  const top = await getTopContributors(5);
 
-  if (latest.length === 0) {
+  if (top.length === 0) {
     return (
       <div className="ops-stream ops-stream-empty">
         <span className="text-muted">no security contributors yet</span>
@@ -13,31 +15,38 @@ export async function RecentHallOfFame() {
     );
   }
 
+  const maxScore = top[0].score || 1;
+
   return (
-    <ul className="ops-hof">
-      {latest.map((c) => {
-        const when = c.awardedAt
-          ? new Date(c.awardedAt).toISOString().slice(5, 10).replace("-", "/")
-          : "—/—";
-        const name = c.username ?? c.displayName;
-        const sevClass = `ops-hof-sev sev-${c.severity}`;
+    <ol className="ops-htop">
+      {top.map((c, i) => {
+        const widthPct = Math.max(8, Math.round((c.score / maxScore) * 100));
         return (
-          <li key={c.id} className="ops-hof-row">
-            <span className="ops-hof-date">{when}</span>
-            <span className="ops-hof-name">
+          <li key={c.userId} className="ops-htop-row">
+            <span className="ops-htop-rank">
+              #{String(i + 1).padStart(2, "0")}
+            </span>
+            <span className="ops-htop-name">
               <OperativeName
-                username={name}
-                isHallOfFame={c.isHallOfFame}
-                href={c.username ? `/u/${c.username}` : null}
+                username={c.username}
+                isHallOfFame={true}
+                href={`/u/${c.username}`}
               />
             </span>
-            <span className={sevClass}>{c.severity}</span>
-            <span className="ops-hof-title" title={c.findingTitle}>
-              {c.findingTitle}
-            </span>
+            <div
+              className="ops-htop-bar"
+              aria-hidden
+              title={`${c.reports} report${c.reports === 1 ? "" : "s"}`}
+            >
+              <div
+                className="ops-htop-fill hof-bar"
+                style={{ width: `${widthPct}%` }}
+              />
+            </div>
+            <span className="ops-htop-points tabular-nums">{c.score}</span>
           </li>
         );
       })}
-    </ul>
+    </ol>
   );
 }
