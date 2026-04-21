@@ -1,12 +1,5 @@
-import Link from "next/link";
 import { getPublicCredits } from "@/lib/hall-of-fame/queries";
-
-const SEV_COLOR: Record<string, string> = {
-  critical: "text-red-400",
-  high: "text-orange-400",
-  medium: "text-amber",
-  low: "text-green-400",
-};
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export async function RecentHallOfFame() {
   const all = await getPublicCredits();
@@ -21,36 +14,26 @@ export async function RecentHallOfFame() {
   }
 
   return (
-    <ul className="ops-stream">
+    <ul className="ops-hof">
       {latest.map((c) => {
         const when = c.awardedAt
           ? new Date(c.awardedAt).toISOString().slice(5, 10).replace("-", "/")
-          : "——/——";
+          : "—/—";
         const name = c.username ?? c.displayName;
-        const nameClass = c.isHallOfFame
-          ? "text-[#facc15] drop-shadow-[0_0_6px_rgba(250,204,21,0.5)]"
-          : "text-amber";
+        const sevClass = `ops-hof-sev sev-${c.severity}`;
         return (
-          <li key={c.id} className="ops-stream-row">
-            <span className="ops-stream-ts">{when}</span>
-            <span className="ops-stream-line">
-              {c.username ? (
-                <Link href={`/u/${c.username}`} className={`${nameClass} hover:underline`}>
-                  @{name}
-                </Link>
-              ) : (
-                <span className={nameClass}>@{name}</span>
-              )}
-              <span className="text-muted"> · </span>
-              <span className={SEV_COLOR[c.severity] ?? "text-muted"}>
-                {c.severity}
-              </span>
-              <span className="text-muted"> · </span>
-              <span className="text-muted/80">
-                {c.findingTitle.length > 52
-                  ? `${c.findingTitle.slice(0, 52)}…`
-                  : c.findingTitle}
-              </span>
+          <li key={c.id} className="ops-hof-row">
+            <span className="ops-hof-date">{when}</span>
+            <span className="ops-hof-name">
+              <OperativeName
+                username={name}
+                isHallOfFame={c.isHallOfFame}
+                href={c.username ? `/u/${c.username}` : null}
+              />
+            </span>
+            <span className={sevClass}>{c.severity}</span>
+            <span className="ops-hof-title" title={c.findingTitle}>
+              {c.findingTitle}
             </span>
           </li>
         );
