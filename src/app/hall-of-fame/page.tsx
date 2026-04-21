@@ -26,7 +26,7 @@ export default async function HallOfFamePage() {
   return (
     <div className="space-y-8" data-testid="hall-of-fame-page">
       <header className="space-y-3">
-        <h1 className="text-[#facc15] text-2xl drop-shadow-[0_0_8px_rgba(250,204,21,0.35)]">
+        <h1 className="hof-name text-2xl">
           Hall of Fame
         </h1>
         <p className="text-sm text-muted max-w-2xl">
