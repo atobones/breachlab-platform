@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { getGlobalTop, getLiveStats } from "@/lib/leaderboard/queries";
-import { LiveActivityStream } from "./LiveActivityStream";
+import { RecentHallOfFame } from "./RecentHallOfFame";
 
 export async function OpsCenter() {
   const [top, stats] = await Promise.all([
@@ -28,10 +28,12 @@ export async function OpsCenter() {
       <div className="ops-grid">
         <div className="ops-pane ops-pane-left">
           <div className="ops-pane-header">
-            <span>▸ recent intercepts</span>
-            <span className="ops-pane-meta">tail -f /var/log/breachlab</span>
+            <span>▸ hall of fame</span>
+            <Link href="/hall-of-fame" className="ops-pane-meta hover:underline">
+              full wall →
+            </Link>
           </div>
-          <LiveActivityStream />
+          <RecentHallOfFame />
         </div>
 
         <div className="ops-pane ops-pane-right">
