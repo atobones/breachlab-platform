@@ -56,6 +56,12 @@ export async function submitFlag(
     .limit(1);
   if (!level) return { ok: false, error: "Unknown flag" };
 
+  const [trackRow] = await db
+    .select({ slug: tracks.slug })
+    .from(tracks)
+    .where(eq(tracks.id, level.trackId))
+    .limit(1);
+
   const existing = await db
     .select({ id: submissions.id })
     .from(submissions)
@@ -112,6 +118,19 @@ export async function submitFlag(
       // do not block the submission — treat as intact.
       chainIntact = true;
     }
+  }
+
+  // Strict-order enforcement (phantom only). Phantom is a chain-password
+  // track where finding level N's flag without solving N-1 means the
+  // player pulled it out of container state they shouldn't have reached
+  // yet (shared /tmp leak, flagkeeperN process snoop, old reconnaissance
+  // artifact from another player). Ghost stays permissive — it has
+  // legitimate out-of-order discovery paths.
+  if (!chainIntact && trackRow?.slug === "phantom") {
+    return {
+      ok: false,
+      error: `Chain broken. Solve phantom/${level.idx - 1} before submitting phantom/${level.idx}.`,
+    };
   }
 
   // First-blood is the first chain-intact submission ever recorded for
@@ -201,12 +220,6 @@ export async function submitFlag(
   const totalInTrack = Number(totalRow?.total ?? 0);
   const trackCompleted =
     solvedInTrack.length >= totalInTrack && totalInTrack > 0;
-
-  const [trackRow] = await db
-    .select({ slug: tracks.slug })
-    .from(tracks)
-    .where(eq(tracks.id, level.trackId))
-    .limit(1);
 
   // Graduation badges and announcements require the full chain intact
   // at the moment of the graduation submission — submitting the grad
