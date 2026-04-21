@@ -1,9 +1,16 @@
 import Link from "next/link";
 import { getGlobalTop } from "@/lib/leaderboard/queries";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export async function TopFiveWidget() {
   const rows = await getGlobalTop(5);
-  const padded =
+  const padded: Array<{
+    userId: string;
+    username: string;
+    isHallOfFame: boolean;
+    points: number;
+    solved: number;
+  }> =
     rows.length >= 5
       ? rows
       : [
@@ -11,13 +18,15 @@ export async function TopFiveWidget() {
           ...Array.from({ length: 5 - rows.length }, (_, i) => ({
             userId: `placeholder-${i}`,
             username: "—",
+            isHallOfFame: false,
             points: 0,
             solved: 0,
           })),
         ];
   // Podium hint: amber fades for ranks 1-3, then muted. Monospace makes
   // the rank column naturally aligned, tabular-nums keeps the point
-  // column flush.
+  // column flush. HoF users override the rank tone with the gold
+  // gradient via OperativeName.
   const RANK_TONE = [
     "text-amber",
     "text-amber/80",
@@ -37,7 +46,20 @@ export async function TopFiveWidget() {
             className="flex justify-between"
           >
             <span className={RANK_TONE[i]}>
-              {i + 1}. {row.username === "—" ? "—" : `@${row.username}`}
+              {i + 1}.{" "}
+              {row.username === "—" ? (
+                "—"
+              ) : (
+                <>
+                  @
+                  <OperativeName
+                    username={row.username}
+                    isHallOfFame={row.isHallOfFame}
+                    href={`/u/${row.username}`}
+                    className={row.isHallOfFame ? "" : "text-inherit"}
+                  />
+                </>
+              )}
             </span>
             <span className="text-muted">{row.points}</span>
           </li>

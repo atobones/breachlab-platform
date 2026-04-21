@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { LiveEvent } from "@/lib/live/events";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 const MAX = 5;
 
@@ -42,8 +43,14 @@ export function RecentTickerWidget() {
             data-testid="recent-event"
             className="text-text"
           >
-            <span className="text-amber">@{e.username}</span> owned{" "}
-            {e.trackSlug} L{e.levelIdx}
+            @
+            <OperativeName
+              username={e.username}
+              isHallOfFame={e.isHallOfFame}
+              href={`/u/${e.username}`}
+              className={e.isHallOfFame ? "" : "text-amber"}
+            />{" "}
+            owned {e.trackSlug} L{e.levelIdx}
           </li>
         ))}
       </ul>
