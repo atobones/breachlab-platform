@@ -292,7 +292,10 @@ export async function submitFlag(
   }
 
   const [userRow] = await db
-    .select({ username: users.username })
+    .select({
+      username: users.username,
+      isHallOfFame: users.isHallOfFame,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -301,6 +304,7 @@ export async function submitFlag(
     type: "submission",
     at: new Date().toISOString(),
     username: userRow?.username ?? "unknown",
+    isHallOfFame: userRow?.isHallOfFame ?? false,
     trackSlug: trackRow?.slug ?? "unknown",
     levelIdx: level.idx,
     levelTitle: level.title,
