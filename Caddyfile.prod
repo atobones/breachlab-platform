@@ -31,5 +31,15 @@ breachlab.org, www.breachlab.org {
         flush_interval -1
     }
 
-    reverse_proxy web:3000
+    reverse_proxy web:3000 {
+        # Forensic fidelity: rewrite X-Real-IP to the real client IP
+        # that Cloudflare saw, not Cloudflare's own edge IP. Without
+        # this the submissions.source_ip column + middleware rate-limit
+        # bucket both key off CF proxy IPs (172.68.x / 104.23.x) and a
+        # single attacker behind any CF pop looks like a random shared
+        # tenant. Direct-to-origin access is blocked by the DOCKER-USER
+        # iptables cloudflare-edge ipset, so header-spoofing via a
+        # non-CF request path can't reach this reverse_proxy block.
+        header_up X-Real-IP {http.request.header.Cf-Connecting-Ip}
+    }
 }

@@ -28,10 +28,11 @@ export async function recordAudit(params: WriteParams): Promise<void> {
   let ip: string | null = null;
   try {
     const h = await headers();
-    ip =
-      h.get("x-real-ip") ??
-      h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-      null;
+    // Trust only x-real-ip (Caddy sets it from Cf-Connecting-Ip for
+    // external traffic). x-forwarded-for is client-spoofable and used
+    // to let a single attacker appear under N different bucket/IP
+    // values — which defeats both rate-limiting and audit forensics.
+    ip = h.get("x-real-ip") ?? null;
   } catch {
     // Not in a request context (e.g. background job) — leave ip null.
   }
