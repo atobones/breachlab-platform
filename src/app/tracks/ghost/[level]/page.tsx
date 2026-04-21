@@ -137,7 +137,7 @@ export default async function GhostLevelPage({
           that you captured on the previous level, then:
         </p>
         <pre className="bg-border/40 p-3 text-xs">
-          ssh ghost{idx}@play.breachlab.org -p 2222
+          ssh ghost{idx}@204.168.229.209 -p 2222
         </pre>
         {idx === 0 && (
           <p className="text-xs text-muted mt-2">

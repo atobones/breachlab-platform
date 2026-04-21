@@ -104,7 +104,7 @@ export default function ManifestoPage() {
           the way attackers actually learn — there&apos;s a server waiting:
         </p>
         <pre className="text-amber">
-{`ssh ghost0@play.breachlab.org -p 2222
+{`ssh ghost0@204.168.229.209 -p 2222
 password: ghost0`}
         </pre>
         <p className="text-xs text-muted">

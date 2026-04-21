@@ -4,12 +4,12 @@ This app ships **code** for accepting crypto donations, but the BTCPay Server it
 
 ## 1. Provision BTCPay Server on the VPS
 
-BTCPay runs on the same VPS as BreachLab (see private ops notes for the host). Pick a subdomain, e.g. `pay.breachlab.org`.
+BreachLab runs on `204.168.229.209`. Pick a subdomain, e.g. `pay.breachlab.org`.
 
 Easiest path is the official one-click Docker deployment:
 
 ```bash
-ssh root@<vps-host>
+ssh root@204.168.229.209
 mkdir btcpayserver && cd btcpayserver
 git clone https://github.com/btcpayserver/btcpayserver-docker
 cd btcpayserver-docker
@@ -27,7 +27,7 @@ BTCPay takes 5–15 minutes to sync headers. Bitcoin Core full sync can take day
 
 ## 2. DNS
 
-Add an A-record `pay` → your VPS IP (Cloudflare or whatever you end up using). Wait for propagation. Verify: `dig pay.breachlab.org`.
+Add an A-record `pay` → `204.168.229.209` (Cloudflare or whatever you end up using). Wait for propagation. Verify: `dig pay.breachlab.org`.
 
 ## 3. Create the BreachLab store
 
