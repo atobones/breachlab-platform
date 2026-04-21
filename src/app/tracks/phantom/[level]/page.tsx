@@ -165,7 +165,7 @@ export default async function PhantomLevelPage({
           that you captured on the previous level, then:
         </p>
         <pre className="bg-border/40 p-3 text-xs">
-          ssh phantom{idx}@204.168.229.209 -p 2223
+          ssh phantom{idx}@play.breachlab.org -p 2223
         </pre>
         {idx === 0 && (
           <p className="text-xs text-muted mt-2">
