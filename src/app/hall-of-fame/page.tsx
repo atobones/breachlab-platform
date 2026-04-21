@@ -36,7 +36,7 @@ export default async function HallOfFamePage() {
           in gold.
         </p>
         <a
-          href={process.env.NEXT_PUBLIC_DISCORD_INVITE ?? "https://discord.gg/breachlab"}
+          href={"https://discord.gg/hJrteuV6"}
           target="_blank"
           rel="noopener noreferrer"
           className="inline-flex items-center gap-2 border border-[#facc15]/40 text-[#facc15] px-3 py-1.5 text-xs hover:bg-[#facc15]/10 transition-colors"
@@ -49,7 +49,7 @@ export default async function HallOfFamePage() {
         <p className="text-sm text-muted">
           No confirmed reports yet. Be the first — ping{" "}
           <a
-            href={process.env.NEXT_PUBLIC_DISCORD_INVITE ?? "https://discord.gg/breachlab"}
+            href={"https://discord.gg/hJrteuV6"}
             className="text-amber hover:underline"
           >
             Discord
