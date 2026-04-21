@@ -14,7 +14,11 @@ export type AuditAction =
   | "sponsor.end"
   | "sponsor.delete"
   | "speedrun.approve"
-  | "speedrun.reject";
+  | "speedrun.reject"
+  | "hall_of_fame.create"
+  | "hall_of_fame.confirm"
+  | "hall_of_fame.reject"
+  | "hall_of_fame.delete";
 
 type WriteParams = {
   actor: { id: string; username: string };

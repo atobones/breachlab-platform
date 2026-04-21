@@ -7,6 +7,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/users", label: "Users" },
   { href: "/admin/submissions", label: "Submissions" },
   { href: "/admin/sponsors", label: "Sponsors" },
+  { href: "/admin/hall-of-fame", label: "Hall of Fame" },
   { href: "/admin/review", label: "Review queue" },
   { href: "/admin/audit", label: "Audit" },
 ];
