@@ -21,6 +21,7 @@ export type ProfileSpeedrun = {
   trackName: string;
   totalSeconds: number;
   reviewStatus: string;
+  isSuspicious: boolean;
 };
 
 export type Profile = {
@@ -85,6 +86,7 @@ export async function getProfileByUsername(
       trackName: tracks.name,
       totalSeconds: speedrunRuns.totalSeconds,
       reviewStatus: speedrunRuns.reviewStatus,
+      isSuspicious: speedrunRuns.isSuspicious,
     })
     .from(speedrunRuns)
     .innerJoin(tracks, eq(tracks.id, speedrunRuns.trackId))
@@ -111,6 +113,7 @@ export async function getProfileByUsername(
       trackName: r.trackName,
       totalSeconds: Number(r.totalSeconds),
       reviewStatus: r.reviewStatus,
+      isSuspicious: r.isSuspicious,
     })),
   };
 }
