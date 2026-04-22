@@ -12,12 +12,13 @@ export function ResetPasswordForm({ token }: { token: string }) {
   return (
     <form action={formAction} className="space-y-3 text-sm">
       <label className="block">
-        <span className="block text-muted mb-1">New password (min 12)</span>
+        <span className="block text-muted mb-1">New password (12 to 256 characters)</span>
         <input
           name="password"
           type="password"
           required
           minLength={12}
+          maxLength={256}
           className="w-full bg-bg border border-border p-2 text-text focus:outline-none focus:border-amber"
         />
       </label>

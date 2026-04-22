@@ -30,12 +30,13 @@ export function RegisterForm() {
         />
       </label>
       <label className="block">
-        <span className="block text-muted mb-1">Password (min 12)</span>
+        <span className="block text-muted mb-1">Password (12 to 256 characters)</span>
         <input
           name="password"
           type="password"
           required
           minLength={12}
+          maxLength={256}
           className="w-full bg-bg border border-border p-2 text-text focus:outline-none focus:border-amber"
         />
       </label>
