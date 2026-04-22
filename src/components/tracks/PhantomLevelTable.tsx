@@ -5,6 +5,7 @@ import {
   type PhantomTier,
 } from "@/lib/tracks/phantom-level-content";
 import type { FirstBloodInfo } from "./LevelTable";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 const ACT_ORDER: PhantomTier[] = [
   "act1",
@@ -101,7 +102,15 @@ export function PhantomLevelTable({
                       </td>
                       <td className="py-1 pl-4">
                         {fb ? (
-                          <span className="text-amber">@{fb.username}</span>
+                          <>
+                            @
+                            <OperativeName
+                              username={fb.username}
+                              isHallOfFame={fb.isHallOfFame}
+                              href={`/u/${fb.username}`}
+                              className={fb.isHallOfFame ? "" : "text-amber"}
+                            />
+                          </>
                         ) : l.pointsFirstBloodBonus > 0 ? (
                           <span className="text-red text-xs">
                             FIRST BLOOD AVAILABLE

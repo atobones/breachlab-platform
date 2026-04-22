@@ -12,6 +12,7 @@ import { TierBadge } from "@/components/tracks/TierBadge";
 import { ApproachHint } from "@/components/tracks/ApproachHint";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PrevNextLevel } from "@/components/PrevNextLevel";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export const dynamic = "force-dynamic";
 
@@ -89,7 +90,13 @@ export default async function PhantomLevelPage({
       <div className="flex flex-wrap gap-2 text-xs">
         {firstBlood ? (
           <span className="border border-red text-red px-2 py-0.5 uppercase">
-            First Blood: @{firstBlood.username}
+            First Blood: @
+            <OperativeName
+              username={firstBlood.username}
+              isHallOfFame={firstBlood.isHallOfFame}
+              href={`/u/${firstBlood.username}`}
+              className={firstBlood.isHallOfFame ? "" : "text-red"}
+            />
           </span>
         ) : (
           lvl.pointsFirstBloodBonus > 0 && (
