@@ -10,6 +10,7 @@ import { isHiddenLevel } from "@/lib/tracks/all";
 import { hasUnlockedHiddenBonus } from "@/lib/tracks/bonus";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PrevNextLevel } from "@/components/PrevNextLevel";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export default async function GhostLevelPage({
   params,
@@ -85,7 +86,13 @@ export default async function GhostLevelPage({
       <div className="flex gap-2 text-xs">
         {firstBlood ? (
           <span className="border border-red text-red px-2 py-0.5 uppercase">
-            First Blood: @{firstBlood.username}
+            First Blood: @
+            <OperativeName
+              username={firstBlood.username}
+              isHallOfFame={firstBlood.isHallOfFame}
+              href={`/u/${firstBlood.username}`}
+              className={firstBlood.isHallOfFame ? "" : "text-red"}
+            />
           </span>
         ) : (
           <span className="border border-red text-red px-2 py-0.5 uppercase">

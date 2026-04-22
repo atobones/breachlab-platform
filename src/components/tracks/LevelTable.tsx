@@ -1,6 +1,11 @@
 import type { Level } from "@/lib/db/schema";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
-export type FirstBloodInfo = { username: string; awardedAt: Date };
+export type FirstBloodInfo = {
+  username: string;
+  isHallOfFame: boolean;
+  awardedAt: Date;
+};
 
 export function LevelTable({
   levels,
@@ -40,7 +45,15 @@ export function LevelTable({
               </td>
               <td className="py-1 pl-4">
                 {fb ? (
-                  <span className="text-amber">@{fb.username}</span>
+                  <>
+                    @
+                    <OperativeName
+                      username={fb.username}
+                      isHallOfFame={fb.isHallOfFame}
+                      href={`/u/${fb.username}`}
+                      className={fb.isHallOfFame ? "" : "text-amber"}
+                    />
+                  </>
                 ) : (
                   <span className="text-red text-xs">FIRST BLOOD AVAILABLE</span>
                 )}

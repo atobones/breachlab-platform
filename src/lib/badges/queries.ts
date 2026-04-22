@@ -35,21 +35,29 @@ export async function getFirstBloods(): Promise<FirstBloodRow[]> {
 }
 
 export async function getFirstBloodByLevel(): Promise<
-  Map<string, { username: string; awardedAt: Date }>
+  Map<string, { username: string; isHallOfFame: boolean; awardedAt: Date }>
 > {
   const rows = await db
     .select({
       levelId: levels.id,
       username: users.username,
+      isHallOfFame: users.isHallOfFame,
       awardedAt: badges.awardedAt,
     })
     .from(badges)
     .innerJoin(levels, eq(levels.id, badges.refId))
     .innerJoin(users, eq(users.id, badges.userId))
     .where(eq(badges.kind, "first_blood"));
-  const map = new Map<string, { username: string; awardedAt: Date }>();
+  const map = new Map<
+    string,
+    { username: string; isHallOfFame: boolean; awardedAt: Date }
+  >();
   for (const r of rows) {
-    map.set(r.levelId, { username: r.username, awardedAt: r.awardedAt });
+    map.set(r.levelId, {
+      username: r.username,
+      isHallOfFame: r.isHallOfFame ?? false,
+      awardedAt: r.awardedAt,
+    });
   }
   return map;
 }
