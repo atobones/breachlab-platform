@@ -1,17 +1,15 @@
 import type { SpeedrunRow } from "@/lib/speedrun/queries";
 import { OperativeName } from "@/components/operatives/OperativeName";
+import { formatHhMmSs } from "@/lib/speedrun/format";
 
-function formatMmSs(totalSeconds: number): string {
-  const s = Math.max(0, Math.floor(totalSeconds));
-  const m = Math.floor(s / 60);
-  const sec = s % 60;
-  return `${String(m).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
-}
-
-function statusFor(row: SpeedrunRow): "approved" | "pending" | "suspicious" {
+// Only surface a status pill when it carries information. Non-suspicious
+// runs sit in review_status='pending' forever because admin review is
+// suspicious-only — showing "pending" on every legitimate run was just
+// noise. Approved and suspicious are the only states a viewer cares about.
+function statusFor(row: SpeedrunRow): "approved" | "suspicious" | null {
   if (row.isSuspicious && row.reviewStatus === "pending") return "suspicious";
   if (row.reviewStatus === "approved") return "approved";
-  return "pending";
+  return null;
 }
 
 export function SpeedrunTable({ rows }: { rows: SpeedrunRow[] }) {
@@ -51,9 +49,15 @@ export function SpeedrunTable({ rows }: { rows: SpeedrunRow[] }) {
                   />
                 </td>
                 <td className="py-1 text-right">
-                  {formatMmSs(r.totalSeconds)}
+                  {formatHhMmSs(r.totalSeconds)}
                 </td>
-                <td className="py-1 text-right text-muted">{status}</td>
+                <td className="py-1 text-right text-muted">
+                  {status === "suspicious" ? (
+                    <span className="text-red">[flagged]</span>
+                  ) : status === "approved" ? (
+                    <span className="text-green">[approved]</span>
+                  ) : null}
+                </td>
               </tr>
             );
           })

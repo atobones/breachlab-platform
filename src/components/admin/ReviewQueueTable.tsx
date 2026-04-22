@@ -2,13 +2,7 @@
 import { useTransition } from "react";
 import type { SuspiciousRunRow } from "@/lib/speedrun/queries";
 import { approveRun, rejectRun } from "@/app/admin/review/actions";
-
-function formatTime(totalSeconds: number | null): string {
-  if (totalSeconds === null) return "—";
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
+import { formatHhMmSs } from "@/lib/speedrun/format";
 
 function promptTotp(actionLabel: string): string | null {
   const code = window.prompt(`6-digit TOTP code to confirm: ${actionLabel}`);
@@ -40,7 +34,7 @@ export function ReviewQueueTable({ runs }: { runs: SuspiciousRunRow[] }) {
           <tr key={run.id} className="border-t border-amber/10">
             <td className="py-2 text-amber">{run.username}</td>
             <td className="py-2">{run.trackName}</td>
-            <td className="py-2">{formatTime(run.totalSeconds)}</td>
+            <td className="py-2">{formatHhMmSs(run.totalSeconds)}</td>
             <td className="py-2 text-xs text-muted">
               {run.startedAt.toISOString().slice(0, 19).replace("T", " ")}
             </td>

@@ -4,14 +4,9 @@ import { getUserSecurityProfile } from "@/lib/hall-of-fame/queries";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileBadges } from "@/components/profile/ProfileBadges";
+import { formatHhMmSs } from "@/lib/speedrun/format";
 
 export const dynamic = "force-dynamic";
-
-function formatTime(totalSeconds: number): string {
-  const m = Math.floor(totalSeconds / 60);
-  const s = totalSeconds % 60;
-  return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
-}
 
 export default async function ProfilePage({
   params,
@@ -66,12 +61,12 @@ export default async function ProfilePage({
             {profile.speedruns.map((r) => (
               <li key={r.trackSlug} className="flex gap-3">
                 <span className="text-amber">{r.trackName}</span>
-                <span>{formatTime(r.totalSeconds)}</span>
+                <span>{formatHhMmSs(r.totalSeconds)}</span>
                 {r.reviewStatus === "approved" && (
                   <span className="text-green text-xs">[approved]</span>
                 )}
-                {r.reviewStatus === "pending" && (
-                  <span className="text-muted text-xs">[pending]</span>
+                {r.isSuspicious && r.reviewStatus === "pending" && (
+                  <span className="text-red text-xs">[flagged]</span>
                 )}
               </li>
             ))}
