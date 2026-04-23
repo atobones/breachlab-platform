@@ -27,8 +27,12 @@ export async function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
       className="border-2 border-red bg-bg text-text font-mono p-8 max-w-3xl mx-auto shadow-[0_0_30px_rgba(239,68,68,0.2)]"
     >
       <div className="text-center space-y-1">
-        <p className="text-xs tracking-[0.4em] text-red">
-          ━━━ CLASSIFIED — OPERATIONAL ━━━
+        {/* See OperativeCertificate: tracking only on the word, not the
+            ━━━ box-drawing rule chars. */}
+        <p className="text-xs text-red flex items-center justify-center gap-3">
+          <span aria-hidden="true">━━━</span>
+          <span className="tracking-[0.4em]">CLASSIFIED — OPERATIONAL</span>
+          <span aria-hidden="true">━━━</span>
         </p>
         {/* Inline styles survive html-to-image's DOM-clone step reliably;
             Tailwind's whitespace-pre / leading-[1.15] / font-mono were being
@@ -145,8 +149,10 @@ export async function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
       </section>
 
       <div className="mt-6 text-center">
-        <p className="text-[10px] tracking-[0.4em] text-muted">
-          ━━━ END OF DOCUMENT ━━━
+        <p className="text-[10px] text-muted flex items-center justify-center gap-3">
+          <span aria-hidden="true">━━━</span>
+          <span className="tracking-[0.4em]">END OF DOCUMENT</span>
+          <span aria-hidden="true">━━━</span>
         </p>
         <p className="text-[10px] tracking-[0.2em] text-muted mt-1">
           Verify at breachlab/u/{cert.username}/certificate/phantom · serial{" "}
