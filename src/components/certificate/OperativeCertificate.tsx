@@ -27,13 +27,8 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
       className="border-2 border-amber bg-bg text-text font-mono p-8 max-w-3xl mx-auto shadow-[0_0_30px_rgba(245,158,11,0.15)]"
     >
       <div className="text-center space-y-1">
-        {/* Split so tracking-[0.4em] only applies to the word — previously
-            it spaced the ━━━ box-drawing chars apart too, rendering as
-            short discrete dashes instead of a continuous rule. */}
-        <p className="text-xs text-amber flex items-center justify-center gap-3">
-          <span aria-hidden="true">━━━</span>
-          <span className="tracking-[0.4em]">CLASSIFIED</span>
-          <span aria-hidden="true">━━━</span>
+        <p className="text-xs tracking-[0.4em] text-amber">
+          ━━━ CLASSIFIED ━━━
         </p>
         {/* Inline whiteSpace/fontFamily/lineHeight on <pre>: html-to-image
             clones the DOM and some Tailwind arbitrary-value utilities
@@ -49,6 +44,8 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
             fontFamily:
               "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
             lineHeight: 1.15,
+            textAlign: "left",
+            display: "inline-block",
           }}
           className="font-mono text-amber text-[10px] select-none overflow-x-auto"
         >
@@ -156,10 +153,8 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
       </section>
 
       <div className="mt-6 text-center">
-        <p className="text-[10px] text-muted flex items-center justify-center gap-3">
-          <span aria-hidden="true">━━━</span>
-          <span className="tracking-[0.4em]">END OF DOCUMENT</span>
-          <span aria-hidden="true">━━━</span>
+        <p className="text-[10px] tracking-[0.4em] text-muted">
+          ━━━ END OF DOCUMENT ━━━
         </p>
         <p className="text-[10px] tracking-[0.2em] text-muted mt-1">
           Verify at breachlab/u/{cert.username}/certificate · serial {serial}
