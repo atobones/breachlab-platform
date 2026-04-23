@@ -34,6 +34,17 @@ export function CertificateActions({
       }
       // Lazy-loaded so the 30 KB lib only ships when this button is used.
       const { toPng } = await import("html-to-image");
+      // Ensure web fonts finished loading before rasterization — if the
+      // monospace font is still streaming when toPng clones the DOM, the
+      // PNG falls back to a different glyph metric and the ASCII logo
+      // breaks. defstrong reported this 2026-04-23.
+      if (typeof document !== "undefined" && "fonts" in document) {
+        try {
+          await document.fonts.ready;
+        } catch {
+          /* non-fatal — continue with whatever fonts resolved */
+        }
+      }
       const dataUrl = await toPng(el, {
         backgroundColor: "#0a0a0a",
         pixelRatio: 2,
