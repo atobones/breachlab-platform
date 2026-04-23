@@ -227,6 +227,13 @@ export async function getUsersPaged(opts: {
       .where(where ?? sql`true`)
       .then((r) => r[0]),
 
+    // LEFT JOIN + GROUP BY instead of a correlated subquery. Drizzle's
+    // template interpolation of `${submissions.userId} = ${users.id}` inside
+    // a `sql` subselect didn't preserve the outer-scope correlation at runtime
+    // — the admin users page rendered submissionCount=0 for every user even
+    // when direct psql confirmed non-zero counts (sml=26, friendster=32, etc).
+    // Aggregate form is the well-tested path in Drizzle and sidesteps the
+    // alias/scoping quirk entirely. Caught via /admin/users?q=sml showing 0.
     db
       .select({
         id: users.id,
@@ -238,10 +245,12 @@ export async function getUsersPaged(opts: {
         isSupporter: users.isSupporter,
         lastSeenAt: users.lastSeenAt,
         createdAt: users.createdAt,
-        submissionCount: sql<number>`(select count(*)::int from ${submissions} where ${submissions.userId} = ${users.id})`,
+        submissionCount: sql<number>`count(${submissions.id})::int`,
       })
       .from(users)
+      .leftJoin(submissions, eq(submissions.userId, users.id))
       .where(where ?? sql`true`)
+      .groupBy(users.id)
       .orderBy(desc(users.createdAt))
       .limit(limit)
       .offset(offset),
