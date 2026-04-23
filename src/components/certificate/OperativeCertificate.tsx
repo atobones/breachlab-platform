@@ -30,7 +30,23 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
         <p className="text-xs tracking-[0.4em] text-amber">
           ━━━ CLASSIFIED ━━━
         </p>
-        <pre className="font-mono text-amber text-[10px] leading-[1.15] select-none whitespace-pre overflow-x-auto">
+        {/* Inline whiteSpace/fontFamily/lineHeight on <pre>: html-to-image
+            clones the DOM and some Tailwind arbitrary-value utilities
+            (`whitespace-pre`, `leading-[1.15]`, `font-mono`) don't always
+            survive the computed-style copy inside the PNG rasterizer —
+            downloaded certificates arrived with multi-spaces collapsed so
+            the BREACHLAB ASCII logo rendered narrow and overlapping
+            (defstrong bug report 2026-04-23). Inline styles are respected
+            by html-to-image unconditionally. */}
+        <pre
+          style={{
+            whiteSpace: "pre",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            lineHeight: 1.15,
+          }}
+          className="font-mono text-amber text-[10px] select-none overflow-x-auto"
+        >
 {` ____  ____  _____    _    ____ _   _ _        _    ____
 | __ )|  _ \\| ____|  / \\  / ___| | | | |      / \\  | __ )
 |  _ \\| |_) |  _|   / _ \\| |   | |_| | |     / _ \\ |  _ \\

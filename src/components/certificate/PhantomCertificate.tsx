@@ -30,7 +30,19 @@ export async function PhantomCertificate({ cert }: { cert: TrackCertificate }) {
         <p className="text-xs tracking-[0.4em] text-red">
           ━━━ CLASSIFIED — OPERATIONAL ━━━
         </p>
-        <pre className="font-mono text-red text-[10px] leading-[1.15] select-none whitespace-pre overflow-x-auto">
+        {/* Inline styles survive html-to-image's DOM-clone step reliably;
+            Tailwind's whitespace-pre / leading-[1.15] / font-mono were being
+            dropped during PNG rasterization, collapsing multi-spaces and
+            breaking the ASCII logo. See OperativeCertificate for details. */}
+        <pre
+          style={{
+            whiteSpace: "pre",
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+            lineHeight: 1.15,
+          }}
+          className="font-mono text-red text-[10px] select-none overflow-x-auto"
+        >
 {` ____  _   _    _    _   _ _____ ___  __  __
 |  _ \\| | | |  / \\  | \\ | |_   _/ _ \\|  \\/  |
 | |_) | |_| | / _ \\ |  \\| | | || | | | |\\/| |
