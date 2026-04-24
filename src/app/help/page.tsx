@@ -94,10 +94,18 @@ export default function HelpPage() {
 {`# If SSH key changed warning appears
 ssh-keygen -R "[204.168.229.209]:2222"
 ssh-keygen -R "[204.168.229.209]:2223"
+ssh-keygen -R "[204.168.229.209]:2224"
+ssh-keygen -R "[204.168.229.209]:2225"
+ssh-keygen -R "[204.168.229.209]:2226"
+ssh-keygen -R "[204.168.229.209]:2227"
 
 # If connection is refused, check port number
-# Ghost: port 2222
-# Phantom: port 2223`}
+# Ghost:         port 2222
+# Phantom main:  port 2223  (L0-L12, L16-L29)
+# Phantom L13:   port 2224  (ephemeral)
+# Phantom L14:   port 2225  (ephemeral)
+# Phantom L15:   port 2226  (ephemeral)
+# Phantom L30:   port 2227  (ephemeral)`}
         </pre>
       </section>
 

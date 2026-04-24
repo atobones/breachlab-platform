@@ -227,12 +227,28 @@ export default async function PhantomTrackPage() {
             <dd className="inline">204.168.229.209</dd>
           </div>
           <div>
-            <dt className="inline text-muted">Port: </dt>
-            <dd className="inline">2223</dd>
+            <dt className="inline text-muted">Main track (L0–L12, L16–L29): </dt>
+            <dd className="inline">port 2223</dd>
           </div>
           <div>
-            <dt className="inline text-muted">User: </dt>
-            <dd className="inline">phantom0 (level 0)</dd>
+            <dt className="inline text-muted">Ephemeral L13 (Deep Roots): </dt>
+            <dd className="inline">port 2224</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Ephemeral L14 (Shadow Mode): </dt>
+            <dd className="inline">port 2225</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Ephemeral L15 (Clean Slate): </dt>
+            <dd className="inline">port 2226</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Ephemeral L30 (Clean Exit): </dt>
+            <dd className="inline">port 2227</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Entry user: </dt>
+            <dd className="inline">phantom0</dd>
           </div>
           <div>
             <dt className="inline text-muted">Password: </dt>
@@ -242,6 +258,11 @@ export default async function PhantomTrackPage() {
         <pre className="bg-bg border border-border p-2 text-xs mt-3">
           ssh phantom0@204.168.229.209 -p 2223
         </pre>
+        <p className="text-xs text-muted mt-2">
+          L13 / L14 / L15 / L30 each spawn a fresh ephemeral container on
+          their own port — one connect per box, disappears on disconnect.
+          Land on the expected port once you reach that level.
+        </p>
       </section>
 
       <section>
