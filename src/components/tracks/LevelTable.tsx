@@ -10,11 +10,15 @@ export type FirstBloodInfo = {
 export function LevelTable({
   levels,
   solvedLevelIds,
+  unlockedLevelIds,
+  authed,
   firstBloodByLevelId,
   solveCountByLevelId,
 }: {
   levels: Level[];
   solvedLevelIds: Set<string>;
+  unlockedLevelIds: Set<string>;
+  authed: boolean;
   firstBloodByLevelId: Map<string, FirstBloodInfo>;
   solveCountByLevelId?: Map<string, number>;
 }) {
@@ -33,6 +37,7 @@ export function LevelTable({
       <tbody>
         {levels.map((l) => {
           const solved = solvedLevelIds.has(l.id);
+          const unlocked = unlockedLevelIds.has(l.id);
           const fb = firstBloodByLevelId.get(l.id);
           const solveCount = solveCountByLevelId?.get(l.id) ?? 0;
           return (
@@ -58,12 +63,16 @@ export function LevelTable({
                   <span className="text-red text-xs">FIRST BLOOD AVAILABLE</span>
                 )}
               </td>
-              <td
-                className={`py-1 text-right ${
-                  solved ? "text-green" : "text-muted"
-                }`}
-              >
-                {solved ? "solved" : "—"}
+              <td className="py-1 text-right whitespace-nowrap">
+                {!authed ? (
+                  <span className="text-muted">—</span>
+                ) : solved ? (
+                  <span className="text-green">solved</span>
+                ) : unlocked ? (
+                  <span className="text-amber">available</span>
+                ) : (
+                  <span className="text-muted">locked</span>
+                )}
               </td>
             </tr>
           );
