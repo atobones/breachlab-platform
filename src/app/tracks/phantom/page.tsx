@@ -39,6 +39,29 @@ export default async function PhantomTrackPage() {
     solvedLevelIds = new Set(userRows.map((r) => r.levelId));
   }
 
+  // Chain-intact unlocking: a level is playable when the previous idx was
+  // solved by this user; the first level of the track is always unlocked.
+  // Solved levels are always unlocked (redundant, but makes the set the
+  // single source of truth for rendering).
+  const levelsByIdx = new Map(levelRows.map((l) => [l.idx, l]));
+  const minIdx = levelRows.length > 0
+    ? Math.min(...levelRows.map((l) => l.idx))
+    : 0;
+  const unlockedLevelIds = new Set<string>();
+  if (user) {
+    for (const l of levelRows) {
+      if (l.idx === minIdx) {
+        unlockedLevelIds.add(l.id);
+        continue;
+      }
+      const prev = levelsByIdx.get(l.idx - 1);
+      if (prev && solvedLevelIds.has(prev.id)) {
+        unlockedLevelIds.add(l.id);
+      }
+    }
+    for (const id of solvedLevelIds) unlockedLevelIds.add(id);
+  }
+
   const solveCountRows = await db
     .select({
       levelId: submissions.levelId,
@@ -226,6 +249,8 @@ export default async function PhantomTrackPage() {
         <PhantomLevelTable
           levels={levelRows}
           solvedLevelIds={solvedLevelIds}
+          unlockedLevelIds={unlockedLevelIds}
+          authed={!!user}
           firstBloodByLevelId={firstBloodByLevelId}
           solveCountByLevelId={solveCountByLevelId}
         />
