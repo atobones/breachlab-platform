@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 200" role="img" aria-label="BreachLab">
+  <rect width="720" height="200" fill="#0a0a0a"/>
+  <g font-family="ui-monospace, 'JetBrains Mono', 'Departure Mono', Menlo, monospace" font-weight="700">
+    <text x="40" y="120" font-size="80" fill="#f59e0b" letter-spacing="-1">[BL]</text>
+    <text x="220" y="120" font-size="80" fill="#c0c0c0" letter-spacing="2">breachlab</text>
+    <rect x="685" y="60" width="14" height="68" fill="#f59e0b">
+      <animate attributeName="opacity" values="1;0;1" dur="1.05s" repeatCount="indefinite"/>
+    </rect>
+  </g>
+  <text x="40" y="160" font-family="ui-monospace, monospace" font-size="18" fill="#c0c0c0" fill-opacity="0.55" letter-spacing="2">REAL SKILLS · REAL SCENARIOS · NO CTF BULLSHIT</text>
+</svg>

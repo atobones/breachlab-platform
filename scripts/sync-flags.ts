@@ -17,10 +17,31 @@
  *     npx tsx scripts/sync-flags.ts
  */
 import { eq, and } from "drizzle-orm";
+import { existsSync } from "node:fs";
+import { resolve, dirname } from "node:path";
+import { fileURLToPath } from "node:url";
 import { db } from "../src/lib/db/client";
 import { flags, levels, tracks } from "../src/lib/db/schema";
 import { hashToken } from "../src/lib/auth/tokens";
-import { loadCanonicalFlags } from "../src/lib/tracks/canonical-flags";
+import type { CanonicalFlags } from "../src/lib/tracks/canonical-flags";
+
+// Values live in the gitignored canonical-flags.local.ts next to the type
+// definitions. Imported dynamically from this Node-only script so the
+// Next.js webpack bundle never needs to resolve the secret path.
+async function loadCanonicalFlags(): Promise<CanonicalFlags> {
+  const here = dirname(fileURLToPath(import.meta.url));
+  const localPath = resolve(here, "../src/lib/tracks/canonical-flags.local.ts");
+  if (!existsSync(localPath)) {
+    throw new Error(
+      `canonical-flags.local.ts not present at ${localPath}. ` +
+        "Copy canonical-flags.local.example.ts → canonical-flags.local.ts " +
+        "and fill in current flag values. This file is intentionally NOT " +
+        "committed to the public repo."
+    );
+  }
+  const mod = await import("../src/lib/tracks/canonical-flags.local");
+  return (mod.CANONICAL_FLAGS ?? {}) as CanonicalFlags;
+}
 
 async function main() {
   const CANONICAL_FLAGS = await loadCanonicalFlags();
