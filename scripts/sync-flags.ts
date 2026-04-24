@@ -1,9 +1,13 @@
 /**
  * Rewrites the `flags` table so each level has exactly one row whose
- * hash matches the canonical value in src/lib/tracks/canonical-flags.ts.
+ * hash matches the canonical value in canonical-flags.local.ts.
  *
  * Idempotent. Run after changing a chain password in a container
- * Dockerfile (and the mirrored entry in canonical-flags.ts).
+ * Dockerfile (and the mirrored entry in canonical-flags.local.ts).
+ *
+ * Flag values are intentionally NOT committed to the public repo
+ * (this repo is public). They live in src/lib/tracks/canonical-flags.local.ts
+ * which is gitignored. See canonical-flags.local.example.ts for shape.
  *
  * Usage:
  *   DATABASE_URL=postgres://... npx tsx scripts/sync-flags.ts
@@ -16,9 +20,10 @@ import { eq, and } from "drizzle-orm";
 import { db } from "../src/lib/db/client";
 import { flags, levels, tracks } from "../src/lib/db/schema";
 import { hashToken } from "../src/lib/auth/tokens";
-import { CANONICAL_FLAGS } from "../src/lib/tracks/canonical-flags";
+import { loadCanonicalFlags } from "../src/lib/tracks/canonical-flags";
 
 async function main() {
+  const CANONICAL_FLAGS = await loadCanonicalFlags();
   let total = 0;
   let replaced = 0;
   let skipped = 0;

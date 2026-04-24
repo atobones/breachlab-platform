@@ -1,4 +1,4 @@
-import { eq, and, sql, gt } from "drizzle-orm";
+import { eq, and, sql, gt, desc } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   flags,
@@ -8,6 +8,15 @@ import {
   users,
   badges,
 } from "@/lib/db/schema";
+
+// Minimum seconds between consecutive submissions from the same user.
+// Rationale: galile0 (2026-04-23) submitted Ghost L14→L22 in 40 seconds
+// (~4.4s/flag) and Phantom L1→L4 in 14 seconds (~3.5s/flag) after grabbing
+// all flags out of the public `canonical-flags.ts` mirror (now removed).
+// A 3s floor doesn't touch legit rapid clears (slowest observed legit gap
+// between sequential captures is ~3.4s) but caps scripted replay to an
+// order of magnitude slower than the attack.
+const SUBMIT_MIN_SPACING_MS = 3_000;
 import { hashToken } from "@/lib/auth/tokens";
 import { computeAwardedPoints } from "./points";
 import { normalizeFlag, flagSchema } from "@/lib/validation/flags";
@@ -39,6 +48,28 @@ export async function submitFlag(
         parsed.error.issues[0]?.message ??
         "Flag must look like FLAG{...}.",
     };
+  }
+
+  // Rate limit: reject if this user submitted anything within the floor.
+  // Checked AFTER shape validation so malformed flags don't count against
+  // the cooldown (player debugging their own submission shouldn't be
+  // penalised). Checked BEFORE the flag hash lookup so a replay of a
+  // stolen flag list can't burn DB cycles.
+  const [lastSub] = await db
+    .select({ submittedAt: submissions.submittedAt })
+    .from(submissions)
+    .where(eq(submissions.userId, userId))
+    .orderBy(desc(submissions.submittedAt))
+    .limit(1);
+  if (lastSub) {
+    const elapsed = Date.now() - new Date(lastSub.submittedAt).getTime();
+    if (elapsed < SUBMIT_MIN_SPACING_MS) {
+      const wait = Math.ceil((SUBMIT_MIN_SPACING_MS - elapsed) / 1000);
+      return {
+        ok: false,
+        error: `Slow down. Wait ${wait}s before submitting again.`,
+      };
+    }
   }
 
   const flagHash = await hashToken(normalized);
