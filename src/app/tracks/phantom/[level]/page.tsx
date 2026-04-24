@@ -172,8 +172,19 @@ export default async function PhantomLevelPage({
           that you captured on the previous level, then:
         </p>
         <pre className="bg-border/40 p-3 text-xs">
-          ssh phantom{idx}@204.168.229.209 -p 2223
+          ssh phantom{idx}@204.168.229.209 -p {
+            idx === 13 ? 2224 :
+            idx === 14 ? 2225 :
+            idx === 15 ? 2226 :
+            idx === 30 ? 2227 : 2223
+          }
         </pre>
+        {(idx === 13 || idx === 14 || idx === 15 || idx === 30) && (
+          <p className="text-xs text-muted mt-2">
+            This level runs on its own ephemeral container — each SSH
+            connect spawns a fresh box that disappears on disconnect.
+          </p>
+        )}
         {idx === 0 && (
           <p className="text-xs text-muted mt-2">
             Level 0 is the entry point. Starting password:{" "}
