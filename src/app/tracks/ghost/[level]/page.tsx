@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql, inArray } from "drizzle-orm";
 import { getTrackBySlug, getLevelByTrackAndIdx } from "@/lib/tracks/queries";
 import { getLevelContent } from "@/lib/tracks/ghost-level-content";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
-import { submissions } from "@/lib/db/schema";
+import { submissions, levels } from "@/lib/db/schema";
 import { getFirstBloodByLevel } from "@/lib/badges/queries";
 import { isHiddenLevel } from "@/lib/tracks/all";
 import { hasUnlockedHiddenBonus } from "@/lib/tracks/bonus";
@@ -29,10 +29,69 @@ export default async function GhostLevelPage({
 
   const { user } = await getCurrentSession();
 
-  // Hidden levels 404 unless the user has unlocked the bonus
+  // Hidden levels render a gated progress page instead of 404 — PrevNextLevel
+  // on L21 links to L22 (graduation) and before 2026-04-24 landed players on
+  // a generic 404. Same fix as Phantom graduation.
   if (isHiddenLevel(lvl.description)) {
     const unlocked = await hasUnlockedHiddenBonus(user?.id, track.id);
-    if (!unlocked) notFound();
+    if (!unlocked) {
+      const publicRows = await db
+        .select({ id: levels.id, description: levels.description })
+        .from(levels)
+        .where(eq(levels.trackId, track.id));
+      const publicIds = publicRows
+        .filter((l) => !isHiddenLevel(l.description))
+        .map((l) => l.id);
+      let solvedCount = 0;
+      if (user && publicIds.length > 0) {
+        const [row] = await db
+          .select({ c: sql<number>`count(*)::int` })
+          .from(submissions)
+          .where(
+            and(
+              eq(submissions.userId, user.id),
+              inArray(submissions.levelId, publicIds),
+            ),
+          );
+        solvedCount = Number(row?.c ?? 0);
+      }
+      return (
+        <div className="space-y-6 max-w-3xl">
+          <Breadcrumbs
+            items={[
+              { label: "tracks", href: "/" },
+              { label: "ghost", href: "/tracks/ghost" },
+              { label: "graduation" },
+            ]}
+          />
+          <h1 className="text-amber text-2xl">Ghost Graduation — locked</h1>
+          <section className="border border-amber/60 p-4 space-y-2 text-sm">
+            <p>
+              The final mission opens after every public Ghost level is solved
+              under this account.
+            </p>
+            <p className="text-muted">
+              {user ? (
+                <>
+                  Your progress: <span className="text-amber">{solvedCount}</span>
+                  {" / "}
+                  <span className="text-amber">{publicIds.length}</span> public
+                  levels completed.
+                </>
+              ) : (
+                <>
+                  <a href="/login" className="text-amber">Log in</a> to track your
+                  progress.
+                </>
+              )}
+            </p>
+          </section>
+          <p className="text-sm">
+            <a href="/tracks/ghost" className="text-amber">← Back to Ghost track</a>
+          </p>
+        </div>
+      );
+    }
   }
 
   const content = getLevelContent(idx);
@@ -51,10 +110,20 @@ export default async function GhostLevelPage({
     solved = !!row;
   }
 
-  // Max Ghost level is 22 (graduation). Prev at 0 is disabled.
+  // Max Ghost level is 22 (graduation). Prev at 0 is disabled. Suppress
+  // forward arrow when the next level is a locked hidden bonus so players
+  // don't click into the gated page.
   const MAX_GHOST_LEVEL = 22;
   const prevHref = idx > 0 ? `/tracks/ghost/${idx - 1}` : null;
-  const nextHref = idx < MAX_GHOST_LEVEL ? `/tracks/ghost/${idx + 1}` : null;
+  let nextHref: string | null =
+    idx < MAX_GHOST_LEVEL ? `/tracks/ghost/${idx + 1}` : null;
+  if (nextHref) {
+    const nextLvl = await getLevelByTrackAndIdx(track.id, idx + 1);
+    if (nextLvl && isHiddenLevel(nextLvl.description)) {
+      const nextUnlocked = await hasUnlockedHiddenBonus(user?.id, track.id);
+      if (!nextUnlocked) nextHref = null;
+    }
+  }
 
   return (
     <div className="space-y-6 max-w-3xl">
