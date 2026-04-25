@@ -24,13 +24,13 @@ export function StatusBar() {
   return (
     <div className="statusbar" role="status" aria-label="System status">
       <span className="tag">BL</span>
-      <span className="seg">tty/breachlab.org</span>
-      <span className="sep">▌</span>
-      <span className="seg">session {fmtUptime(now - start)}</span>
-      <span className="sep">▌</span>
+      <span className="seg seg-tty">tty/breachlab.org</span>
+      <span className="sep seg-tty">▌</span>
+      <span className="seg seg-session">session {fmtUptime(now - start)}</span>
+      <span className="sep seg-session">▌</span>
       <span className="seg">utc {utc}</span>
-      <span className="sep">▌</span>
-      <span className="seg text-amber">/dev/null is full</span>
+      <span className="sep seg-quip">▌</span>
+      <span className="seg seg-quip text-amber">/dev/null is full</span>
       <span className="ml-auto seg text-green">
         <span className="pulse-dot">●</span> link up
       </span>

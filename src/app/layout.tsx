@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { JetBrains_Mono } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -9,6 +9,7 @@ import { TerminalWindow } from "@/components/TerminalWindow";
 import { CommandPalette } from "@/components/CommandPalette";
 import { BootSequence } from "@/components/BootSequence";
 import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
+import { MobileNav } from "@/components/MobileNav";
 import { getCurrentSession } from "@/lib/auth/session";
 
 const jetbrainsMono = JetBrains_Mono({
@@ -29,6 +30,13 @@ export const metadata: Metadata = {
   description: "Real skills. Real scenarios. No CTF bullshit.",
 };
 
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  themeColor: "#0a0e0a",
+};
+
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
@@ -38,9 +46,10 @@ export default async function RootLayout({
       lang="en"
       className={`${jetbrainsMono.variable} ${departureMono.variable}`}
     >
-      <body className="min-h-screen flex pb-6">
+      <body className="bl-shell min-h-screen flex pb-6">
+        <MobileNav />
         <Sidebar />
-        <main className="flex-1 p-4 max-w-5xl">
+        <main className="bl-main flex-1 p-4 max-w-5xl">
           <TerminalWindow username={user?.username ?? null}>
             <EarlyAccessBanner />
             <Header />
