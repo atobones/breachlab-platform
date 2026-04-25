@@ -962,6 +962,175 @@ body::after {
 }
 
 /* ─────────────────────────────────────────────────────────────
+   Mobile burger button + drawer overlay. The Sidebar component
+   is rendered server-side; on mobile we transform it into an
+   off-canvas drawer toggled by <body data-nav-open>. The button
+   itself is hidden on desktop (≥ 768px) so the layout matches
+   the original two-column terminal feel.
+   ───────────────────────────────────────────────────────────── */
+.bl-burger {
+  display: none;
+  position: fixed;
+  top: 0.55rem;
+  left: 0.55rem;
+  z-index: 1300;
+  background: var(--bl-bg);
+  border: 1px solid color-mix(in oklab, var(--bl-amber) 35%, transparent);
+  color: var(--bl-amber);
+  font-family: var(--bl-font-mono);
+  font-size: 14px;
+  line-height: 1;
+  padding: 0.4rem 0.55rem;
+  cursor: pointer;
+  letter-spacing: 0.05em;
+  align-items: center;
+  gap: 0.25rem;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.bl-burger:hover,
+.bl-burger:focus-visible {
+  border-color: var(--bl-amber);
+  outline: none;
+}
+.bl-burger-tag { color: color-mix(in oklab, var(--bl-amber) 70%, transparent); }
+.bl-burger-glyph { font-size: 16px; line-height: 1; min-width: 0.9em; text-align: center; }
+.bl-nav-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1100;
+  background: color-mix(in oklab, var(--bl-bg) 65%, transparent);
+  backdrop-filter: blur(2px);
+  border: 0;
+  cursor: pointer;
+  padding: 0;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   Mobile responsive overrides. Below 768px the layout collapses:
+   • sidebar becomes an off-canvas drawer
+   • header nav wraps + drops uppercase tracking on small screens
+   • terminal padding shrinks, titlebar metadata hides
+   • status bar drops session/quip segments, keeps utc + link up
+   • home-page hero shrinks, ops grid stacks
+   ───────────────────────────────────────────────────────────── */
+@media (max-width: 767.98px) {
+  .bl-burger { display: inline-flex; }
+
+  /* Body becomes column-stacked. Top padding leaves room for the
+     fixed burger button so headings don't slide under it. */
+  body.bl-shell {
+    flex-direction: column;
+    padding-bottom: 2.5rem;
+  }
+
+  /* Sidebar slides in from the left when body[data-nav-open]. */
+  .bl-sidebar {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    width: min(86vw, 20rem);
+    height: 100vh;
+    height: 100dvh;
+    z-index: 1200;
+    background: var(--bl-bg);
+    border-right: 1px solid color-mix(in oklab, var(--bl-amber) 25%, transparent);
+    box-shadow: 0 0 30px color-mix(in oklab, var(--bl-amber) 15%, transparent);
+    transform: translateX(-100%);
+    transition: transform 220ms ease-out;
+    padding-top: 3.2rem;
+  }
+  body[data-nav-open] .bl-sidebar { transform: translateX(0); }
+
+  .bl-main {
+    width: 100%;
+    max-width: 100%;
+    padding: 3rem 0.6rem 0.6rem;
+  }
+
+  /* Terminal chrome — drop the fixed-width meta + tmux window label.
+     Keep the prompt line, ellipsis on cwd. */
+  .terminal-content { padding: 1rem 0.85rem 1.5rem; min-height: auto; }
+  .terminal-titlebar {
+    padding: 0.35rem 0.55rem;
+    gap: 0.4rem;
+    flex-wrap: nowrap;
+  }
+  .terminal-tmux-window,
+  .terminal-meta { display: none; }
+  .terminal-title { font-size: 10.5px; text-align: left; }
+  .title-user { display: none; }
+
+  /* Header — stack rows on really narrow screens; let nav wrap. */
+  .bl-header {
+    flex-wrap: wrap;
+    row-gap: 0.55rem;
+    padding-bottom: 0.65rem;
+    margin-bottom: 1.1rem;
+  }
+  .bl-header-nav { width: 100%; order: 2; }
+  .bl-header-actions { order: 1; margin-left: auto; }
+  .bl-header-nav ul {
+    gap: 0.65rem 1rem;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+  }
+
+  /* StatusBar — drop noisy segments below 768px. */
+  .statusbar { padding: 0 0.55rem; gap: 0.4rem; }
+  .statusbar .seg-tty,
+  .statusbar .seg-session,
+  .statusbar .seg-quip { display: none; }
+
+  /* OpsCenter — 4-up stat grid → 2-up; pane grid stacks. */
+  .ops-stats { grid-template-columns: repeat(2, 1fr); }
+  .ops-grid  { grid-template-columns: 1fr; }
+  .ops-pane  { min-height: 0; padding: 0.6rem 0.7rem 0.75rem; }
+  .ops-stat-value { font-size: 1.05rem; }
+  .ops-htop-row {
+    grid-template-columns: 28px minmax(70px, 1fr) 50px;
+    gap: 0.4rem;
+  }
+  .ops-htop-bar { display: none; }
+  .ops-hof-row {
+    grid-template-columns: 32px 1fr 56px;
+    row-gap: 0.1rem;
+  }
+  .ops-hof-title { grid-column: 1 / -1; padding-left: 0.1rem; }
+
+  /* Home page hero typography. */
+  h1.text-3xl { font-size: 1.6rem; line-height: 1.1; }
+
+  /* Boot sequence — smaller font + tighter padding. */
+  .boot-frame { font-size: 11.5px; padding: 0.9rem 0.85rem 0.4rem; }
+  .boot-skip  { font-size: 10px; padding: 0.4rem 0.6rem 0.7rem; }
+
+  /* Hide the floating palette hint on touch devices — there is no
+     keyboard backtick on most phones. */
+  .palette-hint { display: none; }
+  .palette-backdrop { padding: 1rem 0.5rem 1rem; align-items: stretch; }
+  .palette-window { max-height: 90vh; }
+}
+
+/* Tighter still under 380px — old phones / one-handed mode. */
+@media (max-width: 380px) {
+  .ops-stats { grid-template-columns: 1fr 1fr; }
+  .ops-stat  { padding: 0.5rem 0.6rem; }
+  .bl-header-nav ul { gap: 0.5rem 0.85rem; font-size: 11px; }
+  .terminal-content { padding: 0.85rem 0.65rem 1.2rem; }
+  .bl-main { padding: 3rem 0.4rem 0.5rem; }
+}
+
+/* Prevent horizontal overflow from oversized prose / code blocks
+   on touch devices. <pre> / wide tables stay scrollable inline. */
+html, body { overscroll-behavior-y: none; }
+@media (max-width: 767.98px) {
+  html, body { overflow-x: hidden; }
+  pre, code, table { max-width: 100%; }
+  pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* ─────────────────────────────────────────────────────────────
    Print mode — used by /u/<name>/certificate/<track> "Save as
    PDF" button. Strip every UI chrome (sidebar, statusbar, scan
    lines, palette, navigation) and let the certificate render

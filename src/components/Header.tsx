@@ -11,9 +11,9 @@ const NAV_LINKS = [
 
 export function Header() {
   return (
-    <header className="flex items-center justify-between border-b border-border pb-3 mb-6">
-      <nav>
-        <ul className="flex gap-6 text-sm uppercase tracking-wider">
+    <header className="bl-header flex items-center justify-between gap-3 border-b border-border pb-3 mb-6">
+      <nav className="bl-header-nav">
+        <ul className="flex flex-wrap gap-x-5 gap-y-2 text-sm uppercase tracking-wider">
           {NAV_LINKS.map((link) => (
             <li key={link.href}>
               <Link href={link.href} className="text-text hover:text-amber">
@@ -23,7 +23,7 @@ export function Header() {
           ))}
         </ul>
       </nav>
-      <div className="flex items-center gap-3">
+      <div className="bl-header-actions flex items-center gap-3 shrink-0">
         <Link href="/help" className="btn-bracket text-sm">
           Help
         </Link>

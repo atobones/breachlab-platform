@@ -54,11 +54,12 @@ export function TerminalWindow({ username, children }: Props) {
       <div className="terminal-titlebar">
         <div className="terminal-tag" aria-hidden>
           <span className="tmux-tag">[BL]</span>
-          <span className="tmux-window">0:bash*</span>
+          <span className="tmux-window terminal-tmux-window">0:bash*</span>
         </div>
         <div className="terminal-title">
           <span className="title-prompt">
-            {user}@breachlab:<span className="title-cwd">{cwd}</span>$
+            <span className="title-user">{user}@breachlab:</span>
+            <span className="title-cwd">{cwd}</span>$
           </span>
         </div>
         <div className="terminal-meta">
