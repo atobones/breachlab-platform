@@ -256,6 +256,60 @@ body::after {
   100% { transform: translate( 0,    0);  clip-path: inset(0 0 0 0); }
 }
 
+/* Click-triggered glitch burst — applied programmatically (toggle class for ~700ms).
+   Used by TracksNav to glitch the Specter row when expanding sub-tracks. */
+.glitch-burst {
+  position: relative;
+  display: inline-block;
+}
+.glitch-burst::before,
+.glitch-burst::after {
+  content: attr(data-text);
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.85;
+}
+.glitch-burst::before {
+  color: #ff3860;
+  animation: bl-glitch-burst-r 700ms steps(8, end);
+}
+.glitch-burst::after {
+  color: #34d8ff;
+  animation: bl-glitch-burst-c 700ms steps(8, end);
+}
+@keyframes bl-glitch-burst-r {
+  0%   { transform: translate(-2px,  0); clip-path: inset(0 0 70% 0); }
+  15%  { transform: translate( 3px, -1px); clip-path: inset(40% 0 20% 0); }
+  30%  { transform: translate(-3px,  2px); clip-path: inset(10% 0 60% 0); }
+  45%  { transform: translate( 2px, -2px); clip-path: inset(50% 0 25% 0); }
+  60%  { transform: translate(-2px,  1px); clip-path: inset(20% 0 50% 0); }
+  75%  { transform: translate( 1px,  0);  clip-path: inset(70% 0 5% 0); }
+  100% { transform: translate( 0,    0);  clip-path: inset(0 0 0 0); }
+}
+@keyframes bl-glitch-burst-c {
+  0%   { transform: translate( 2px,  0); clip-path: inset(60% 0 10% 0); }
+  15%  { transform: translate(-3px,  1px); clip-path: inset(20% 0 40% 0); }
+  30%  { transform: translate( 3px, -2px); clip-path: inset(50% 0 30% 0); }
+  45%  { transform: translate(-2px,  2px); clip-path: inset(15% 0 65% 0); }
+  60%  { transform: translate( 2px, -1px); clip-path: inset(45% 0 30% 0); }
+  75%  { transform: translate(-1px,  0);  clip-path: inset(0 0 75% 0); }
+  100% { transform: translate( 0,    0);  clip-path: inset(0 0 0 0); }
+}
+
+/* Sub-track expansion in TracksNav — cascade fade + slight slide-in. */
+.subtrack-row {
+  animation: bl-subtrack-in 360ms ease-out both;
+}
+.subtrack-row:nth-child(1) { animation-delay: 60ms; }
+.subtrack-row:nth-child(2) { animation-delay: 140ms; }
+.subtrack-row:nth-child(3) { animation-delay: 220ms; }
+@keyframes bl-subtrack-in {
+  0%   { opacity: 0; transform: translateX(-4px); filter: blur(1px); }
+  60%  { opacity: 0.6; filter: blur(0.5px); }
+  100% { opacity: 1; transform: translateX(0); filter: blur(0); }
+}
+
 /* KAEL voice — narrative chunks attributed to the in-game AI handler.
    Italic, faint amber, leading [INTERCEPT] tag, slight letter-spacing
    to feel like degraded radio rather than chat. */
