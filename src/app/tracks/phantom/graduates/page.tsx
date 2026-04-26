@@ -27,7 +27,7 @@ export default async function PhantomGraduatesPage() {
         </Link>
         <h1 className="text-red text-2xl">Phantom Operatives</h1>
         <p className="text-sm text-muted">
-          Every operative who has cleared the full Phantom track — twenty
+          Every operative who has cleared the full Phantom track — thirty-one
           public levels plus the hidden graduation chain.
         </p>
       </div>
