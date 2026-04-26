@@ -7,11 +7,10 @@ Requires=docker.service
 [Service]
 Type=oneshot
 WorkingDirectory=/opt/breachlab-platform
-# tsx is the runtime used by the other one-off scripts. Pull DATABASE_URL
-# (and optionally AUDIT_ALARM_DISCORD_WEBHOOK) from the same .env that
-# docker-compose uses; we exec via `docker compose exec` so the script
-# runs with the platform's app environment, not the host's.
-ExecStart=/usr/bin/docker compose -f /opt/breachlab-platform/docker-compose.yml exec -T web npx tsx scripts/check-out-of-band-writes.ts --window=60
+# Pure-shell detector against the db compose container. Source the
+# .env so AUDIT_ALARM_DISCORD_WEBHOOK is available to the script if set.
+EnvironmentFile=-/opt/breachlab-platform/.env
+ExecStart=/opt/breachlab-platform/scripts/check-out-of-band-writes.sh
 User=root
 NoNewPrivileges=true
 ProtectSystem=strict
