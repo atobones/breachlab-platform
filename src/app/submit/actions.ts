@@ -12,6 +12,13 @@ export async function submitFlagAction(
 ): Promise<State> {
   const { user } = await getCurrentSession();
   if (!user) return { ok: false, error: "Not logged in", message: null };
+  if (!user.emailVerified) {
+    return {
+      ok: false,
+      error: "Verify your email before submitting flags.",
+      message: null,
+    };
+  }
 
   const raw = String(formData.get("flag") ?? "");
   if (!raw) return { ok: false, error: "Flag required", message: null };

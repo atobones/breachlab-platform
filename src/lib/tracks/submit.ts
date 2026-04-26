@@ -39,6 +39,22 @@ export async function submitFlag(
   rawFlag: string,
   sourceIp: string | null
 ): Promise<SubmitResult> {
+  // Defense-in-depth email-verification gate. The action layer also
+  // checks but the lib enforces too so any future caller can't bypass.
+  // Caught the 2026-04-26 spam-reg pattern (3 accounts created with
+  // @example.com / RFC 2606 reserved, fully able to submit and score).
+  const [verifyRow] = await db
+    .select({ verified: users.emailVerified })
+    .from(users)
+    .where(eq(users.id, userId))
+    .limit(1);
+  if (!verifyRow || !verifyRow.verified) {
+    return {
+      ok: false,
+      error: "Verify your email before submitting flags.",
+    };
+  }
+
   const normalized = normalizeFlag(rawFlag);
   const parsed = flagSchema.safeParse(normalized);
   if (!parsed.success) {

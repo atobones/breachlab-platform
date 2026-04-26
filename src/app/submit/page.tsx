@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/lib/auth/session";
 import { SubmitForm } from "@/components/submit/SubmitForm";
+import { EmailVerificationBanner } from "@/components/dashboard/EmailVerificationBanner";
 
 export default async function SubmitPage() {
   const { user } = await getCurrentSession();
@@ -21,7 +22,18 @@ export default async function SubmitPage() {
           Case-sensitive. Trim any surrounding whitespace.
         </p>
       </div>
-      <SubmitForm />
+      {user.emailVerified ? (
+        <SubmitForm />
+      ) : (
+        <div className="space-y-3">
+          <EmailVerificationBanner />
+          <p className="text-xs text-muted">
+            Submissions are locked until you confirm the email on your
+            account. This stops throwaway-email spam regs from polluting
+            the leaderboard. Existing submissions stay recorded.
+          </p>
+        </div>
+      )}
     </div>
   );
 }
