@@ -178,9 +178,9 @@ export default async function GhostTrackPage() {
           and cannot find. Anonymous-level in the literal sense: people who
           can do what others consider impossible because they have actually
           done it on real systems, with no walkthroughs and no safety net.
-          Ghost is step one of seven. Finish all seven and you are a T-shaped
-          security operative ready for 2025-2030 — offensive, defensive, and
-          everything modern attackers are already using. This is not a
+          Ghost is step one of thirteen. Finish all thirteen and you are a
+          T-shaped security operative ready for 2025-2030 — offensive,
+          defensive, and everything modern attackers are already using. This is not a
           certificate mill. It is a forge.
         </p>
       </section>
