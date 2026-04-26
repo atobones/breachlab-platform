@@ -1,0 +1,24 @@
+[Unit]
+Description=BreachLab out-of-band DB-write detector
+Wants=breachlab-audit-alarm.timer
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/breachlab-platform
+# tsx is the runtime used by the other one-off scripts. Pull DATABASE_URL
+# (and optionally AUDIT_ALARM_DISCORD_WEBHOOK) from the same .env that
+# docker-compose uses; we exec via `docker compose exec` so the script
+# runs with the platform's app environment, not the host's.
+ExecStart=/usr/bin/docker compose -f /opt/breachlab-platform/docker-compose.yml exec -T web npx tsx scripts/check-out-of-band-writes.ts --window=60
+User=root
+NoNewPrivileges=true
+ProtectSystem=strict
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+
+[Install]
+WantedBy=multi-user.target
