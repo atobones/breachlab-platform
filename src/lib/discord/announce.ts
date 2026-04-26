@@ -121,7 +121,7 @@ export async function announcePhantomGraduate(args: {
   if (!channel) return;
   const msg =
     `🕷 **@${args.username}** just graduated the **Phantom** track. ` +
-    `Twenty public levels plus the chained K8s + IMDS graduation lab — cleared. ` +
+    `Thirty-one public levels plus the chained K8s + IMDS graduation lab — cleared. ` +
     `Full post-exploitation tradecraft. Phantom Operative certificate \`${args.serial}\` issued. ` +
     `Profile: https://breachlab.org/u/${args.username}`;
   await post(channel, msg);
