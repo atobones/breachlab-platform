@@ -13,8 +13,15 @@ export async function POST(req: NextRequest) {
   // credential can only spoof operative counts. Compare constant-time so
   // the public source can't be used to mount a byte-by-byte timing oracle
   // against the token.
+  //
+  // LIVE_OPS_TOKEN_PREVIOUS, when set, is also accepted — used during
+  // rotation windows to avoid heartbeat gaps while the host-side env on
+  // the ghost/phantom timers is being updated. Drop the env var once the
+  // host clients have picked up the new token (~1 heartbeat cycle = 30s).
   const authHeader = req.headers.get("authorization");
-  if (!safeBearerMatch(authHeader, process.env.LIVE_OPS_TOKEN)) {
+  const accepted = safeBearerMatch(authHeader, process.env.LIVE_OPS_TOKEN)
+    || safeBearerMatch(authHeader, process.env.LIVE_OPS_TOKEN_PREVIOUS);
+  if (!accepted) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
