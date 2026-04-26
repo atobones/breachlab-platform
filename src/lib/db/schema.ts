@@ -6,6 +6,9 @@ import {
   uuid,
   integer,
   unique,
+  bigserial,
+  jsonb,
+  index,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -56,6 +59,35 @@ export const adminAuditLog = pgTable("admin_audit_log", {
 });
 
 export type AdminAuditRow = typeof adminAuditLog.$inferSelect;
+
+// Forensic write log — populated by Postgres triggers on every write to
+// security_credits and users.security_score. Captures session metadata
+// (session_user, application_name, client_addr) so out-of-band writes
+// (e.g. manual psql from a DB-container shell) leave a row distinct from
+// the platform's normal connection pool. The platform sets
+// application_name='breachlab-platform' on its postgres-js client; any
+// row here with a different application_name is by definition out-of-band.
+export const securityWritesLog = pgTable(
+  "security_writes_log",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    tableName: text("table_name").notNull(),
+    op: text("op").notNull(),
+    rowPk: text("row_pk"),
+    rowData: jsonb("row_data"),
+    sessionUser: text("session_user").notNull(),
+    applicationName: text("application_name"),
+    clientAddr: text("client_addr"),
+    appAuditActor: text("app_audit_actor"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    index("security_writes_log_created_at_idx").on(t.createdAt.desc()),
+    index("security_writes_log_app_idx").on(t.applicationName, t.createdAt.desc()),
+  ],
+);
 
 export const discordOauthStates = pgTable("discord_oauth_states", {
   state: text("state").primaryKey(),
