@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
+import { eq, desc } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { users, emailVerifications } from "@/lib/db/schema";
 import { getCurrentSession } from "@/lib/auth/session";
@@ -7,6 +7,7 @@ import { generateToken, hashToken } from "@/lib/auth/tokens";
 import { sendVerificationEmail } from "@/lib/email/send";
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const RESEND_COOLDOWN_MS = 60_000;
 
 export async function POST() {
   const { user } = await getCurrentSession();
@@ -24,6 +25,35 @@ export async function POST() {
   }
   if (row.verified) {
     return NextResponse.json({ ok: true, alreadyVerified: true });
+  }
+
+  // Per-user 60s cooldown. The middleware rate-limit is per-IP at 10/min,
+  // far too generous: one authenticated user clicking Resend six times
+  // in a minute (Randark, 2026-04-27) sent six emails to a real inbox
+  // and burned Resend quota. Gate at the API layer with a real
+  // most-recent-token timestamp check so any caller — UI button,
+  // refresh, retry storm, scripted abuse — is bounded to 1 email/min.
+  const [recent] = await db
+    .select({ createdAt: emailVerifications.createdAt })
+    .from(emailVerifications)
+    .where(eq(emailVerifications.userId, row.id))
+    .orderBy(desc(emailVerifications.createdAt))
+    .limit(1);
+  if (recent) {
+    const elapsedMs = Date.now() - new Date(recent.createdAt).getTime();
+    if (elapsedMs < RESEND_COOLDOWN_MS) {
+      const retryAfter = Math.ceil((RESEND_COOLDOWN_MS - elapsedMs) / 1000);
+      return NextResponse.json(
+        {
+          error: `A verification email was sent recently. Try again in ${retryAfter}s.`,
+          retryAfter,
+        },
+        {
+          status: 429,
+          headers: { "Retry-After": String(retryAfter) },
+        }
+      );
+    }
   }
 
   // Invalidate any outstanding tokens so the newest email is the only valid
