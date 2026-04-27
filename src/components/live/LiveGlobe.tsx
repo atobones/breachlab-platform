@@ -103,8 +103,8 @@ export function LiveGlobe() {
           width={size.w}
           height={size.h}
           backgroundColor="rgba(0,0,0,0)"
-          globeImageUrl="//unpkg.com/three-globe/example/img/earth-night.jpg"
-          bumpImageUrl="//unpkg.com/three-globe/example/img/earth-topology.png"
+          globeImageUrl="/globe/earth-night.jpg"
+          bumpImageUrl="/globe/earth-topology.png"
           atmosphereColor="#f59e0b"
           atmosphereAltitude={0.18}
           ringsData={pulses}
