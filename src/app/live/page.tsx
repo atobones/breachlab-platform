@@ -1,3 +1,5 @@
+import { notFound } from "next/navigation";
+import { getCurrentSession } from "@/lib/auth/session";
 import { LiveGlobe } from "@/components/live/LiveGlobe";
 
 export const metadata = {
@@ -6,7 +8,12 @@ export const metadata = {
     "Real-time globe of operative submissions across the BreachLab tracks.",
 };
 
-export default function LivePage() {
+export default async function LivePage() {
+  const { user } = await getCurrentSession();
+  // Admin-only while in development. 404 (not 403) so the route's
+  // existence is not disclosed to the wrong account.
+  if (!user || !user.isAdmin) notFound();
+
   return (
     <div className="space-y-3 max-w-[1600px]">
       <div>
