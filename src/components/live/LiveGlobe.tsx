@@ -1,11 +1,35 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentType,
+} from "react";
 import dynamic from "next/dynamic";
 import type { LiveEvent } from "@/lib/live/events";
 
+type GlobeApi = {
+  controls: () => {
+    autoRotate: boolean;
+    autoRotateSpeed: number;
+    enableDamping?: boolean;
+    dampingFactor?: number;
+  };
+  pointOfView: (
+    pov: { lat?: number; lng?: number; altitude?: number },
+    duration?: number
+  ) => void;
+};
+
 // react-globe.gl pulls in three.js — lazy-load so it never lands in
 // the rest of the app's bundle. /live is the only place that needs it.
+// Cast to ComponentType<any> so we can pass a ref + the wide library
+// prop surface without recreating react-globe.gl's full type def here.
+// The `unknown`+cast inside onGlobeReady keeps the runtime side typed.
+type GlobeProps = Record<string, unknown>;
 const Globe = dynamic(() => import("react-globe.gl"), {
   ssr: false,
   loading: () => (
@@ -13,7 +37,7 @@ const Globe = dynamic(() => import("react-globe.gl"), {
       loading globe…
     </div>
   ),
-});
+}) as unknown as ComponentType<GlobeProps & { ref?: unknown }>;
 
 type Submission = LiveEvent & { id: string };
 
@@ -35,9 +59,26 @@ export function LiveGlobe() {
   const [pulses, setPulses] = useState<Pulse[]>([]);
   const [size, setSize] = useState({ w: 800, h: 600 });
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const globeRef = useRef<GlobeApi | null>(null);
   // Stable id counter for synthetic event ids; the SSE event has no
   // id of its own.
   const nextId = useRef(0);
+
+  // Wire up auto-rotation + smooth orbit damping once the globe mounts.
+  // OrbitControls.autoRotate is part of three.js; react-globe.gl exposes
+  // it via the .controls() method. Setting on the ref callback runs
+  // exactly when the underlying canvas is ready.
+  const onGlobeReady = useCallback((api: GlobeApi | null) => {
+    globeRef.current = api;
+    if (!api) return;
+    const ctl = api.controls();
+    ctl.autoRotate = true;
+    ctl.autoRotateSpeed = 0.4; // gentle — full rev ~3 min
+    ctl.enableDamping = true;
+    ctl.dampingFactor = 0.08;
+    // Tilt the initial view to a more cinematic angle.
+    api.pointOfView({ lat: 25, lng: 0, altitude: 2.4 }, 0);
+  }, []);
 
   // Subscribe to SSE feed.
   useEffect(() => {
@@ -100,13 +141,16 @@ export function LiveGlobe() {
         className="relative border border-amber/20 bg-black overflow-hidden"
       >
         <Globe
+          ref={(api: unknown) => onGlobeReady(api as GlobeApi | null)}
           width={size.w}
           height={size.h}
           backgroundColor="rgba(0,0,0,0)"
+          backgroundImageUrl="/globe/night-sky.png"
           globeImageUrl="/globe/earth-night.jpg"
           bumpImageUrl="/globe/earth-topology.png"
+          showAtmosphere
           atmosphereColor="#f59e0b"
-          atmosphereAltitude={0.18}
+          atmosphereAltitude={0.22}
           ringsData={pulses}
           ringLat={(d: object) => (d as Pulse).lat}
           ringLng={(d: object) => (d as Pulse).lng}
