@@ -50,8 +50,8 @@ export default async function AdminSubmissionsPage({
             <th className="py-1">When</th>
             <th className="py-1">Operative</th>
             <th className="py-1">Level</th>
-            <th className="py-1 text-right">Points</th>
-            <th className="py-1">Source IP</th>
+            <th className="py-1 text-right pr-6">Points</th>
+            <th className="py-1 pl-2">Source IP</th>
           </tr>
         </thead>
         <tbody>
@@ -79,10 +79,10 @@ export default async function AdminSubmissionsPage({
                   {s.levelIdx}{" "}
                   <span className="text-xs text-muted">{s.levelTitle}</span>
                 </td>
-                <td className="py-2 text-right text-amber">
+                <td className="py-2 text-right text-amber pr-6">
                   {s.pointsAwarded}
                 </td>
-                <td className="py-2 text-xs text-muted">
+                <td className="py-2 pl-2 text-xs text-muted">
                   {s.sourceIp ?? "—"}
                 </td>
               </tr>
