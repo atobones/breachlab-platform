@@ -12,7 +12,6 @@ import { hashToken } from "@/lib/auth/tokens";
 import { computeAwardedPoints } from "./points";
 import { normalizeFlag, flagSchema } from "@/lib/validation/flags";
 import { liveBus } from "@/lib/live/bus";
-import { resolveIpGeo } from "@/lib/geo/resolve";
 import { decideBadgesToAward } from "@/lib/badges/award";
 import { startRun, findOpenRun, closeRun } from "@/lib/speedrun/hooks";
 import {
@@ -304,26 +303,15 @@ export async function submitFlag(
     .where(eq(users.id, userId))
     .limit(1);
 
-  // Geo-enrich for the live globe. Fire-and-forget so a slow IP-API
-  // lookup never blocks the /submit response. Event arrives on the
-  // SSE stream a few hundred ms later than today; UX still feels live.
-  const submissionAt = new Date().toISOString();
-  const username = userRow?.username ?? "unknown";
-  const isHallOfFame = userRow?.isHallOfFame ?? false;
-  const slugForLive = trackRow?.slug ?? "unknown";
-  void (async () => {
-    const geo = sourceIp ? await resolveIpGeo(sourceIp) : null;
-    liveBus.publish({
-      type: "submission",
-      at: submissionAt,
-      username,
-      isHallOfFame,
-      trackSlug: slugForLive,
-      levelIdx: level.idx,
-      levelTitle: level.title,
-      geo: geo ?? undefined,
-    });
-  })();
+  liveBus.publish({
+    type: "submission",
+    at: new Date().toISOString(),
+    username: userRow?.username ?? "unknown",
+    isHallOfFame: userRow?.isHallOfFame ?? false,
+    trackSlug: trackRow?.slug ?? "unknown",
+    levelIdx: level.idx,
+    levelTitle: level.title,
+  });
 
   // Discord announcements — fire-and-forget. Do not block on Discord.
   const announceUser = userRow?.username ?? "unknown";
