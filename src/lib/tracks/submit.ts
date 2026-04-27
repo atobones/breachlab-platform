@@ -120,15 +120,19 @@ export async function submitFlag(
     return { ok: false, error: "Already solved" };
   }
 
-  // Points-unlock-with-chain. The platform accepts any valid flag at any
-  // time (a flat-container CTF naturally surfaces flags out of order
-  // during recon), but points and first-blood only land when the chain
-  // up to this level is intact for this user. Out-of-order captures are
-  // recorded with pointsAwarded=0 and no first-blood bonus. When the
-  // player later fills in the missing prior level(s), the reconcile
-  // cascade below retroactively promotes those 0-point captures to the
-  // level's base points. First-blood stays attached to the moment of
-  // the first chain-intact submission and is never reassigned.
+  // Strict chain integrity for ALL tracks. Out-of-order submissions are
+  // rejected outright with a "Locked" message — no 0-pts admit row, no
+  // reconcile cascade. The earlier "points-unlock-with-chain" policy
+  // (record 0-pts, promote later) was empirically a flag-paste cheat
+  // vector: a leaked Discord/Telegram flag list submitted in any order
+  // turned every level into a free promotion as soon as the player
+  // honestly cleared L0 (cascade walked up and converted every 0-pts
+  // admit to base points). Surfaced 2026-04-27 when admin saw player
+  // `sukun` with a 0-pts ghost/L20 between honest L1 and L2.
+  //
+  // The deeper structural fix is per-player flags (HMAC-derived, see
+  // BreachLab Killer Features Per-Player Flags brainstorm). This change
+  // is the immediate gate.
   let chainIntact = level.idx === 0;
   if (!chainIntact) {
     const [prior] = await db
@@ -139,15 +143,6 @@ export async function submitFlag(
       )
       .limit(1);
     if (prior) {
-      // Chain is intact only if the user has a *chain-intact* solve of the
-      // prior level — i.e. pointsAwarded > 0. Merely having a 0-point
-      // out-of-order capture on the prior level does NOT count as
-      // "prior level solved", otherwise a player can submit N→N-1→...→0
-      // backwards and each submit claims chainIntact because the row
-      // above it exists (reported 2026-04-20: `hypee` got first_blood on
-      // phantom/15 by having a 0-point phantom/14 one-shot submit).
-      // Reconcile pass (below) handles the honest case where an earlier
-      // 0-point capture later becomes chain-intact via fill-in.
       const priorSubmitted = await db
         .select({ id: submissions.id })
         .from(submissions)
@@ -167,40 +162,30 @@ export async function submitFlag(
     }
   }
 
-  // Strict-order enforcement (phantom only). Phantom is a chain-password
-  // track where finding level N's flag without solving N-1 means the
-  // player pulled it out of container state they shouldn't have reached
-  // yet (shared /tmp leak, flagkeeperN process snoop, old reconnaissance
-  // artifact from another player). Ghost stays permissive — it has
-  // legitimate out-of-order discovery paths.
-  if (!chainIntact && trackRow?.slug === "phantom") {
+  if (!chainIntact) {
+    const trackSlug = trackRow?.slug ?? "track";
     return {
       ok: false,
-      error: `Chain broken. Solve phantom/${level.idx - 1} before submitting phantom/${level.idx}.`,
+      error: `Locked. Solve ${trackSlug}/${level.idx - 1} before submitting ${trackSlug}/${level.idx}.`,
     };
   }
 
   // First-blood is the first chain-intact submission ever recorded for
-  // this level. Out-of-order captures (pointsAwarded=0) do NOT consume
-  // first-blood, so an honest-chain player who solves later still gets
-  // the bonus. Use pointsAwarded > 0 as the "chain-intact submission"
-  // marker, since a chain-intact submit always awards at least
-  // level.pointsBase.
-  const anyChainIntactPrior = chainIntact
-    ? await db
-        .select({ id: submissions.id })
-        .from(submissions)
-        .where(
-          and(
-            eq(submissions.levelId, level.id),
-            gt(submissions.pointsAwarded, 0),
-          ),
-        )
-        .limit(1)
-    : [];
-  const isFirstBlood = chainIntact && anyChainIntactPrior.length === 0;
+  // this level. Now that out-of-order captures are rejected outright,
+  // any pointsAwarded > 0 row counts as a chain-intact prior.
+  const anyChainIntactPrior = await db
+    .select({ id: submissions.id })
+    .from(submissions)
+    .where(
+      and(
+        eq(submissions.levelId, level.id),
+        gt(submissions.pointsAwarded, 0),
+      ),
+    )
+    .limit(1);
+  const isFirstBlood = anyChainIntactPrior.length === 0;
 
-  const points = chainIntact ? computeAwardedPoints(level, isFirstBlood) : 0;
+  const points = computeAwardedPoints(level, isFirstBlood);
   await db.insert(submissions).values({
     userId,
     levelId: level.id,
@@ -208,42 +193,13 @@ export async function submitFlag(
     sourceIp: sourceIp ?? undefined,
   });
 
-  // Reconcile cascade. If this submission made the chain intact, walk
-  // upward: any existing 0-point capture on this track whose prior is
-  // now solved gets promoted to level.pointsBase. First-blood is NOT
-  // retroactively awarded — that moment already passed.
-  if (chainIntact) {
-    let walkIdx = level.idx + 1;
-    // Bounded loop: tracks top out at 32 levels today. 64 is a safe cap.
-    for (let guard = 0; guard < 64; guard++) {
-      const [nextLevel] = await db
-        .select()
-        .from(levels)
-        .where(
-          and(eq(levels.trackId, level.trackId), eq(levels.idx, walkIdx)),
-        )
-        .limit(1);
-      if (!nextLevel) break;
-      const [nextSub] = await db
-        .select({ id: submissions.id, points: submissions.pointsAwarded })
-        .from(submissions)
-        .where(
-          and(
-            eq(submissions.userId, userId),
-            eq(submissions.levelId, nextLevel.id),
-          ),
-        )
-        .limit(1);
-      if (!nextSub) break;
-      if (nextSub.points === 0) {
-        await db
-          .update(submissions)
-          .set({ pointsAwarded: nextLevel.pointsBase })
-          .where(eq(submissions.id, nextSub.id));
-      }
-      walkIdx++;
-    }
-  }
+  // Reconcile cascade was removed 2026-04-27 alongside the strict-chain
+  // change above. The cascade existed to retroactively promote 0-pts
+  // out-of-order admits to full points once the chain caught up. With
+  // out-of-order admits now rejected, there are no future 0-pts rows
+  // to promote, and promoting historical pre-strict 0-pts rows would
+  // hand free points to the very flag-paste behaviour the new gate
+  // closes. Existing 0-pts records stay as audit data only.
 
   // Track completion detection — excludes hidden levels (marked with
   // a "[HIDDEN]" description prefix). Hidden bonuses are graduation,
