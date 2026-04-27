@@ -54,12 +54,32 @@ type Pulse = {
 const RECENT_LIMIT = 30;
 const PULSE_TTL_MS = 6000;
 
+type GeoFeature = { type: "Feature"; properties: Record<string, unknown> };
+type CountriesGeo = { type: string; features: GeoFeature[] };
+
 export function LiveGlobe() {
   const [recent, setRecent] = useState<Submission[]>([]);
   const [pulses, setPulses] = useState<Pulse[]>([]);
   const [size, setSize] = useState({ w: 800, h: 600 });
+  const [countries, setCountries] = useState<GeoFeature[]>([]);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const globeRef = useRef<GlobeApi | null>(null);
+
+  // Fetch country polygons once for the hex-polygon globe surface.
+  // Bundled in /public/globe/countries-110m.geojson — Natural Earth
+  // public-domain admin-0 boundaries at 1:110m resolution (~840 KB).
+  useEffect(() => {
+    let cancelled = false;
+    fetch("/globe/countries-110m.geojson")
+      .then((r) => r.json() as Promise<CountriesGeo>)
+      .then((g) => {
+        if (!cancelled) setCountries(g.features ?? []);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   // Stable id counter for synthetic event ids; the SSE event has no
   // id of its own.
   const nextId = useRef(0);
@@ -146,11 +166,21 @@ export function LiveGlobe() {
           height={size.h}
           backgroundColor="rgba(0,0,0,0)"
           backgroundImageUrl="/globe/night-sky.png"
-          globeImageUrl="/globe/earth-night.jpg"
-          bumpImageUrl="/globe/earth-topology.png"
+          // Hex-polygon mode: continents rendered as amber hexagons, ocean
+          // is a near-black globe surface. Reads as cyberpunk/holographic
+          // rather than photographic earth-from-NASA. The 1×1 dark-grey
+          // data-URI texture gives the sphere a subtle non-pure-black
+          // material so it reads as a 3D body, not a flat circle.
+          globeImageUrl="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkAAIAAAoAAv/lxKUAAAAASUVORK5CYII="
+          showGlobe
           showAtmosphere
           atmosphereColor="#f59e0b"
-          atmosphereAltitude={0.22}
+          atmosphereAltitude={0.25}
+          hexPolygonsData={countries}
+          hexPolygonResolution={3}
+          hexPolygonMargin={0.4}
+          hexPolygonUseDots
+          hexPolygonColor={() => "rgba(245,158,11,0.85)"}
           ringsData={pulses}
           ringLat={(d: object) => (d as Pulse).lat}
           ringLng={(d: object) => (d as Pulse).lng}
