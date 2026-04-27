@@ -10,6 +10,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/hall-of-fame", label: "Hall of Fame" },
   { href: "/admin/review", label: "Review queue" },
   { href: "/admin/audit", label: "Audit" },
+  { href: "/live", label: "Live" },
 ];
 
 export function AdminNav() {
