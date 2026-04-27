@@ -28,6 +28,7 @@
     "qrcode": "^1.5.4",
     "react": "^19",
     "react-dom": "^19",
+    "react-globe.gl": "^2.37.1",
     "resend": "^6.10.0",
     "zod": "^4.3.6"
   },
