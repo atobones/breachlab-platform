@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 type LevelRow = {
   idx: number;
@@ -238,7 +239,7 @@ export default function SpecterIPage() {
       <footer className="border-t border-border pt-4 space-y-2">
         <p className="text-sm">
           <a
-            href="https://discord.gg/hJrteuV6"
+            href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >

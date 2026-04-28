@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { OpsCenter } from "@/components/OpsCenter";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 const TRACKS = [
   {
@@ -253,7 +254,7 @@ export default function HomePage() {
           <li>
             Ask questions in{" "}
             <a
-              href="https://discord.gg/hJrteuV6"
+              href={DISCORD_INVITE_URL}
               className="text-amber hover:underline"
               rel="noreferrer"
             >

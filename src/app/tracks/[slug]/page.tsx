@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 type TrackInfo = {
   name: string;
@@ -101,7 +102,7 @@ export default async function TrackComingSoonPage({
         <p className="text-sm text-muted">
           Want to know when it drops?{" "}
           <a
-            href="https://discord.gg/hJrteuV6"
+            href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 type SubTrackCard = {
   slug: string;
@@ -108,7 +109,7 @@ export default function SpecterOverviewPage() {
         <p className="text-sm text-muted">
           Want to know when Specter I drops?{" "}
           <a
-            href="https://discord.gg/hJrteuV6"
+            href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >
