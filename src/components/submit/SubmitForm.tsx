@@ -3,11 +3,13 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { submitFlagAction } from "@/app/submit/actions";
+import type { SpecterNextCreds } from "@/lib/tracks/submit";
 
 const initialState = {
   ok: false,
   error: null as string | null,
   message: null as string | null,
+  specterNext: null as SpecterNextCreds | null,
 };
 
 export function SubmitForm() {
@@ -30,8 +32,34 @@ export function SubmitForm() {
       {state.ok && state.message && (
         <p className="text-green text-xs">{state.message}</p>
       )}
+      {state.ok && state.specterNext && (
+        <SpecterNextBlock creds={state.specterNext} />
+      )}
       <SubmitButton />
     </form>
+  );
+}
+
+function SpecterNextBlock({ creds }: { creds: SpecterNextCreds }) {
+  const sshCmd = `ssh ${creds.sshUser}@${creds.sshHost} -p ${creds.sshPort}`;
+  return (
+    <div className="border border-amber/40 bg-amber/5 p-3 space-y-2 text-xs">
+      <p className="text-amber">
+        Specter L{creds.levelIdx} unlocked: {creds.level}
+      </p>
+      <div>
+        <span className="text-muted">SSH:</span>{" "}
+        <code className="text-text">{sshCmd}</code>
+      </div>
+      <div>
+        <span className="text-muted">Password:</span>{" "}
+        <code className="text-text break-all">{creds.password}</code>
+      </div>
+      <p className="text-muted">
+        Per-player password — sharing it has no effect, every player has
+        their own. The password is your just-submitted flag (OTW chain).
+      </p>
+    </div>
   );
 }
 
