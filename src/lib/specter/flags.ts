@@ -48,6 +48,19 @@ export function specterFlagFor(userId: string, level: SpecterLevelSlug): string 
   return `bl_${mac.slice(0, 32)}`;
 }
 
+// Per-player SSH password for (user, level). Distinct from the flag
+// derivation by the trailing ":ssh" namespace — same secret, different
+// output. Boss design lock 2026-04-28: flags and SSH passwords are
+// separate strings (not OTW-style chain). Player solves L_n, gets the
+// flag (one HMAC); platform reveals the L_{n+1} SSH password (a
+// different HMAC). Both per-player.
+export function specterSshPasswordFor(userId: string, level: SpecterLevelSlug): string {
+  const mac = createHmac("sha256", getSecret())
+    .update(`${userId}:${level}:ssh`)
+    .digest("hex");
+  return `bl_${mac.slice(0, 32)}`;
+}
+
 // Lookup helper: given a submitted flag string and a userId, find which
 // Specter level it maps to (if any). Used by submitFlag's fallthrough
 // after canonical-flags table miss. O(N) over Specter levels — currently

@@ -23,7 +23,7 @@ import {
 import { operativeSerial } from "@/lib/certificate/serial";
 import {
   specterLevelForFlag,
-  specterFlagFor,
+  specterSshPasswordFor,
   specterLevelSlugForIdx,
   specterIdxForSlug,
   sha256Hex,
@@ -403,17 +403,19 @@ export async function submitFlag(
     });
   }
 
-  // Specter chain: issue next-level credentials. The flag the player just
-  // submitted IS the SSH password for the next ephemeral; we surface it
-  // (the player already has it — we're just telling them what port/user
-  // to ssh to) and persist sha256(password) in specter_session_creds so
-  // the L_{n+1} ephemeral's PAM hook can validate the login.
+  // Specter chain: issue next-level credentials. Boss design lock
+  // 2026-04-28: flag and SSH password are SEPARATE strings (no OTW-
+  // style "flag = next password"). Both per-player, both HMAC-derived,
+  // but with different namespaces (`:ssh` suffix on the password
+  // derivation). Platform reveals the next-level SSH password here on
+  // first solve; player saves it (deterministic, can be re-derived
+  // server-side any time, but never shown a second time on submit).
   let specterNext: SpecterNextCreds | undefined;
   if (specterMatchedSlug) {
     const nextIdx = level.idx + 1;
     const nextSlug = specterLevelSlugForIdx(nextIdx);
     if (nextSlug) {
-      const nextPassword = specterFlagFor(userId, nextSlug);
+      const nextPassword = specterSshPasswordFor(userId, nextSlug);
       const nextPwHash = sha256Hex(nextPassword);
       const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
       await db
