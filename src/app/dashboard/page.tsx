@@ -8,7 +8,13 @@ import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
 import { CertificateShowcase } from "@/components/dashboard/CertificateShowcase";
 import { EmailVerificationBanner } from "@/components/dashboard/EmailVerificationBanner";
-import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
+// SpecterBootstrapToken intentionally NOT imported. Boss directive
+// 2026-04-28: hide the L0 bootstrap-token UI everywhere until ALL
+// Specter I levels (L0–L13) ship. The component file stays in the
+// repo + the /api/specter/issue-token endpoint still works (Boss
+// uses it for internal testing) — only the UI surface is gone.
+// When L13 lands, re-mount on /tracks/specter/i (the Specter I
+// overview page), not on the personal dashboard.
 import { isConfigured as isDiscordConfigured } from "@/lib/discord/oauth";
 import { getEarnedCertificates } from "@/lib/dashboard/certificates";
 
@@ -43,7 +49,6 @@ export default async function DashboardPage() {
         configured={isDiscordConfigured()}
       />
       {!user.emailVerified && <EmailVerificationBanner />}
-      <SpecterBootstrapToken />
       <section>
         <h2 className="text-lg mb-2">Badges</h2>
         {userBadges.length === 0 ? (
