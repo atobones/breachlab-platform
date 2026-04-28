@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export function SidebarLinks() {
   return (
@@ -12,7 +13,7 @@ export function SidebarLinks() {
           <Link href="/rules">Rules</Link>
         </li>
         <li>
-          <a href="https://discord.gg/hJrteuV6" rel="noreferrer">
+          <a href={DISCORD_INVITE_URL} rel="noreferrer">
             Discord
           </a>
         </li>

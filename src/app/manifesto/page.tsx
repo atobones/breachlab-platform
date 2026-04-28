@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export const metadata = {
   title: "Manifesto — BreachLab",
@@ -137,7 +138,7 @@ password: ghost0`}
         <p>
           <span className="text-amber">→</span>{" "}
           <a
-            href="https://discord.gg/hJrteuV6"
+            href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >

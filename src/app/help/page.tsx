@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export default function HelpPage() {
   return (
@@ -66,11 +67,11 @@ export default function HelpPage() {
         <p className="text-sm">
           You can find our Discord server at{" "}
           <a
-            href="https://discord.gg/hJrteuV6"
+            href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >
-            https://discord.gg/hJrteuV6
+            {DISCORD_INVITE_URL}
           </a>
         </p>
         <pre>
