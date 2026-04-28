@@ -232,6 +232,50 @@ export const donations = pgTable("donations", {
 
 export type Donation = typeof donations.$inferSelect;
 
+// Per-player Specter session credentials. Inserted by /submit when a
+// player clears Specter L_n: a row containing the HMAC-derived password
+// for L_{n+1} (= the flag they will need to ssh into the next ephemeral).
+// PAM hook on the L_{n+1} ephemeral hashes the SSH password, calls the
+// oracle, oracle proxies to /api/specter/auth-check which looks up this
+// table by (next_level, password_sha256) and returns the player_id.
+// Single-player ephemerals: no concurrency concern.
+export const specterSessionCreds = pgTable("specter_session_creds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  nextLevel: text("next_level").notNull(),
+  passwordSha256: text("password_sha256").notNull(),
+  issuedAt: timestamp("issued_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+}, (t) => [
+  unique("specter_session_creds_user_level_unique").on(t.userId, t.nextLevel),
+]);
+
+export type SpecterSessionCred = typeof specterSessionCreds.$inferSelect;
+
+// L0 bootstrap token. Player generates one from their dashboard, copies
+// the plaintext once, exports BL_TOKEN=<plaintext> on the L0 ephemeral
+// before running /opt/specter-verify. The L0 verifier sends BL_TOKEN to
+// the oracle which calls /api/specter/resolve-token to map to user_id
+// without going through the SSH PAM auth path (L0 has shared bootstrap
+// creds — the token is what binds a verify call to a specific player).
+export const specterPlayerTokens = pgTable("specter_player_tokens", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: text("token_hash").notNull().unique(),
+  expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type SpecterPlayerToken = typeof specterPlayerTokens.$inferSelect;
+
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
 export type Session = typeof sessions.$inferSelect;

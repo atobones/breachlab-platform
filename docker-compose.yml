@@ -31,6 +31,15 @@ services:
     environment:
       DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
       NODE_ENV: production
+      # Specter per-player flag derivation. MUST equal the same env var
+      # on specter-mgmt's compose — platform recomputes HMAC at /submit
+      # and oracle mints at /verify; mismatch breaks the chain silently.
+      # Rotation requires both sides to land the new value before any
+      # in-flight session re-submits.
+      SPECTER_FLAG_HMAC_SECRET: ${SPECTER_FLAG_HMAC_SECRET:?SPECTER_FLAG_HMAC_SECRET must be exported}
+      # Bearer the Specter oracle uses to call /api/specter/auth-check
+      # and /api/specter/resolve-token. Same value as on specter-mgmt.
+      SPECTER_ORACLE_SECRET: ${SPECTER_ORACLE_SECRET:?SPECTER_ORACLE_SECRET must be exported}
     depends_on:
       db:
         condition: service_healthy

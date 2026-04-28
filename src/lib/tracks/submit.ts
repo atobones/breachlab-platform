@@ -7,6 +7,7 @@ import {
   tracks,
   users,
   badges,
+  specterSessionCreds,
 } from "@/lib/db/schema";
 import { hashToken } from "@/lib/auth/tokens";
 import { computeAwardedPoints } from "./points";
@@ -20,6 +21,27 @@ import {
   announcePhantomGraduate,
 } from "@/lib/discord/announce";
 import { operativeSerial } from "@/lib/certificate/serial";
+import {
+  specterLevelForFlag,
+  specterFlagFor,
+  specterLevelSlugForIdx,
+  specterIdxForSlug,
+  sha256Hex,
+} from "@/lib/specter/flags";
+
+// Specter ephemeral SSH ports — each level binds its own listener on the
+// orchestrator. Sync with breachlab-specter/orchestrator/start.sh.
+const SPECTER_SSH_PORTS: Record<string, number> = {
+  "paper-trail": 2230,
+  "search-operator": 2231,
+  "code-hunter": 2232,
+  "js-recon": 2233,
+};
+const SPECTER_SSH_HOST = "204.168.229.209";
+// Mirrors the Linux user inside each ephemeral image (specter0..3).
+function specterSshUserForIdx(idx: number): string {
+  return `specter${idx}`;
+}
 
 // Minimum seconds between consecutive submissions from the same user.
 // Rationale: galile0 (2026-04-23) submitted Ghost L14→L22 in 40 seconds
@@ -30,8 +52,26 @@ import { operativeSerial } from "@/lib/certificate/serial";
 // order of magnitude slower than the attack.
 const SUBMIT_MIN_SPACING_MS = 3_000;
 
+export type SpecterNextCreds = {
+  // Bootstrap creds for the next Specter level. Returned in the /submit
+  // response so the post-submit UI can show "next ssh + password".
+  level: string;          // slug, e.g. "search-operator"
+  levelIdx: number;       // 0..3
+  sshUser: string;        // specter1
+  sshHost: string;        // 204.168.229.209
+  sshPort: number;        // 2231
+  password: string;       // bl_<32 hex> — the just-submitted player flag
+  expiresAt: string;      // ISO timestamp (24h ahead)
+};
+
 export type SubmitResult =
-  | { ok: true; levelIdx: number; trackSlug: string; points: number }
+  | {
+      ok: true;
+      levelIdx: number;
+      trackSlug: string;
+      points: number;
+      specterNext?: SpecterNextCreds;
+    }
   | { ok: false; error: string };
 
 export async function submitFlag(
@@ -88,26 +128,50 @@ export async function submitFlag(
     }
   }
 
+  // Two-stage lookup: canonical flags table (Ghost/Phantom static flags),
+  // then Specter HMAC fallthrough (per-player flags, no DB row exists —
+  // the flag is recomputed from the player's own user_id + level slug).
   const flagHash = await hashToken(normalized);
   const [flagRow] = await db
     .select()
     .from(flags)
     .where(eq(flags.flagHash, flagHash))
     .limit(1);
-  if (!flagRow) return { ok: false, error: "Unknown flag" };
 
-  const [level] = await db
-    .select()
-    .from(levels)
-    .where(eq(levels.id, flagRow.levelId))
-    .limit(1);
-  if (!level) return { ok: false, error: "Unknown flag" };
+  let level: typeof levels.$inferSelect | undefined;
+  let trackRow: { slug: string } | undefined;
+  let specterMatchedSlug: string | null = null;
 
-  const [trackRow] = await db
-    .select({ slug: tracks.slug })
-    .from(tracks)
-    .where(eq(tracks.id, level.trackId))
-    .limit(1);
+  if (flagRow) {
+    [level] = await db
+      .select()
+      .from(levels)
+      .where(eq(levels.id, flagRow.levelId))
+      .limit(1);
+    if (!level) return { ok: false, error: "Unknown flag" };
+    [trackRow] = await db
+      .select({ slug: tracks.slug })
+      .from(tracks)
+      .where(eq(tracks.id, level.trackId))
+      .limit(1);
+  } else {
+    specterMatchedSlug = specterLevelForFlag(userId, normalized);
+    if (!specterMatchedSlug) return { ok: false, error: "Unknown flag" };
+    const idx = specterIdxForSlug(specterMatchedSlug);
+    const [specterTrack] = await db
+      .select()
+      .from(tracks)
+      .where(eq(tracks.slug, "specter"))
+      .limit(1);
+    if (!specterTrack) return { ok: false, error: "Unknown flag" };
+    [level] = await db
+      .select()
+      .from(levels)
+      .where(and(eq(levels.trackId, specterTrack.id), eq(levels.idx, idx)))
+      .limit(1);
+    if (!level) return { ok: false, error: "Unknown flag" };
+    trackRow = { slug: "specter" };
+  }
 
   const existing = await db
     .select({ id: submissions.id })
@@ -339,10 +403,52 @@ export async function submitFlag(
     });
   }
 
+  // Specter chain: issue next-level credentials. The flag the player just
+  // submitted IS the SSH password for the next ephemeral; we surface it
+  // (the player already has it — we're just telling them what port/user
+  // to ssh to) and persist sha256(password) in specter_session_creds so
+  // the L_{n+1} ephemeral's PAM hook can validate the login.
+  let specterNext: SpecterNextCreds | undefined;
+  if (specterMatchedSlug) {
+    const nextIdx = level.idx + 1;
+    const nextSlug = specterLevelSlugForIdx(nextIdx);
+    if (nextSlug) {
+      const nextPassword = specterFlagFor(userId, nextSlug);
+      const nextPwHash = sha256Hex(nextPassword);
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      await db
+        .insert(specterSessionCreds)
+        .values({
+          userId,
+          nextLevel: nextSlug,
+          passwordSha256: nextPwHash,
+          expiresAt,
+        })
+        .onConflictDoUpdate({
+          target: [specterSessionCreds.userId, specterSessionCreds.nextLevel],
+          set: {
+            passwordSha256: nextPwHash,
+            expiresAt,
+            issuedAt: new Date(),
+          },
+        });
+      specterNext = {
+        level: nextSlug,
+        levelIdx: nextIdx,
+        sshUser: `specter${nextIdx}`,
+        sshHost: SPECTER_SSH_HOST,
+        sshPort: SPECTER_SSH_PORTS[nextSlug] ?? 0,
+        password: nextPassword,
+        expiresAt: expiresAt.toISOString(),
+      };
+    }
+  }
+
   return {
     ok: true,
     levelIdx: level.idx,
     trackSlug: trackRow?.slug ?? "",
     points,
+    ...(specterNext ? { specterNext } : {}),
   };
 }
