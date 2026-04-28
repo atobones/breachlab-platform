@@ -16,6 +16,7 @@ export const SPECTER_LEVEL_SLUGS = [
   "search-operator",
   "code-hunter",
   "js-recon",
+  "people-recon",
 ] as const;
 
 export type SpecterLevelSlug = (typeof SPECTER_LEVEL_SLUGS)[number];

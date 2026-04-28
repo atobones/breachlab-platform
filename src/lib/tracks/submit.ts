@@ -36,6 +36,7 @@ const SPECTER_SSH_PORTS: Record<string, number> = {
   "search-operator": 2231,
   "code-hunter": 2232,
   "js-recon": 2233,
+  "people-recon": 2234,
 };
 const SPECTER_SSH_HOST = "204.168.229.209";
 // Mirrors the Linux user inside each ephemeral image (specter0..3).
