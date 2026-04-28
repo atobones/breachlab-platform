@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { DISCORD_INVITE_URL } from "@/lib/links";
+import { getCurrentSession } from "@/lib/auth/session";
+import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
+
+export const dynamic = "force-dynamic";
 
 type LevelRow = {
   idx: number;
@@ -103,7 +107,8 @@ const STATUS_STYLE: Record<NonNullable<LevelRow["status"]>, string> = {
   QUEUED: "text-muted",
 };
 
-export default function SpecterIPage() {
+export default async function SpecterIPage() {
+  const { user } = await getCurrentSession();
   return (
     <div className="space-y-12 max-w-3xl">
       <header className="space-y-3">
@@ -180,6 +185,8 @@ export default function SpecterIPage() {
           </li>
         </ul>
       </section>
+
+      {user && <SpecterBootstrapToken />}
 
       <section className="space-y-4">
         <h2 className="text-amber text-lg">The fourteen levels</h2>

@@ -8,7 +8,6 @@ import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
 import { CertificateShowcase } from "@/components/dashboard/CertificateShowcase";
 import { EmailVerificationBanner } from "@/components/dashboard/EmailVerificationBanner";
-import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
 import { isConfigured as isDiscordConfigured } from "@/lib/discord/oauth";
 import { getEarnedCertificates } from "@/lib/dashboard/certificates";
 
@@ -43,7 +42,6 @@ export default async function DashboardPage() {
         configured={isDiscordConfigured()}
       />
       {!user.emailVerified && <EmailVerificationBanner />}
-      <SpecterBootstrapToken />
       <section>
         <h2 className="text-lg mb-2">Badges</h2>
         {userBadges.length === 0 ? (
