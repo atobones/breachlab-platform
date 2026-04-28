@@ -45,6 +45,20 @@ services:
         condition: service_healthy
     expose:
       - "3000"
+    # Cross-stack bridge with the Specter oracle. Oracle calls back to
+    # /api/specter/auth-check + /api/specter/resolve-token; that path
+    # cannot go via public breachlab.org because the CF managed-
+    # challenge layer rejects POST without a browser challenge solve
+    # (same class as the email-resend challenge fix). Internal bridge
+    # bypasses the CF edge entirely AND bypasses the public DNS need
+    # (specter-oracle-net is internal:true, no egress). Only the
+    # Specter oracle joins the platform side of this bridge — no other
+    # specter-net containers reach platform.
+    networks:
+      default:
+      breachlab-shared:
+        aliases:
+          - web
 
   caddy:
     image: caddy:2-alpine
@@ -63,3 +77,17 @@ volumes:
   db_data:
   caddy_data:
   caddy_config:
+
+networks:
+  # Default bridge for web ↔ db ↔ caddy (created automatically per-stack
+  # by docker-compose; declared here to keep `breachlab-shared` siblings
+  # explicit).
+  default:
+  # Cross-stack bridge with Specter oracle. The Specter oracle attaches
+  # to this network from its own compose file (declared external there)
+  # and calls platform via the `web` alias on this network. Stays
+  # bridge-only (no internet) — only platform's web service routes
+  # traffic to/from the rest of the platform stack.
+  breachlab-shared:
+    name: breachlab-shared
+    driver: bridge
