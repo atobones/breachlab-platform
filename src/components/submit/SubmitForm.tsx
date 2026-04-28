@@ -56,8 +56,9 @@ function SpecterNextBlock({ creds }: { creds: SpecterNextCreds }) {
         <code className="text-text break-all">{creds.password}</code>
       </div>
       <p className="text-muted">
-        Per-player password — sharing it has no effect, every player has
-        their own. The password is your just-submitted flag (OTW chain).
+        Per-player password — distinct from your flag. Save it now; it
+        is shown here once, but it&apos;s deterministic so you can ask
+        the platform to re-issue it from your dashboard at any time.
       </p>
     </div>
   );
