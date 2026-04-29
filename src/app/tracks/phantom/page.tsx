@@ -247,6 +247,10 @@ export default async function PhantomTrackPage() {
             <dd className="inline">port 2227</dd>
           </div>
           <div>
+            <dt className="inline text-muted">Ephemeral L9 (Stack Day, optional): </dt>
+            <dd className="inline">port 2228</dd>
+          </div>
+          <div>
             <dt className="inline text-muted">Entry user: </dt>
             <dd className="inline">phantom0</dd>
           </div>
@@ -262,6 +266,13 @@ export default async function PhantomTrackPage() {
           L13 / L14 / L15 / L30 each spawn a fresh ephemeral container on
           their own port — one connect per box, disappears on disconnect.
           Land on the expected port once you reach that level.
+        </p>
+        <p className="text-xs text-muted mt-2">
+          L9 also lives on port 2228 as an optional ephemeral mirror of
+          the main-track level. Same mission, same flag — fresh /home and
+          isolated stack layout per session, useful if shared L9 on 2223
+          gave you residue from another operator. Use whichever you
+          prefer.
         </p>
       </section>
 
