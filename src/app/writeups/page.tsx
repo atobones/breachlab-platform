@@ -69,7 +69,9 @@ export default async function WriteupsIndexPage() {
             <ul className="space-y-2">
               {items.map((w) => {
                 const unlocked =
-                  user && w.prereqLevels.every((l) => completed.has(l));
+                  user &&
+                  (user.isAdmin ||
+                    w.prereqLevels.every((l) => completed.has(l)));
                 return (
                   <li
                     key={w.slug}

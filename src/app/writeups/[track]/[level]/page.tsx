@@ -64,11 +64,13 @@ export default async function WriteupPage({
     );
   }
 
-  const allowed = await userCompletedAllLevels(
-    user.id,
-    writeup.track,
-    writeup.prereqLevels,
-  );
+  const allowed =
+    user.isAdmin ||
+    (await userCompletedAllLevels(
+      user.id,
+      writeup.track,
+      writeup.prereqLevels,
+    ));
 
   if (!allowed) {
     const need = writeup.prereqLevels
