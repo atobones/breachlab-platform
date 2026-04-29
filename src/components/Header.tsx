@@ -3,7 +3,7 @@ import { DonateButton } from "./DonateButton";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
-  { href: "/tracks/ghost", label: "Wargames" },
+  { href: "/writeups", label: "Writeups" },
   { href: "/leaderboard", label: "Leaderboard" },
   { href: "/manifesto", label: "Manifesto" },
   { href: "/rules", label: "Rules" },
