@@ -45,13 +45,29 @@ function specterSshUserForIdx(idx: number): string {
 }
 
 // Minimum seconds between consecutive submissions from the same user.
-// Rationale: galile0 (2026-04-23) submitted Ghost L14→L22 in 40 seconds
-// (~4.4s/flag) and Phantom L1→L4 in 14 seconds (~3.5s/flag) after grabbing
-// all flags out of the public `canonical-flags.ts` mirror (now removed).
-// A 3s floor doesn't touch legit rapid clears (slowest observed legit gap
-// between sequential captures is ~3.4s) but caps scripted replay to an
-// order of magnitude slower than the attack.
-const SUBMIT_MIN_SPACING_MS = 3_000;
+// Rationale (2026-04-23, galile0): Ghost L14→L22 in 40s (~4.4s/flag),
+// Phantom L1→L4 in 14s (~3.5s/flag) after grabbing flags out of the
+// public canonical-flags.ts mirror (since scrubbed). 3s floor capped
+// the floor.
+//
+// Bumped to 15s on 2026-04-29 after cepheus completed Ghost L0→L22 in
+// 89s (3-5s gaps, calibrated just above the prior 3s floor) using a
+// fresh 48-second-old account. 15s floor stretches the same attack to
+// ~5.5 min; combined with the account-age cooldown below, a fresh
+// account replaying the whole Ghost track now needs ~25+ minutes —
+// long enough for the admin dashboard / anomaly detector to flag the
+// run before the leaderboard updates.
+const SUBMIT_MIN_SPACING_MS = 15_000;
+
+// Account-age cooldown — extra spacing for fresh accounts. Within the
+// first ACCOUNT_AGE_GRACE_MS after registration, submissions must be
+// spaced at least ACCOUNT_AGE_COOLDOWN_MS apart. Shape: a fresh account
+// is statistically MUCH more likely to be a flag-replay attack than a
+// returning honest player, so we cost-load the early window. Honest
+// new players don't typically chain submissions in the first half hour
+// (they're reading the brief, exploring the level, etc).
+const ACCOUNT_AGE_GRACE_MS = 30 * 60 * 1_000;        // first 30 minutes
+const ACCOUNT_AGE_COOLDOWN_MS = 60 * 1_000;          // 60s spacing during grace
 
 export type SpecterNextCreds = {
   // Bootstrap creds for the next Specter level. Returned in the /submit
@@ -85,7 +101,10 @@ export async function submitFlag(
   // Caught the 2026-04-26 spam-reg pattern (3 accounts created with
   // @example.com / RFC 2606 reserved, fully able to submit and score).
   const [verifyRow] = await db
-    .select({ verified: users.emailVerified })
+    .select({
+      verified: users.emailVerified,
+      createdAt: users.createdAt,
+    })
     .from(users)
     .where(eq(users.id, userId))
     .limit(1);
@@ -95,6 +114,9 @@ export async function submitFlag(
       error: "Verify your email before submitting flags.",
     };
   }
+  const accountAgeMs =
+    Date.now() - new Date(verifyRow.createdAt).getTime();
+  const inGracePeriod = accountAgeMs < ACCOUNT_AGE_GRACE_MS;
 
   const normalized = normalizeFlag(rawFlag);
   const parsed = flagSchema.safeParse(normalized);
@@ -120,8 +142,17 @@ export async function submitFlag(
     .limit(1);
   if (lastSub) {
     const elapsed = Date.now() - new Date(lastSub.submittedAt).getTime();
-    if (elapsed < SUBMIT_MIN_SPACING_MS) {
-      const wait = Math.ceil((SUBMIT_MIN_SPACING_MS - elapsed) / 1000);
+    // Effective floor = 60s for fresh accounts in their first 30 min,
+    // 15s otherwise. cepheus 2026-04-29 created an account and cleared
+    // Ghost L0→L22 in 89s exactly because the 3s baseline floor was
+    // calibratable; account-age cooldown shifts that attack window from
+    // ~5 min (15s × 22) to ~25 min (60s × 22) for fresh accounts so
+    // anomaly detectors / admin eyes catch it.
+    const effectiveFloor = inGracePeriod
+      ? ACCOUNT_AGE_COOLDOWN_MS
+      : SUBMIT_MIN_SPACING_MS;
+    if (elapsed < effectiveFloor) {
+      const wait = Math.ceil((effectiveFloor - elapsed) / 1000);
       return {
         ok: false,
         error: `Slow down. Wait ${wait}s before submitting again.`,
