@@ -41,7 +41,7 @@ export default async function AdminOverviewPage() {
           <StatCard
             label="In the field (SSH)"
             value={fmt(stats.active.sshNow)}
-            hint="Ghost + Phantom shells"
+            hint="Ghost + Phantom + Specter + ephemerals"
             tone="green"
           />
           <StatCard
