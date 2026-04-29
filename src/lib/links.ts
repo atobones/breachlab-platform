@@ -7,4 +7,4 @@
 // NEXT_PUBLIC_* env var and read it from process.env here. For now
 // these are the same in dev and prod.
 
-export const DISCORD_INVITE_URL = "https://discord.gg/5qPMzuHkpG";
+export const DISCORD_INVITE_URL = "https://discord.gg/Xa2H8jfJPr";
