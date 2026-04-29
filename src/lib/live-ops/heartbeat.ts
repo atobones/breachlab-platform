@@ -1,4 +1,9 @@
-export const HEARTBEAT_SOURCES = ["ghost", "phantom"] as const;
+export const HEARTBEAT_SOURCES = [
+  "ghost",
+  "phantom",
+  "specter",
+  "phantom-deep",
+] as const;
 export type HeartbeatSource = (typeof HEARTBEAT_SOURCES)[number];
 
 export type HeartbeatPayload = {
