@@ -1171,3 +1171,73 @@ html, body { overscroll-behavior-y: none; }
   /* Page setup — A4-friendly margins, no headers/footers */
   @page { margin: 1cm; }
 }
+
+/* ─────────────────────────────────────────────────────────────
+   Writeup body — markdown-rendered HTML inside .prose-writeup.
+   Selector-scoped so we don't bleed h2/h3 styling into other pages.
+   ───────────────────────────────────────────────────────────── */
+.prose-writeup h1,
+.prose-writeup h2,
+.prose-writeup h3 {
+  color: var(--bl-amber);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.02em;
+  margin-top: 1.75rem;
+  margin-bottom: 0.75rem;
+}
+.prose-writeup h2 { font-size: 1.25rem; }
+.prose-writeup h3 { font-size: 1.05rem; }
+.prose-writeup h4 { font-size: 0.95rem; color: var(--bl-text); margin-top: 1rem; }
+
+.prose-writeup p { margin: 0.75rem 0; }
+
+.prose-writeup ul,
+.prose-writeup ol {
+  margin: 0.5rem 0 0.75rem 1.25rem;
+  padding-left: 0.5rem;
+}
+.prose-writeup ul { list-style: disc; }
+.prose-writeup ol { list-style: decimal; }
+.prose-writeup li { margin: 0.25rem 0; }
+
+.prose-writeup blockquote {
+  border-left: 2px solid color-mix(in oklab, var(--bl-amber) 50%, transparent);
+  padding: 0.25rem 0.75rem;
+  margin: 0.75rem 0;
+  color: var(--bl-text-muted, var(--bl-muted));
+  background: color-mix(in oklab, var(--bl-amber) 3%, transparent);
+}
+
+.prose-writeup table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 0.75rem 0;
+  font-size: 0.85rem;
+}
+.prose-writeup th,
+.prose-writeup td {
+  border: 1px solid var(--bl-border);
+  padding: 0.4rem 0.6rem;
+  text-align: left;
+  vertical-align: top;
+}
+.prose-writeup th {
+  background: color-mix(in oklab, var(--bl-amber) 6%, transparent);
+  color: var(--bl-amber);
+  font-weight: 600;
+}
+
+.prose-writeup hr {
+  border: 0;
+  border-top: 1px solid var(--bl-border);
+  margin: 1.5rem 0;
+}
+
+.prose-writeup a {
+  color: var(--bl-amber);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--bl-amber) 40%, transparent);
+}
+.prose-writeup a:hover { text-decoration-color: var(--bl-amber); }
+
+.prose-writeup strong { color: var(--bl-amber); font-weight: 600; }
