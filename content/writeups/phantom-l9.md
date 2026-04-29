@@ -32,6 +32,27 @@ binary, your effective UID briefly becomes `flagkeeper9` — and the
 level is about exploiting `strcpy` to redirect execution while that
 window is open.
 
+The frame on entry to the vulnerable function looks like this — burn
+this picture into your head, you'll need it for Lock 4:
+
+```
+high addresses
+              ┌────────────────────────────┐
+              │   saved RIP   (8 bytes)    │  ← we want to overwrite this
+              ├────────────────────────────┤
+              │   saved RBP   (8 bytes)    │
+              ├────────────────────────────┤
+              │   buffer[64]  (writable)   │  ← strcpy(buffer, argv[1])
+              └────────────────────────────┘
+low addresses
+```
+
+How far past the start of `buffer` does the saved-RIP slot sit?
+Counting is on you. GDB and a cyclic pattern get you the answer in
+under five minutes; a careful read of the disassembly gets you there
+in two. Either way, you need the offset — call it `K` — for the rest
+of the writeup.
+
 That sentence describes most stack-overflow CTF levels of the last
 twenty years, so what makes L9 hard is not the bug. It's that **four
 otherwise-easy skills have to land at the same time**. Solo, none of
@@ -129,6 +150,36 @@ Every one of these has a NUL-free workaround, and they're not exotic
   data in your own payload, with no absolute address you'd have to
   bake.
 
+In skeleton form, the idioms collected together look something like
+this (generic, not the L9 payload — you fill in the actual path,
+syscall numbers, and verify NUL-cleanliness yourself):
+
+```asm
+.intel_syntax noprefix
+.global _start
+_start:
+    jmp  code                       /* hop over the inline string */
+path:
+    .ascii "/some/file/here"        /* baked, but with NO trailing \0 */
+code:
+    lea  rdi, [rip + path]          /* rdi = path pointer */
+    xor  eax, eax
+    mov  byte ptr [rdi + LEN], al   /* write the \0 the kernel expects */
+    push <mode-without-zeros>
+    pop  rsi                        /* mode argument */
+    push <syscall-no>
+    pop  rax                        /* syscall number, NUL-free */
+    syscall
+    /* exit cleanly so the SUID frame returns predictably */
+```
+
+Replace the placeholders with values that are correct for your target
+*and* survive the NUL-check. `LEN` is the length of your path string.
+`<syscall-no>` and `<mode-without-zeros>` are exercises — you'll find
+the syscall number in `/usr/include/asm/unistd_64.h`, and the
+mode-without-zeros trick relies on the kernel masking the high bits
+of the mode argument down to twelve.
+
 Putting these together, the canonical "NUL-free chmod" shellcode is
 under 70 bytes. The canonical "NUL-free open/read/write" is similar.
 The point of writing it by hand is not to be clever — it's that
@@ -172,6 +223,23 @@ variables, not argv. Don't reach for return-to-libc — you don't need
 ROP gadgets when you have an executable stack and a deterministic
 landing site.
 
+The probe binary itself is trivially small:
+
+```c
+#include <stdio.h>
+int main(int argc, char **argv) {
+    if (argc > 1) printf("%p\n", argv[1]);
+    return 0;
+}
+```
+
+What's *not* trivial is invoking it under the same four conditions as
+the real binary. Two of those conditions force you into uncomfortable
+moves — for example, you may end up creating a symlink to your probe
+just so the path you exec it under has the same byte length as the
+target's path. Yes, really. That's the kind of careful detail this
+lock rewards.
+
 The probe technique reads as a hack the first time, but it's
 fundamental: **deterministic-given-inputs is just as good as
 deterministic-everywhere when the inputs are under your control**.
@@ -205,6 +273,33 @@ yourself, and `strcpy` writes byte 7 for you for free**. Byte 8 was
 already zero on the previous frame. Net effect: full 8-byte canonical
 address constructed, no NUL byte ever appearing in your written
 payload.
+
+Schematically the payload looks like this (offsets are illustrative —
+substitute your real `K` from the buffer-to-RIP measurement above):
+
+```
+offset            0 ──────────────────────────────────► payload_len
+                  ┌──────────────────┬────────┬────────┐
+                  │   shellcode      │  NOP   │ addr_lo│
+                  │  (NUL-free)      │  pad   │ 6 bytes│
+                  └──────────────────┴────────┴────────┘
+                  ▲                  ▲        ▲        ▲
+                  │                  │        │        │
+                  buffer[0]      offset K-N   K        K+6
+                                              │        │
+                                          saved RIP    │
+                                          starts here  │
+                                              ▲        │
+                                              └─ strcpy writes \0 here,
+                                                 completing byte 7 of
+                                                 the saved-RIP slot
+```
+
+The NOP pad is whatever brings the end of your shellcode up to
+exactly the saved-RIP boundary. The 6-byte address is the low half of
+where you computed your shellcode lands. The 7th byte is `strcpy`'s
+trailing NUL. The 8th byte was already zero from the previous frame's
+return address.
 
 This is the kind of detail that costs you an afternoon of debugging
 "my exploit segfaults on what looks like a perfect address" if you
