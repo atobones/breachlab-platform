@@ -37,6 +37,7 @@ const SPECTER_SSH_PORTS: Record<string, number> = {
   "code-hunter": 2232,
   "js-recon": 2233,
   "people-recon": 2234,
+  "sock-puppet": 2235,
 };
 const SPECTER_SSH_HOST = "204.168.229.209";
 // Mirrors the Linux user inside each ephemeral image (specter0..3).
@@ -73,7 +74,7 @@ export type SpecterNextCreds = {
   // Bootstrap creds for the next Specter level. Returned in the /submit
   // response so the post-submit UI can show "next ssh + password".
   level: string;          // slug, e.g. "search-operator"
-  levelIdx: number;       // 0..3
+  levelIdx: number;       // 0..5 (paper-trail through sock-puppet)
   sshUser: string;        // specter1
   sshHost: string;        // 204.168.229.209
   sshPort: number;        // 2231

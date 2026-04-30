@@ -10,18 +10,20 @@
 import { createHmac, createHash } from "crypto";
 
 // Deployed Specter level slugs in chain order. Update when adding levels.
-// L0 = paper-trail, L1 = search-operator, L2 = code-hunter, L3 = js-recon.
+// L0 = paper-trail, L1 = search-operator, L2 = code-hunter, L3 = js-recon,
+// L4 = people-recon, L5 = sock-puppet.
 export const SPECTER_LEVEL_SLUGS = [
   "paper-trail",
   "search-operator",
   "code-hunter",
   "js-recon",
   "people-recon",
+  "sock-puppet",
 ] as const;
 
 export type SpecterLevelSlug = (typeof SPECTER_LEVEL_SLUGS)[number];
 
-// Map from track-level idx (0..3) to the slug used in HMAC inputs and as
+// Map from track-level idx to the slug used in HMAC inputs and as
 // the level identifier in the oracle / PAM exchange.
 export function specterLevelSlugForIdx(idx: number): SpecterLevelSlug | null {
   return SPECTER_LEVEL_SLUGS[idx] ?? null;
@@ -65,7 +67,7 @@ export function specterSshPasswordFor(userId: string, level: SpecterLevelSlug): 
 // Lookup helper: given a submitted flag string and a userId, find which
 // Specter level it maps to (if any). Used by submitFlag's fallthrough
 // after canonical-flags table miss. O(N) over Specter levels — currently
-// 4, capped at 13.
+// 6, capped at 13.
 export function specterLevelForFlag(
   userId: string,
   submitted: string
