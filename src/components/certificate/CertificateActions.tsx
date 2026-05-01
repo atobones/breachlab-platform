@@ -32,10 +32,16 @@ export function CertificateActions({
       if (!(el instanceof HTMLElement)) {
         throw new Error("certificate element not found");
       }
-      // Lazy-loaded so the 30 KB lib only ships when this button is used.
-      const { toPng } = await import("html-to-image");
+      // Lazy-loaded so the lib only ships when this button is used.
+      // Switched from html-to-image to modern-screenshot 2026-05-01:
+      // html-to-image 1.11.13 throws `TypeError: e.trim() ... e is undefined`
+      // when computedStyle returns oklch() / CSS-var values it can't parse
+      // (Tailwind 4's color stack hits this on Firefox). modern-screenshot
+      // is an actively-maintained fork with a drop-in API surface and
+      // robust handling of modern CSS. Reported by Randark 2026-05-01.
+      const { domToPng } = await import("modern-screenshot");
       // Ensure web fonts finished loading before rasterization — if the
-      // monospace font is still streaming when toPng clones the DOM, the
+      // monospace font is still streaming when the lib clones the DOM, the
       // PNG falls back to a different glyph metric and the ASCII logo
       // breaks. defstrong reported this 2026-04-23.
       if (typeof document !== "undefined" && "fonts" in document) {
@@ -45,10 +51,9 @@ export function CertificateActions({
           /* non-fatal — continue with whatever fonts resolved */
         }
       }
-      const dataUrl = await toPng(el, {
+      const dataUrl = await domToPng(el, {
         backgroundColor: "#0a0a0a",
-        pixelRatio: 2,
-        cacheBust: true,
+        scale: 2,
       });
       const a = document.createElement("a");
       a.href = dataUrl;
