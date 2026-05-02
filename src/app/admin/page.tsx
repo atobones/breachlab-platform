@@ -35,7 +35,7 @@ export default async function AdminOverviewPage() {
           <StatCard
             label="On the platform"
             value={fmt(stats.active.webNow)}
-            hint="last seen < 5 min"
+            hint="last seen < 1 min"
             tone="green"
           />
           <StatCard

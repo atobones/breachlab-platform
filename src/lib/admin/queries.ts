@@ -28,7 +28,7 @@ export type OverviewStats = {
     new30d: number;
   };
   active: {
-    webNow: number; // last_seen_at < 5min
+    webNow: number; // last_seen_at < 1min
     sshNow: number; // fresh live_ops_counts
     today: number; // last_seen_at > today OR submitted today
     last7d: number;
@@ -74,7 +74,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
     db
       .select({ c: sql<number>`count(*)::int` })
       .from(users)
-      .where(sql`${users.lastSeenAt} > now() - interval '5 minutes'`)
+      .where(sql`${users.lastSeenAt} > now() - interval '1 minute'`)
       .then((r) => r[0]),
 
     db
@@ -82,7 +82,7 @@ export async function getOverviewStats(): Promise<OverviewStats> {
         c: sql<number>`coalesce(sum(${liveOpsCounts.count}), 0)::int`,
       })
       .from(liveOpsCounts)
-      .where(sql`${liveOpsCounts.updatedAt} > now() - interval '2 minutes'`)
+      .where(sql`${liveOpsCounts.updatedAt} > now() - interval '1 minute'`)
       .then((r) => r[0]),
 
     countActiveUsersWithin("24 hours"),
