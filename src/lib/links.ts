@@ -12,4 +12,3 @@
 // these are the same in dev and prod.
 
 export const DISCORD_INVITE_URL = "https://discord.gg/xqTbW6juXt";
-export const TELEGRAM_INVITE_URL = "https://t.me/+eCo7E4HxdoQ1YzJi";
