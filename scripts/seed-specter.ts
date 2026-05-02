@@ -84,7 +84,7 @@ const SPECTER_LEVELS: SpecterLevel[] = [
     slug: "sock-puppet",
     title: "Sock Puppet Operational Tradecraft",
     description:
-      "Construct a persona that survives platform anomaly detection and a 21-day warmup, infiltrate the target's candidate-Slack, exfil intel under a lite Berkeley Protocol. Three SOC probes (photo provenance, timezone consistency, warmup pacing) — any one detection = persona burned.",
+      "Construct a persona that survives platform anomaly detection and a 21-day warmup, infiltrate the target's candidate-Slack, exfil intel under a lite Berkeley Protocol. Five SOC probes (photo provenance, timezone consistency, warmup pacing, follow-graph entropy, stylometric consistency) — any one detection = persona burned.",
     pointsBase: 900,
     pointsFirstBloodBonus: 50,
   },
