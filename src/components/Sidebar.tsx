@@ -1,7 +1,7 @@
 import { TracksNav } from "./TracksNav";
 import { TrackLevelsNav } from "./TrackLevelsNav";
 import { LiveOpsWidget } from "./LiveOpsWidget";
-import { TopFiveWidget } from "./TopFiveWidget";
+import { BattlesWidget } from "./BattlesWidget";
 import { RecentTickerWidget } from "./RecentTickerWidget";
 import { SidebarLinks } from "./SidebarLinks";
 import { UserMenu } from "./auth/UserMenu";
@@ -27,7 +27,7 @@ export async function Sidebar() {
         <TracksNav />
         <TrackLevelsNav tracksData={tracksData} />
         <LiveOpsWidget />
-        <TopFiveWidget />
+        <BattlesWidget />
         <RecentTickerWidget />
         <SidebarLinks />
       </div>
