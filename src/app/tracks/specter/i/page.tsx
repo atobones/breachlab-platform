@@ -167,7 +167,7 @@ export default async function SpecterIPage() {
             </dd>
           </div>
         </dl>
-        <p className="text-xs mt-3">
+        <p className="text-xs mt-6 pt-3 border-t border-border/40">
           <span className="text-amber">From L1 onward:</span> solve the level
           inside the ephemeral, the verifier prints a per-player flag.{" "}
           <Link href="/submit" className="text-amber underline">
