@@ -47,10 +47,6 @@ export function SpecterBootstrapToken() {
       <pre className="bg-bg border border-border p-2 text-xs text-text">
         ssh specter0@204.168.229.209 -p 2230
       </pre>
-      <p className="text-xs text-muted">
-        From L1 onward the password issued on the previous level&apos;s
-        submit is what you ssh in with — no token needed.
-      </p>
       {!token && (
         <button
           type="button"
