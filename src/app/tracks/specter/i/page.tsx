@@ -167,10 +167,7 @@ export default async function SpecterIPage() {
             </dd>
           </div>
         </dl>
-        <pre className="bg-bg border border-border p-2 text-xs mt-3">
-          ssh specter0@204.168.229.209 -p 2230
-        </pre>
-        <p className="text-xs mt-2">
+        <p className="text-xs mt-3">
           <span className="text-amber">From L1 onward:</span> solve the level
           inside the ephemeral, the verifier prints a per-player flag.{" "}
           <Link href="/submit" className="text-amber underline">
