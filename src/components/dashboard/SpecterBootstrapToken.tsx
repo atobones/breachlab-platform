@@ -19,10 +19,26 @@ export function SpecterBootstrapToken() {
     setPending(true);
     setError(null);
     try {
-      const r = await fetch("/api/specter/issue-token", { method: "POST" });
+      const r = await fetch("/api/specter/issue-token", {
+        method: "POST",
+        credentials: "same-origin",
+        cache: "no-store",
+        headers: {
+          "Accept": "application/json",
+          "Content-Type": "application/json",
+        },
+        body: "{}",
+      });
       if (!r.ok) {
-        const body = (await r.json().catch(() => ({}))) as { error?: string };
-        setError(body.error ?? `HTTP ${r.status}`);
+        const text = await r.text().catch(() => "");
+        let detail = `HTTP ${r.status}`;
+        try {
+          const parsed = JSON.parse(text) as { error?: string };
+          if (parsed.error) detail = parsed.error;
+        } catch {
+          if (text) detail = `HTTP ${r.status} — ${text.slice(0, 120)}`;
+        }
+        setError(detail);
         return;
       }
       const body = (await r.json()) as IssueResp;
