@@ -50,7 +50,7 @@ export function SpecterLevelTable({
         if (rows.length === 0) return null;
         return (
           <section key={act}>
-            <h3 className="text-sm uppercase tracking-wider mb-2 text-amber">
+            <h3 className="text-sm uppercase tracking-wider mb-2 text-green">
               {ACT_LABEL[act]}
             </h3>
             <table className="w-full text-sm tabular-nums">

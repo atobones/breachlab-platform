@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { submissions } from "@/lib/db/schema";
 import { getFirstBloodByLevel } from "@/lib/badges/queries";
 import { SpecterLevelTable } from "@/components/tracks/SpecterLevelTable";
+import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
 import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
@@ -85,6 +86,8 @@ export default async function SpecterIPage() {
           quiz.
         </p>
       </header>
+
+      {user && <SpecterBootstrapToken />}
 
       <section className="space-y-3">
         <p className="text-sm">
