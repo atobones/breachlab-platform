@@ -152,7 +152,12 @@ export default async function SpecterLevelPage({
                 </span>
               ) : (
                 <span className="text-muted">
-                  the flag emitted when you solved L{idx - 1} (per-player, HMAC-derived)
+                  revealed when you{" "}
+                  <Link href="/submit" className="text-amber underline">
+                    submit the L{idx - 1} flag at /submit
+                  </Link>
+                  {" "}— the response shows the per-player SSH password for
+                  this level (different string from the flag itself).
                 </span>
               )}
             </dd>
