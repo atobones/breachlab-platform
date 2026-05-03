@@ -149,18 +149,18 @@ export default function SpecterOverviewPage() {
 
       <footer className="border-t border-border pt-4 space-y-2">
         <p className="text-sm text-muted">
-          Want to know when Specter I drops?{" "}
+          Specter I is live — first-bloods get announced on the{" "}
           <a
             href={DISCORD_INVITE_URL}
             className="text-amber hover:underline"
             rel="noreferrer"
           >
-            Join the Discord
+            Discord
           </a>{" "}
-          — first-bloods get announced there.
+          as they land. II and III drop announcements ship there too.
         </p>
         <p className="text-xs text-muted">
-          Ready to play now?{" "}
+          New here?{" "}
           <Link href="/tracks/ghost" className="text-amber hover:underline">
             Start with Ghost
           </Link>{" "}
