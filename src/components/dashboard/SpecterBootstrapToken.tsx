@@ -65,9 +65,9 @@ export function SpecterBootstrapToken() {
           type="button"
           onClick={issue}
           disabled={pending}
-          className="border border-amber text-amber px-3 py-1 hover:bg-amber/10 disabled:opacity-50"
+          className="btn-bracket text-sm disabled:opacity-50"
         >
-          {pending ? "Issuing…" : "[ Generate token ]"}
+          {pending ? "Issuing…" : "Generate token"}
         </button>
       )}
       {token && (
