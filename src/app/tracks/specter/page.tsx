@@ -44,12 +44,7 @@ export default function SpecterOverviewPage() {
   return (
     <div className="space-y-10 max-w-3xl">
       <header className="space-y-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-amber text-2xl">Specter</h1>
-          <span className="text-xs uppercase tracking-wider px-2 py-0.5 border border-green text-green">
-            I Live
-          </span>
-        </div>
+        <h1 className="text-amber text-2xl">Specter</h1>
         <p className="text-sm text-muted">
           Recon &amp; Initial Access. Three sub-tracks, ~32 levels, ephemeral
           per-session containers from day one. Specter I is live; II and III
@@ -75,42 +70,80 @@ export default function SpecterOverviewPage() {
       <section className="space-y-4">
         <h2 className="text-amber text-lg">Sub-tracks</h2>
         <ul className="space-y-4">
-          {SUBTRACKS.map((s) => (
-            <li
-              key={s.slug}
-              className="border border-border p-4 hover:border-amber transition-colors"
-            >
-              <Link href={`/tracks/${s.slug}`} className="block group">
-                <div className="flex items-baseline justify-between gap-4">
-                  <div className="flex items-baseline gap-3">
-                    <span className="text-amber text-xl font-display">
-                      {s.numeral}
-                    </span>
-                    <h3 className="text-base group-hover:text-amber">
-                      {s.title}
-                    </h3>
-                  </div>
-                  <span
-                    className={`text-xs uppercase tracking-wider ${
-                      s.status === "LIVE"
-                        ? "text-green"
-                        : s.status === "SOON"
-                          ? "text-amber"
-                          : "text-muted"
+          {SUBTRACKS.map((s) => {
+            const isLive = s.status === "LIVE";
+            const statusLabel =
+              s.status === "LIVE"
+                ? "Live"
+                : s.status === "SOON"
+                  ? "Coming Soon"
+                  : "Planned";
+            const statusCls =
+              s.status === "LIVE"
+                ? "text-green"
+                : s.status === "SOON"
+                  ? "text-amber"
+                  : "text-muted";
+
+            const header = (
+              <div className="flex items-baseline justify-between gap-4">
+                <div className="flex items-baseline gap-3">
+                  <span className="text-amber text-xl font-display">
+                    {s.numeral}
+                  </span>
+                  <h3
+                    className={`text-base ${
+                      isLive ? "text-amber" : "text-text"
                     }`}
                   >
-                    {s.status === "LIVE"
-                      ? "Live"
-                      : s.status === "SOON"
-                        ? "Coming Soon"
-                        : "Planned"}
-                  </span>
+                    {s.title}
+                  </h3>
                 </div>
+                <span
+                  className={`text-xs uppercase tracking-wider ${statusCls}`}
+                >
+                  {statusLabel}
+                </span>
+              </div>
+            );
+
+            const body = (
+              <>
                 <p className="text-xs text-muted mt-1 mb-3">{s.levels}</p>
-                <p className="text-sm">{s.pitch}</p>
-              </Link>
-            </li>
-          ))}
+                <p className="text-sm text-text">{s.pitch}</p>
+              </>
+            );
+
+            if (isLive) {
+              return (
+                <li
+                  key={s.slug}
+                  className="border border-border hover:border-amber transition-colors"
+                >
+                  <Link
+                    href={`/tracks/${s.slug}`}
+                    className="block p-4 no-underline"
+                  >
+                    {header}
+                    {body}
+                    <p className="text-xs text-amber mt-3 uppercase tracking-wider">
+                      Enter →
+                    </p>
+                  </Link>
+                </li>
+              );
+            }
+
+            return (
+              <li
+                key={s.slug}
+                className="border border-border/60 p-4 opacity-70"
+              >
+                {header}
+                {body}
+              </li>
+            );
+          })}
         </ul>
       </section>
 
