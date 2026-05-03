@@ -168,20 +168,17 @@ export default async function SpecterIPage() {
           </div>
         </dl>
         <p className="text-xs mt-6 pt-3 border-t border-border/40">
-          <span className="text-amber">From L1 onward:</span> solve the level
-          inside the ephemeral, the verifier prints a per-player flag.{" "}
+          <span className="text-amber">From L1 onward:</span> solve the
+          level, take the flag the verifier prints, and{" "}
           <Link href="/submit" className="text-amber underline">
-            Submit the flag at /submit
+            submit it at /submit
           </Link>
-          {" "}— the response reveals the L<sub>n+1</sub> SSH password
-          (different string from the flag, also per-player HMAC). Use that
-          password to SSH into the next level. Leaking a flag in Discord
-          unlocks nothing for the leaker — every player has their own
-          chain.
+          . The response gives you the next level&apos;s SSH password.
+          Flags and passwords are per-player — sharing them helps no one.
         </p>
         <p className="text-xs text-muted mt-2">
-          Each connection
-          spawns a fresh ephemeral container; disconnect tears it down.
+          Each SSH connection spawns a fresh ephemeral container;
+          disconnect tears it down.
         </p>
       </section>
 
