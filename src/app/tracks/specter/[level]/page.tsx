@@ -192,9 +192,11 @@ export default async function SpecterLevelPage({
             <dd className="inline">
               {idx === 0 ? (
                 <span className="text-amber">
-                  bootstrap token (see block above — generate, then{" "}
-                  <code>export BL_TOKEN=&lt;token&gt;</code> inside the
-                  ephemeral)
+                  bootstrap token (see block above — Generate, then paste
+                  the token at the SSH password prompt). Inside L0 your
+                  player_id is auto-set; just run{" "}
+                  <code>/opt/verify-paper-trail.sh</code> after writing
+                  /tmp/intel.yaml.
                 </span>
               ) : (
                 <span className="text-muted">
