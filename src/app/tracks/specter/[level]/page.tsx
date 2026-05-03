@@ -11,6 +11,10 @@ import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PrevNextLevel } from "@/components/PrevNextLevel";
 import { OperativeName } from "@/components/operatives/OperativeName";
 import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
+import {
+  specterLevelSlugForIdx,
+  specterSshPasswordFor,
+} from "@/lib/specter/flags";
 
 export const dynamic = "force-dynamic";
 
@@ -89,6 +93,12 @@ export default async function SpecterLevelPage({
   const firstBlood = firstBloodMap.get(lvl.id);
 
   const sshCmd = `ssh ${info.user}@${HOST} -p ${info.port}`;
+
+  const slug = specterLevelSlugForIdx(idx);
+  const sshPassword =
+    user && idx > 0 && priorSolved && slug
+      ? specterSshPasswordFor(user.id, slug)
+      : null;
 
   return (
     <div className="space-y-6 max-w-3xl">
@@ -198,18 +208,35 @@ export default async function SpecterLevelPage({
                   <code>/opt/verify-paper-trail.sh</code> after writing
                   /tmp/intel.yaml.
                 </span>
+              ) : sshPassword ? (
+                <span className="text-amber">
+                  see reveal below — per-player, deterministic, safe to
+                  re-fetch if you lost the original submission response.
+                </span>
               ) : (
                 <span className="text-muted">
-                  revealed when you{" "}
-                  <Link href="/submit" className="text-amber underline">
-                    submit the L{idx - 1} flag at /submit
-                  </Link>
-                  {" "}— the response shows the per-player SSH password for
-                  this level (different string from the flag itself).
+                  locked — solve L{idx - 1} first. After submission the
+                  per-player SSH password for this level becomes available
+                  here (different string from the flag itself).
                 </span>
               )}
             </dd>
           </div>
+          {sshPassword && (
+            <details className="mt-2 border border-amber/40 p-2">
+              <summary className="cursor-pointer text-amber text-xs uppercase select-none">
+                Click to reveal your L{idx} SSH password
+              </summary>
+              <pre className="bg-bg border border-border p-2 text-xs mt-2 overflow-x-auto">
+                {sshPassword}
+              </pre>
+              <p className="text-[10px] text-muted mt-1">
+                Per-player. Do not share — leaking yours doesn&apos;t
+                unlock anything for anyone else, but reveals which level
+                you&apos;ve unlocked.
+              </p>
+            </details>
+          )}
         </dl>
         <pre className="bg-bg border border-border p-2 text-xs mt-3">{sshCmd}</pre>
         <p className="text-xs text-muted">
