@@ -98,7 +98,7 @@ export function SpecterLevelTable({
                             />
                           </>
                         ) : l.pointsFirstBloodBonus > 0 ? (
-                          <span className="text-green text-xs">
+                          <span className="text-red text-xs">
                             FIRST BLOOD AVAILABLE
                           </span>
                         ) : (
