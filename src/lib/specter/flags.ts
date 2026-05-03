@@ -11,7 +11,9 @@ import { createHmac, createHash } from "crypto";
 
 // Deployed Specter level slugs in chain order. Update when adding levels.
 // L0 = paper-trail, L1 = search-operator, L2 = code-hunter, L3 = js-recon,
-// L4 = people-recon, L5 = sock-puppet.
+// L4 = people-recon, L5 = sock-puppet, L6 = image-geo, L7 = reverse-image,
+// L8 = travel-pattern, L9 = corporate-intel, L10 = dark-web,
+// L11 = telegram-intel, L12 = adversarial-osint, L13 = berkeley-protocol.
 export const SPECTER_LEVEL_SLUGS = [
   "paper-trail",
   "search-operator",
@@ -19,6 +21,14 @@ export const SPECTER_LEVEL_SLUGS = [
   "js-recon",
   "people-recon",
   "sock-puppet",
+  "image-geo",
+  "reverse-image",
+  "travel-pattern",
+  "corporate-intel",
+  "dark-web",
+  "telegram-intel",
+  "adversarial-osint",
+  "berkeley-protocol",
 ] as const;
 
 export type SpecterLevelSlug = (typeof SPECTER_LEVEL_SLUGS)[number];

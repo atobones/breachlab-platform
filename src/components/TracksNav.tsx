@@ -10,7 +10,7 @@ type SubTrack = { slug: string; name: string; status: TrackStatus };
 const TRACKS: Track[] = [
   { slug: "ghost", name: "Ghost", status: "LIVE" },
   { slug: "phantom", name: "Phantom", status: "LIVE" },
-  { slug: "specter", name: "Specter", status: "SOON" },
+  { slug: "specter", name: "Specter", status: "LIVE" },
   { slug: "mirage", name: "Mirage", status: "PLANNED" },
   { slug: "cipher", name: "Cipher", status: "PLANNED" },
   { slug: "nexus", name: "Nexus", status: "PLANNED" },
@@ -24,7 +24,7 @@ const TRACKS: Track[] = [
 ];
 
 const SPECTER_SUBTRACKS: SubTrack[] = [
-  { slug: "specter/i", name: "I — OSINT", status: "SOON" },
+  { slug: "specter/i", name: "I — OSINT", status: "LIVE" },
   { slug: "specter/ii", name: "II — Network & WiFi", status: "PLANNED" },
   { slug: "specter/iii", name: "III — Defence Evasion", status: "PLANNED" },
 ];

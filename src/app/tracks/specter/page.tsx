@@ -5,7 +5,7 @@ type SubTrackCard = {
   slug: string;
   numeral: string;
   title: string;
-  status: "SOON" | "PLANNED";
+  status: "LIVE" | "SOON" | "PLANNED";
   levels: string;
   pitch: string;
 };
@@ -15,7 +15,7 @@ const SUBTRACKS: SubTrackCard[] = [
     slug: "specter/i",
     numeral: "I",
     title: "OSINT — Recon Operatives",
-    status: "SOON",
+    status: "LIVE",
     levels: "14 levels",
     pitch:
       "Passive intelligence gathering at professional grade. Multi-engine pivots, source independence, OPSEC discipline, adversarial targets. The only OSINT track that grades operational tradecraft alongside collection.",
@@ -46,13 +46,14 @@ export default function SpecterOverviewPage() {
       <header className="space-y-3">
         <div className="flex items-center gap-3">
           <h1 className="text-amber text-2xl">Specter</h1>
-          <span className="text-xs uppercase tracking-wider px-2 py-0.5 border border-amber text-amber">
-            Coming Soon
+          <span className="text-xs uppercase tracking-wider px-2 py-0.5 border border-green text-green">
+            I Live
           </span>
         </div>
         <p className="text-sm text-muted">
           Recon &amp; Initial Access. Three sub-tracks, ~32 levels, ephemeral
-          per-session containers from day one.
+          per-session containers from day one. Specter I is live; II and III
+          ship next.
         </p>
       </header>
 
@@ -91,10 +92,18 @@ export default function SpecterOverviewPage() {
                   </div>
                   <span
                     className={`text-xs uppercase tracking-wider ${
-                      s.status === "SOON" ? "text-amber" : "text-muted"
+                      s.status === "LIVE"
+                        ? "text-green"
+                        : s.status === "SOON"
+                          ? "text-amber"
+                          : "text-muted"
                     }`}
                   >
-                    {s.status === "SOON" ? "Coming Soon" : "Planned"}
+                    {s.status === "LIVE"
+                      ? "Live"
+                      : s.status === "SOON"
+                        ? "Coming Soon"
+                        : "Planned"}
                   </span>
                 </div>
                 <p className="text-xs text-muted mt-1 mb-3">{s.levels}</p>
