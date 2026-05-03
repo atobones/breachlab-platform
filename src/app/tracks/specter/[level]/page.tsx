@@ -6,6 +6,7 @@ import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { submissions, levels } from "@/lib/db/schema";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { PrevNextLevel } from "@/components/PrevNextLevel";
 import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
 
 export const dynamic = "force-dynamic";
@@ -192,22 +193,13 @@ export default async function SpecterLevelPage({
         )}
       </section>
 
-      <footer className="border-t border-border pt-4 flex justify-between text-sm">
-        {idx > 0 ? (
-          <Link href={`/tracks/specter/${idx - 1}`} className="text-amber">
-            ← L{idx - 1}
-          </Link>
-        ) : (
-          <span />
-        )}
-        {idx < 13 ? (
-          <Link href={`/tracks/specter/${idx + 1}`} className="text-amber">
-            L{idx + 1} →
-          </Link>
-        ) : (
-          <span className="text-muted">end of track</span>
-        )}
-      </footer>
+      <PrevNextLevel
+        prevHref={idx > 0 ? `/tracks/specter/${idx - 1}` : null}
+        prevLabel={idx > 0 ? `Level ${idx - 1}` : undefined}
+        nextHref={idx < 13 ? `/tracks/specter/${idx + 1}` : null}
+        nextLabel={idx < 13 ? `Level ${idx + 1}` : undefined}
+        indexHref="/tracks/specter/i"
+      />
     </div>
   );
 }
