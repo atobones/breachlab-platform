@@ -74,12 +74,7 @@ export default async function SpecterIPage() {
   return (
     <div className="space-y-12 max-w-3xl">
       <header className="space-y-3">
-        <div className="flex items-center gap-3">
-          <h1 className="text-amber text-2xl">Specter I — OSINT</h1>
-          <span className="text-xs uppercase tracking-wider px-2 py-0.5 border border-green text-green">
-            Live
-          </span>
-        </div>
+        <h1 className="text-amber text-2xl">Specter I — OSINT</h1>
         <p className="text-sm text-muted">
           Fourteen levels. Passive intelligence at professional grade. Built for
           operatives who will be asked to investigate real targets, not pass a
