@@ -1,11 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { issueSpecterTokenAction } from "@/lib/specter/issue-token-action";
 
-type IssueResp = { token: string; expiresAt: string };
-
-// Specter L0 bootstrap token. Player clicks → POST /api/specter/issue-token,
-// receives plaintext once, copies into BL_TOKEN env on the L0 ephemeral.
+// Specter L0 bootstrap token. Player clicks → invokes a Server Action
+// (issueSpecterTokenAction) which writes a hashed token row and returns
+// the plaintext once. Server Actions ride Next's RSC channel rather than
+// /api/* fetch, which lets us bypass the Cloudflare Bot Fight Mode
+// challenge that blocks the JSON XHR variant. The /api route still
+// exists for external CLIs.
+//
 // Token lasts 7 days; lost-token recovery is "click again". The token is
 // not auth-bearing on the platform — only the oracle can resolve it (and
 // only over the platform-internal SPECTER_ORACLE_SECRET-bearer endpoint),
@@ -13,41 +17,22 @@ type IssueResp = { token: string; expiresAt: string };
 export function SpecterBootstrapToken() {
   const [token, setToken] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+  const [pending, startTransition] = useTransition();
 
-  async function issue() {
-    setPending(true);
+  function issue() {
     setError(null);
-    try {
-      const r = await fetch("/api/specter/issue-token", {
-        method: "POST",
-        credentials: "same-origin",
-        cache: "no-store",
-        headers: {
-          "Accept": "application/json",
-          "Content-Type": "application/json",
-        },
-        body: "{}",
-      });
-      if (!r.ok) {
-        const text = await r.text().catch(() => "");
-        let detail = `HTTP ${r.status}`;
-        try {
-          const parsed = JSON.parse(text) as { error?: string };
-          if (parsed.error) detail = parsed.error;
-        } catch {
-          if (text) detail = `HTTP ${r.status} — ${text.slice(0, 120)}`;
+    startTransition(async () => {
+      try {
+        const r = await issueSpecterTokenAction();
+        if (!r.ok) {
+          setError(r.error);
+          return;
         }
-        setError(detail);
-        return;
+        setToken(r.token);
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Action failed");
       }
-      const body = (await r.json()) as IssueResp;
-      setToken(body.token);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Network error");
-    } finally {
-      setPending(false);
-    }
+    });
   }
 
   return (
