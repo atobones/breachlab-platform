@@ -41,11 +41,15 @@ export function SpecterBootstrapToken() {
       <p className="text-xs text-muted">
         Required only for Specter L0 entry.{" "}
         <span className="text-amber">This token IS your SSH password.</span>{" "}
-        Generate it, then{" "}
-        <code>ssh specter0@204.168.229.209 -p 2230</code> and paste the
-        token at the password prompt. From L1 onward the password issued
-        on the previous level&apos;s submit is what you ssh in with — no
-        token needed.
+        Generate it, then ssh in and paste the token at the password
+        prompt:
+      </p>
+      <pre className="bg-bg border border-border p-2 text-xs text-text">
+        ssh specter0@204.168.229.209 -p 2230
+      </pre>
+      <p className="text-xs text-muted">
+        From L1 onward the password issued on the previous level&apos;s
+        submit is what you ssh in with — no token needed.
       </p>
       {!token && (
         <button
