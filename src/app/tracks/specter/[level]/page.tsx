@@ -5,8 +5,11 @@ import { getTrackBySlug, getLevelByTrackAndIdx } from "@/lib/tracks/queries";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { submissions, levels } from "@/lib/db/schema";
+import { getSpecterLevelContent } from "@/lib/tracks/specter-level-content";
+import { getFirstBloodByLevel } from "@/lib/badges/queries";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PrevNextLevel } from "@/components/PrevNextLevel";
+import { OperativeName } from "@/components/operatives/OperativeName";
 import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
 
 export const dynamic = "force-dynamic";
@@ -81,6 +84,10 @@ export default async function SpecterLevelPage({
     }
   }
 
+  const content = getSpecterLevelContent(idx);
+  const firstBloodMap = await getFirstBloodByLevel();
+  const firstBlood = firstBloodMap.get(lvl.id);
+
   const sshCmd = `ssh ${info.user}@${HOST} -p ${info.port}`;
 
   return (
@@ -113,17 +120,55 @@ export default async function SpecterLevelPage({
           Points: <span className="text-text">{lvl.pointsBase}</span>
           {lvl.pointsFirstBloodBonus > 0 && (
             <>
-              {" · "}First-blood bonus:{" "}
-              <span className="text-amber">+{lvl.pointsFirstBloodBonus}</span>
+              {" · "}
+              <span className="text-red">
+                +{lvl.pointsFirstBloodBonus} first-blood bonus
+              </span>
             </>
           )}
         </p>
       </header>
 
+      <div className="flex gap-2 text-xs">
+        {firstBlood ? (
+          <span className="border border-red text-red px-2 py-0.5 uppercase">
+            First Blood: @
+            <OperativeName
+              username={firstBlood.username}
+              isHallOfFame={firstBlood.isHallOfFame}
+              href={`/u/${firstBlood.username}`}
+              className={firstBlood.isHallOfFame ? "" : "text-red"}
+            />
+          </span>
+        ) : (
+          lvl.pointsFirstBloodBonus > 0 && (
+            <span className="border border-red text-red px-2 py-0.5 uppercase">
+              First Blood Available
+            </span>
+          )
+        )}
+        {solved && (
+          <span className="border border-green text-green px-2 py-0.5 uppercase">
+            You Solved This
+          </span>
+        )}
+      </div>
+
       <section className="space-y-2">
         <h2 className="text-amber text-sm uppercase">Mission</h2>
-        <p className="text-sm whitespace-pre-line">{lvl.description}</p>
+        <p className="text-sm whitespace-pre-line">
+          {content?.goal ?? lvl.description}
+        </p>
       </section>
+
+      {content?.realWorldSkill && (
+        <section className="border-l-2 border-amber pl-4">
+          <h2 className="text-muted text-xs uppercase mb-1">
+            Why this matters in 2026
+          </h2>
+          <p className="text-sm">{content.realWorldSkill}</p>
+        </section>
+      )}
 
       {idx === 0 && user && <SpecterBootstrapToken />}
 
