@@ -23,10 +23,17 @@ const TRACKS: Track[] = [
   { slug: "flux", name: "Flux", status: "PLANNED" },
 ];
 
-const SPECTER_SUBTRACKS: SubTrack[] = [
-  { slug: "specter/i", name: "I — OSINT", status: "LIVE" },
-  { slug: "specter/ii", name: "II — Network & WiFi", status: "PLANNED" },
-  { slug: "specter/iii", name: "III — Defence Evasion", status: "PLANNED" },
+type SpecterSubTrack = {
+  slug: string;
+  numeral: string;
+  name: string;
+  status: TrackStatus;
+};
+
+const SPECTER_SUBTRACKS: SpecterSubTrack[] = [
+  { slug: "specter/i", numeral: "I", name: "OSINT", status: "LIVE" },
+  { slug: "specter/ii", numeral: "II", name: "Network & WiFi", status: "PLANNED" },
+  { slug: "specter/iii", numeral: "III", name: "Defence Evasion", status: "PLANNED" },
 ];
 
 const STATUS_COLOR: Record<TrackStatus, string> = {
@@ -79,24 +86,44 @@ export function TracksNav() {
                 {specterOpen && (
                   <ul
                     id="specter-subtracks"
-                    className="mt-1 mb-2 ml-4 space-y-1 border-l border-border pl-3"
+                    className="mt-1 mb-2 ml-2 space-y-1 border-l border-border pl-2"
                   >
-                    {SPECTER_SUBTRACKS.map((s) => (
-                      <li
-                        key={s.slug}
-                        className="subtrack-row flex justify-between text-xs"
-                      >
-                        <Link
-                          href={`/tracks/${s.slug}`}
-                          className="hover:text-amber"
+                    {SPECTER_SUBTRACKS.map((s) => {
+                      const isLive = s.status === "LIVE";
+                      const row = (
+                        <span
+                          className={`subtrack-row grid grid-cols-[1.5rem_1fr_auto] items-baseline gap-1.5 text-xs ${
+                            isLive ? "" : "opacity-60"
+                          }`}
                         >
-                          {s.name}
-                        </Link>
-                        <span className={STATUS_COLOR[s.status]}>
-                          {s.status}
+                          <span className="text-amber tabular-nums">
+                            {s.numeral}
+                          </span>
+                          <span className="truncate">{s.name}</span>
+                          <span
+                            className={`text-[10px] uppercase tracking-wider ${STATUS_COLOR[s.status]}`}
+                          >
+                            {s.status}
+                          </span>
                         </span>
-                      </li>
-                    ))}
+                      );
+                      return (
+                        <li key={s.slug}>
+                          {isLive ? (
+                            <Link
+                              href={`/tracks/${s.slug}`}
+                              className="block hover:text-amber"
+                            >
+                              {row}
+                            </Link>
+                          ) : (
+                            <div className="cursor-default select-none">
+                              {row}
+                            </div>
+                          )}
+                        </li>
+                      );
+                    })}
                   </ul>
                 )}
               </li>
