@@ -8,11 +8,11 @@ import { users } from "@/lib/db/schema";
 import { DiscordLinkCard } from "@/components/dashboard/DiscordLinkCard";
 import { CertificateShowcase } from "@/components/dashboard/CertificateShowcase";
 import { EmailVerificationBanner } from "@/components/dashboard/EmailVerificationBanner";
-// SpecterBootstrapToken — re-mounted 2026-05-03 on Specter I launch.
-// Issues the per-player L0 SSH credential so the player can enter the
-// chain. From L1 onward the chain emits the next-level password via
-// /submit. L13 is the capstone closer.
-import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
+// SpecterBootstrapToken now lives on /tracks/specter/i and on the L0
+// per-level page (where players actually land when starting Specter).
+// Hiding it from the personal dashboard keeps the dashboard about the
+// player (badges, certificates, account) instead of mixing in a track-
+// specific entry point that's hard to discover.
 import { isConfigured as isDiscordConfigured } from "@/lib/discord/oauth";
 import { getEarnedCertificates } from "@/lib/dashboard/certificates";
 
@@ -47,7 +47,6 @@ export default async function DashboardPage() {
         configured={isDiscordConfigured()}
       />
       {!user.emailVerified && <EmailVerificationBanner />}
-      <SpecterBootstrapToken />
       <section>
         <h2 className="text-lg mb-2">Badges</h2>
         {userBadges.length === 0 ? (

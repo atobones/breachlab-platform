@@ -6,6 +6,7 @@ import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { submissions, levels } from "@/lib/db/schema";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
+import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
 
 export const dynamic = "force-dynamic";
 
@@ -123,6 +124,8 @@ export default async function SpecterLevelPage({
         <p className="text-sm whitespace-pre-line">{lvl.description}</p>
       </section>
 
+      {idx === 0 && user && <SpecterBootstrapToken />}
+
       <section className="border border-border p-4 space-y-2">
         <h2 className="text-amber text-sm uppercase">SSH</h2>
         <dl className="text-sm space-y-1">
@@ -143,10 +146,9 @@ export default async function SpecterLevelPage({
             <dd className="inline">
               {idx === 0 ? (
                 <span className="text-amber">
-                  bootstrap token from{" "}
-                  <Link href="/dashboard" className="underline">
-                    your dashboard
-                  </Link>
+                  bootstrap token (see block above — generate, then{" "}
+                  <code>export BL_TOKEN=&lt;token&gt;</code> inside the
+                  ephemeral)
                 </span>
               ) : (
                 <span className="text-muted">
