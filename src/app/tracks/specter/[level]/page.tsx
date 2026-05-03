@@ -116,8 +116,8 @@ export default async function SpecterLevelPage({
             <span className="text-xs uppercase tracking-wider text-muted">locked</span>
           )}
         </div>
-        <p className="text-xs text-muted">
-          Points: <span className="text-text">{lvl.pointsBase}</span>
+        <p className="text-sm text-muted">
+          {lvl.pointsBase} pts
           {lvl.pointsFirstBloodBonus > 0 && (
             <>
               {" · "}
