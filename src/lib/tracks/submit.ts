@@ -38,6 +38,14 @@ const SPECTER_SSH_PORTS: Record<string, number> = {
   "js-recon": 2233,
   "people-recon": 2234,
   "sock-puppet": 2235,
+  "image-geo": 2236,
+  "reverse-image": 2237,
+  "travel-pattern": 2238,
+  "corporate-intel": 2239,
+  "dark-web": 2240,
+  "telegram-intel": 2241,
+  "adversarial-osint": 2242,
+  "berkeley-protocol": 2243,
 };
 const SPECTER_SSH_HOST = "204.168.229.209";
 // Mirrors the Linux user inside each ephemeral image (specter0..3).
