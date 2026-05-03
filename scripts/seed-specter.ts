@@ -88,6 +88,78 @@ const SPECTER_LEVELS: SpecterLevel[] = [
     pointsBase: 900,
     pointsFirstBloodBonus: 50,
   },
+  {
+    idx: 6,
+    slug: "image-geo",
+    title: "Image Geolocation & EXIF Discipline",
+    description:
+      "Five photos to street-block (±50m) precision via shadow azimuth, OSM landmark match, signage script, biome convergence + counter-evidence rejection. One photo carries planted EXIF that traces back to you on reverse-search — strip metadata before pivoting or burn the persona. WEP calibration on every axis.",
+    pointsBase: 1000,
+    pointsFirstBloodBonus: 75,
+  },
+  {
+    idx: 7,
+    slug: "reverse-image",
+    title: "Reverse Image & Synthetic Media Detection",
+    description:
+      "Authenticate one reference photo + four candidate photos + one candidate video against eight forensic axes (Yandex face cluster, Google Lens scene, TinEye exact-match, Bing narrative context, lighting cone, Daugman iris consistency, C2PA + AI-image registry, lipsync bilabial-dip alignment). One candidate is adversarially perturbed to defeat spectral checks — iris + lighting cone are the gate.",
+    pointsBase: 1200,
+    pointsFirstBloodBonus: 100,
+  },
+  {
+    idx: 8,
+    slug: "travel-pattern",
+    title: "Travel Pattern Reconstruction",
+    description:
+      "Thirty days of social media + Telegram channels reconstructed into a timeline. Identify home, workplace, family residence. Multi-source fusion: ADS-B for flights, AIS for ferries, Strava heatmap signal.",
+    pointsBase: 1300,
+    pointsFirstBloodBonus: 100,
+  },
+  {
+    idx: 9,
+    slug: "corporate-intel",
+    title: "Corporate Intel & Supply Chain",
+    description:
+      "SEC EDGAR + Companies House. Unmask shell company ownership through common-director graph analysis. Map supply chain via trade data — ImportYeti, Datasur, Panjiva. Sanctioned-entity detection through chain analysis.",
+    pointsBase: 1400,
+    pointsFirstBloodBonus: 100,
+  },
+  {
+    idx: 10,
+    slug: "dark-web",
+    title: "Dark Web Intel",
+    description:
+      "Tor, Ahmia, Recorded Future, ransomware leak sites, BreachForums monitoring. Distinguish a real dump from scraped recycled data, from imposter posts, from disinfo campaigns. Attribution false-flags.",
+    pointsBase: 1500,
+    pointsFirstBloodBonus: 100,
+  },
+  {
+    idx: 11,
+    slug: "telegram-intel",
+    title: "Telegram & Encrypted-Channel Intel",
+    description:
+      "The post-2022 OSINT goldmine. Channel monitoring, group infiltration tradecraft, geographic intelligence collection during active operations. Threat-actor coordination signals.",
+    pointsBase: 1600,
+    pointsFirstBloodBonus: 100,
+  },
+  {
+    idx: 12,
+    slug: "adversarial-osint",
+    title: "Adversarial OSINT",
+    description:
+      "The target fights back. Detect canary tokens, dangle accounts that alert SOC on login, poisoned pastes with backdoored creds, watermarked leaks, fake-leak campaigns (0APT 2025 case). Classify five candidates: three traps, two real.",
+    pointsBase: 1800,
+    pointsFirstBloodBonus: 125,
+  },
+  {
+    idx: 13,
+    slug: "berkeley-protocol",
+    title: "Full Engagement — Berkeley Protocol Report",
+    description:
+      "Ninety-minute capstone. Five employees, one valid credential, two internal hostnames, supply-chain partners, cloud provider, one misconfiguration with proof — without triggering honeypots, with sock-puppet trail clean. Submit a Berkeley Protocol-aligned written report. Findings stand up in court.",
+    pointsBase: 2500,
+    pointsFirstBloodBonus: 150,
+  },
 ];
 
 async function main() {

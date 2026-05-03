@@ -8,12 +8,10 @@ type TrackInfo = {
   tagline: string;
 };
 
+// Specter has its own dedicated page (/tracks/specter/page.tsx) since it
+// shipped Specter I. The catch-all [slug] route below is only for tracks
+// still in "Coming Soon" / "Planned" status.
 const UPCOMING_TRACKS: Record<string, TrackInfo> = {
-  specter: {
-    name: "Specter",
-    status: "SOON",
-    tagline: "Network attacks, wireless exploitation, phishing, DDoS, and firewall evasion.",
-  },
   mirage: {
     name: "Mirage",
     status: "PLANNED",

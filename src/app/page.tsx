@@ -27,11 +27,11 @@ const TRACKS = [
     number: 3,
     name: "Specter",
     href: "/tracks/specter",
-    status: "SOON" as const,
+    status: "LIVE" as const,
     difficulty: "Intermediate",
     levels: 30,
     summary:
-      "Initial access — how you get in. OSINT, network attacks, WiFi exploitation, phishing, social engineering, DDoS, firewall and IDS evasion, physical access.",
+      "Initial access — how you get in. OSINT, network attacks, WiFi exploitation, phishing, social engineering, DDoS, firewall and IDS evasion, physical access. Specter I (OSINT, 14 levels) is live.",
   },
   {
     number: 4,
