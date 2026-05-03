@@ -1,121 +1,75 @@
+import { eq, count } from "drizzle-orm";
 import Link from "next/link";
+import { getTrackBySlug, getLevelsForTrack } from "@/lib/tracks/queries";
+import { getCurrentSession } from "@/lib/auth/session";
+import { db } from "@/lib/db/client";
+import { submissions } from "@/lib/db/schema";
+import { getFirstBloodByLevel } from "@/lib/badges/queries";
+import { SpecterLevelTable } from "@/components/tracks/SpecterLevelTable";
 import { DISCORD_INVITE_URL } from "@/lib/links";
 
-type LevelRow = {
-  idx: number;
-  name: string;
-  pitch: string;
-  status?: "DEPLOYED" | "BUILD" | "QUEUED";
-};
+export const dynamic = "force-dynamic";
 
-const LEVELS: LevelRow[] = [
-  {
-    idx: 0,
-    name: "Paper Trail",
-    pitch:
-      "Domain and infrastructure recon. WHOIS current vs historical, DNS triage with decoys, certificate transparency, MX/CNAME inference, breach-DB cross-reference, internal hostnames leaked in CI build logs.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 1,
-    name: "Search Engine Operator",
-    pitch:
-      "Multi-engine pivots: Shodan banner → Censys cert → CT subdomains → Google dork → Wayback diff → secret. Single-engine answers are rejected as unconfirmed. 30–50% of plausible hits are honeypots, decoys, or tarpits.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 2,
-    name: "Code & Secret Hunting",
-    pitch:
-      "GitHub/GitLab/gist dorks, deleted commits via git log --all, Postman public collections, Trello and Notion API leaks. Verify each credential — real, sandbox, rotated, or canary. Tool-churn resilience: solve via three independent stacks.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 3,
-    name: "JS Recon & API Discovery",
-    pitch:
-      "Fetch and deobfuscate frontend JavaScript, extract API endpoints, GraphQL introspection, hidden feature flags. Find the non-public API leak. Resist dependent-source traps where three different blogs cite the same wrong endpoint.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 4,
-    name: "People Recon — Source Independence",
-    pitch:
-      "Build a 30-person org chart from one email. Decision-makers, technical leads, contractors. Grade each finding with NATO Admiralty reliability (A1–F6). Assign calibrated confidence (WEPs). Verifier rejects three-dependent-sources triangulation as wrong.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 5,
-    name: "Sock Puppet Operational Tradecraft",
-    pitch:
-      "Create a persona that survives platform anomaly detection. Account aging, follow-graph entropy, stylometric consistency, browser-fingerprint compartmentalisation, burn protocol. Bellingcat 2024 self-own as instructional case.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 6,
-    name: "Image Geolocation & EXIF Discipline",
-    pitch:
-      "Five photos to city block. Shadow angle and sun azimuth, OSM building ID, signage script, vegetation biome. One photo carries EXIF that traces back to you if uploaded to reverse-search platforms. Strip metadata before pivoting — or get doxed.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 7,
-    name: "Reverse Image & Synthetic Media Detection",
-    pitch:
-      "Yandex-first face search across multi-engine workflow. Two of five candidates are AI-generated — detect deepfake artifacts, generative inconsistencies, lighting impossibilities. Treat every image as synthetic until proven otherwise.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 8,
-    name: "Travel Pattern Reconstruction",
-    pitch:
-      "Thirty days of social media plus Telegram channels reconstructed into a timeline. Identify home, workplace, family residence. Multi-source fusion: ADS-B for flights, AIS for ferries, Strava heatmap signal.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 9,
-    name: "Corporate Intel & Supply Chain",
-    pitch:
-      "SEC EDGAR and Companies House. Unmask shell company ownership through common-director graph analysis. Map supply chain via trade data — ImportYeti, Datasur, Panjiva. Sanctioned-entity detection through chain analysis.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 10,
-    name: "Dark Web Intel",
-    pitch:
-      "Tor, Ahmia, Recorded Future, ransomware leak sites, BreachForums monitoring. Distinguish a real dump from scraped recycled data, from imposter posts, from disinfo campaigns. Attribution false-flags.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 11,
-    name: "Telegram & Encrypted-Channel Intel",
-    pitch:
-      "The post-2022 OSINT goldmine. Channel monitoring, group infiltration tradecraft, geographic intelligence collection during active operations. Threat-actor coordination signals.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 12,
-    name: "Adversarial OSINT",
-    pitch:
-      "The target fights back. Detect canary tokens, dangle accounts that alert SOC on login, poisoned pastes with backdoored creds, watermarked leaks, fake-leak campaigns (0APT 2025 case). Classify five candidates: three traps, two real.",
-    status: "DEPLOYED",
-  },
-  {
-    idx: 13,
-    name: "Full Engagement — Berkeley Protocol Report",
-    pitch:
-      "Ninety-minute capstone. Five employees, one valid credential, two internal hostnames, supply-chain partners, cloud provider, one misconfiguration with proof — without triggering honeypots, with sock-puppet trail clean. Submit a Berkeley Protocol-aligned written report. Findings stand up in court.",
-    status: "DEPLOYED",
-  },
-];
+export default async function SpecterIPage() {
+  const track = await getTrackBySlug("specter");
+  if (!track) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-amber text-xl">Specter I</h1>
+        <p className="text-red">
+          Track not seeded. Run <code>npm run seed:specter</code>.
+        </p>
+      </div>
+    );
+  }
 
-const STATUS_STYLE: Record<NonNullable<LevelRow["status"]>, string> = {
-  DEPLOYED: "text-green",
-  BUILD: "text-amber",
-  QUEUED: "text-muted",
-};
+  const allLevels = await getLevelsForTrack(track.id);
+  const firstBloodByLevelId = await getFirstBloodByLevel();
+  const { user } = await getCurrentSession();
 
-export default function SpecterIPage() {
+  // Specter I is L0..L13. Filter the wider Specter track if other
+  // sub-tracks ever land in the same `levels` table.
+  const levelRows = allLevels.filter((l) => l.idx >= 0 && l.idx <= 13);
+
+  let solvedLevelIds = new Set<string>();
+  if (user && levelRows.length > 0) {
+    const userRows = await db
+      .select({ levelId: submissions.levelId })
+      .from(submissions)
+      .where(eq(submissions.userId, user.id));
+    solvedLevelIds = new Set(userRows.map((r) => r.levelId));
+  }
+
+  const levelsByIdx = new Map(levelRows.map((l) => [l.idx, l]));
+  const minIdx = levelRows.length > 0
+    ? Math.min(...levelRows.map((l) => l.idx))
+    : 0;
+  const unlockedLevelIds = new Set<string>();
+  if (user) {
+    for (const l of levelRows) {
+      if (l.idx === minIdx) {
+        unlockedLevelIds.add(l.id);
+        continue;
+      }
+      const prev = levelsByIdx.get(l.idx - 1);
+      if (prev && solvedLevelIds.has(prev.id)) {
+        unlockedLevelIds.add(l.id);
+      }
+    }
+    for (const id of solvedLevelIds) unlockedLevelIds.add(id);
+  }
+
+  const solveCountRows = await db
+    .select({
+      levelId: submissions.levelId,
+      operatives: count(submissions.userId),
+    })
+    .from(submissions)
+    .groupBy(submissions.levelId);
+  const solveCountByLevelId = new Map(
+    solveCountRows.map((r) => [r.levelId, Number(r.operatives)]),
+  );
+
   return (
     <div className="space-y-12 max-w-3xl">
       <header className="space-y-3">
@@ -193,45 +147,52 @@ export default function SpecterIPage() {
         </ul>
       </section>
 
-      <section className="space-y-4">
-        <h2 className="text-amber text-lg">The fourteen levels</h2>
-        <ol className="space-y-3 text-sm">
-          {LEVELS.map((l) => (
-            <li
-              key={l.idx}
-              className="border-b border-border pb-3 last:border-b-0"
-            >
-              <div className="flex items-baseline justify-between gap-4 mb-1">
-                <h3 className="text-amber">
-                  L{l.idx}{" "}
-                  <span className="text-text">— {l.name}</span>
-                </h3>
-                {l.status && (
-                  <span
-                    className={`text-xs uppercase tracking-wider ${STATUS_STYLE[l.status]}`}
-                  >
-                    {l.status === "DEPLOYED"
-                      ? "Live"
-                      : l.status === "BUILD"
-                        ? "In Build"
-                        : "Queued"}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-muted">{l.pitch}</p>
-            </li>
-          ))}
-        </ol>
+      <section className="border border-border p-4 space-y-2">
+        <h2 className="text-amber text-sm uppercase">SSH</h2>
+        <dl className="text-sm space-y-1">
+          <div>
+            <dt className="inline text-muted">Host: </dt>
+            <dd className="inline">204.168.229.209</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Levels L0–L13: </dt>
+            <dd className="inline">ports 2230–2243 (one per level)</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">L0 entry user: </dt>
+            <dd className="inline">specter0</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">L0 password: </dt>
+            <dd className="inline text-amber">
+              bootstrap token from{" "}
+              <Link href="/dashboard" className="underline">
+                your dashboard
+              </Link>
+            </dd>
+          </div>
+        </dl>
+        <pre className="bg-bg border border-border p-2 text-xs mt-3">
+          ssh specter0@204.168.229.209 -p 2230
+        </pre>
+        <p className="text-xs text-muted mt-2">
+          From L1 onward your password is the flag emitted by the previous
+          level&apos;s verifier — per-player HMAC, so leaking a flag in
+          Discord doesn&apos;t unlock anything for the leaker. Each connection
+          spawns a fresh ephemeral container; disconnect tears it down.
+        </p>
       </section>
 
-      <section className="space-y-3">
-        <h2 className="text-amber text-lg">After this track</h2>
-        <p className="text-sm">
-          You will be able to investigate a target end-to-end without leaving a
-          trail, defend the report under cross-examination, and recognise when
-          you are being counter-investigated. You will be a credible OSINT
-          analyst at a tier most public certification graduates never reach.
-        </p>
+      <section>
+        <h2 className="text-amber text-lg mb-2">Levels</h2>
+        <SpecterLevelTable
+          levels={levelRows}
+          solvedLevelIds={solvedLevelIds}
+          unlockedLevelIds={unlockedLevelIds}
+          authed={!!user}
+          firstBloodByLevelId={firstBloodByLevelId}
+          solveCountByLevelId={solveCountByLevelId}
+        />
       </section>
 
       <section className="space-y-3 border border-green p-4">
@@ -248,6 +209,22 @@ export default function SpecterIPage() {
           preserved server-side.
         </p>
       </section>
+
+      {user ? (
+        <p className="text-sm">
+          Found a flag?{" "}
+          <Link href="/submit" className="text-amber underline">
+            Submit it →
+          </Link>
+        </p>
+      ) : (
+        <p className="text-sm text-muted">
+          <Link href="/login" className="text-amber underline">
+            Log in
+          </Link>{" "}
+          to submit flags and track progress.
+        </p>
+      )}
 
       <footer className="border-t border-border pt-4 space-y-2">
         <p className="text-sm">
