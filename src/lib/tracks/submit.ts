@@ -87,7 +87,7 @@ export type SpecterNextCreds = {
   sshHost: string;        // 204.168.229.209
   sshPort: number;        // 2231
   password: string;       // bl_<32 hex> — the just-submitted player flag
-  expiresAt: string;      // ISO timestamp (24h ahead)
+  expiresAt: string;      // ISO timestamp (30 days ahead)
 };
 
 export type SubmitResult =
@@ -458,7 +458,7 @@ export async function submitFlag(
     if (nextSlug) {
       const nextPassword = specterSshPasswordFor(userId, nextSlug);
       const nextPwHash = sha256Hex(nextPassword);
-      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+      const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
       await db
         .insert(specterSessionCreds)
         .values({
