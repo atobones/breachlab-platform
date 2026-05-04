@@ -60,9 +60,9 @@ export const SPECTER_LEVEL_CONTENT: Record<number, SpecterLevelContent> = {
   },
   8: {
     goal:
-      "Reconstruct thirty days of social media + Telegram into a timeline. Identify home, workplace and family residence. Fuse ADS-B for flights, AIS for ferries, and Strava heatmaps for routine.",
+      "Reconstruct a target's last 30 days of travel from open public signals — ADS-B for private aviation (catch the subleased-jet operator swap), AIS for vessel tracking (catch the MMSI-spoofed yacht), Strava heatmap delta-overlays, IATA boarding-pass barcode forensics with companion-PNR pivot, posting-time timezone fingerprint (separate live posts from scheduled-batch decoys), POI check-ins (filter paid lifestyle-service entries by engagement). Adjudicate an alleged-meet allegation. Recall L2's Quantum Holdings finding to cross-attribute correctly.",
     realWorldSkill:
-      "Pattern of life is the OSINT primitive that drives everything from investigative journalism to executive protection to targeted action.",
+      "Pattern-of-life reconstruction from disparate public feeds is the OSINT primitive driving investigative journalism, executive protection and sanctions enforcement. Adversaries fabricate signals — every feed has a planted contradiction. Single-source legs are landmines.",
   },
   9: {
     goal:

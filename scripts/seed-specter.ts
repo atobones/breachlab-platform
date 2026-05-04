@@ -111,7 +111,7 @@ const SPECTER_LEVELS: SpecterLevel[] = [
     slug: "travel-pattern",
     title: "Travel Pattern Reconstruction",
     description:
-      "Thirty days of social media + Telegram channels reconstructed into a timeline. Identify home, workplace, family residence. Multi-source fusion: ADS-B for flights, AIS for ferries, Strava heatmap signal.",
+      "Reconstruct a target's last 30 days of travel from open public signals — ADS-B for private aviation, AIS for vessel tracking, Strava heatmap delta-overlays, IATA boarding-pass barcode forensics, posting-time timezone fingerprint, POI check-in correlation. Adjudicate an alleged-meet allegation. Adversary planted four counter-OSINT decoys: catch at least three. Cross-track callback to L2 — recall the Quantum Holdings finding to attribute correctly.",
     pointsBase: 1300,
     pointsFirstBloodBonus: 100,
   },
