@@ -24,7 +24,7 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
   return (
     <article
       data-testid="operative-certificate"
-      className="border-2 border-amber bg-bg text-text font-mono p-8 max-w-3xl mx-auto shadow-[0_0_30px_rgba(245,158,11,0.15)]"
+      className="border-2 border-amber bg-bg text-text font-mono p-4 sm:p-8 max-w-3xl mx-auto shadow-[0_0_30px_rgba(245,158,11,0.15)] overflow-hidden"
     >
       <div className="text-center space-y-1">
         <p className="text-xs tracking-[0.4em] text-amber">
@@ -37,24 +37,31 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
             downloaded certificates arrived with multi-spaces collapsed so
             the BREACHLAB ASCII logo rendered narrow and overlapping
             (defstrong bug report 2026-04-23). Inline styles are respected
-            by html-to-image unconditionally. */}
-        <pre
-          style={{
-            whiteSpace: "pre",
-            fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-            lineHeight: 1.15,
-            textAlign: "left",
-            display: "inline-block",
-          }}
-          className="font-mono text-amber text-[10px] select-none overflow-x-auto"
-        >
+            by html-to-image unconditionally.
+            Wrapper div has overflow-x-auto so the inline-block pre can
+            scroll horizontally on narrow viewports without forcing the
+            article wider than the viewport — Fafikk 2026-05-03 reported
+            cert page was unscrollable on mobile because the pre escaped
+            the article box and hijacked touch gestures. */}
+        <div className="overflow-x-auto -mx-4 sm:mx-0 px-4 sm:px-0">
+          <pre
+            style={{
+              whiteSpace: "pre",
+              fontFamily:
+                "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              lineHeight: 1.15,
+              textAlign: "left",
+              display: "inline-block",
+            }}
+            className="font-mono text-amber text-[10px] select-none"
+          >
 {` ____  ____  _____    _    ____ _   _ _        _    ____
 | __ )|  _ \\| ____|  / \\  / ___| | | | |      / \\  | __ )
 |  _ \\| |_) |  _|   / _ \\| |   | |_| | |     / _ \\ |  _ \\
 | |_) |  _ <| |___ / ___ \\ |___|  _  | |___ / ___ \\| |_) |
 |____/|_| \\_\\_____/_/   \\_\\____|_| |_|_____/_/   \\_\\____/`}
-        </pre>
+          </pre>
+        </div>
         <p className="text-[11px] tracking-[0.4em] text-muted">
           OPERATIVE CERTIFICATION — GHOST TRACK
         </p>
@@ -62,12 +69,12 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
 
       <div className="my-6 border-t border-amber/30" />
 
-      <div className="grid grid-cols-[1fr_auto] gap-6 items-start">
-        <div className="space-y-4">
+      <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-6 items-start">
+        <div className="space-y-4 min-w-0">
           <p className="text-xs text-muted uppercase tracking-wider">
             This document certifies that
           </p>
-          <h1 className="text-3xl text-amber tracking-wide break-all">
+          <h1 className="text-2xl sm:text-3xl text-amber tracking-wide break-all">
             @{cert.username}
           </h1>
           <p className="text-sm leading-relaxed max-w-prose">
@@ -90,7 +97,7 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
         />
       </div>
 
-      <section className="mt-6 grid grid-cols-2 gap-x-6 gap-y-3 text-sm">
+      <section className="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 text-sm">
         <div>
           <div className="text-xs text-muted uppercase tracking-wider">
             Call sign
@@ -137,7 +144,7 @@ export async function OperativeCertificate({ cert }: { cert: GhostCertificate })
         track is open to you. The real work starts now.&rdquo;
       </section>
 
-      <section className="mt-8 grid grid-cols-2 gap-6 text-xs">
+      <section className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-6 text-xs">
         <div>
           <div className="border-t border-amber/50 pt-2">
             BreachLab Command
