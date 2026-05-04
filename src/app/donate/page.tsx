@@ -18,19 +18,6 @@ const DONATE_METHODS: SpotlightCardData[] = [
     testId: "donate-card-crypto",
   },
   {
-    href: "/donate/github-sponsors",
-    icon: "★",
-    title: "GitHub Sponsors",
-    summary: "Monthly recurring support with operator tiers",
-    bullets: [
-      "$3 – $100 / month tiers",
-      "Supporter role in Discord",
-      "0% platform fee (Microsoft subsidised)",
-    ],
-    cta: "See sponsor tiers →",
-    testId: "donate-card-github",
-  },
-  {
     href: "/donate/liberapay",
     icon: "♥",
     title: "Liberapay",
@@ -52,15 +39,15 @@ export default function DonatePage() {
         <h1 className="text-amber text-2xl">Support BreachLab</h1>
         <p className="text-sm text-muted max-w-2xl">
           BreachLab is self-hosted and runs on community support. Pick whatever
-          rail fits you — crypto, monthly sponsor tiers through GitHub, or
-          flexible recurring donations through Liberapay. No custodian. No KYC
-          on the crypto path. No third-party eyes on the donation flow.
+          rail fits you — crypto, or flexible recurring donations through
+          Liberapay. No custodian. No KYC on the crypto path. No third-party
+          eyes on the donation flow.
         </p>
       </header>
 
       <SpotlightGrid
         cards={DONATE_METHODS}
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        className="grid gap-4 sm:grid-cols-2"
         testId="donate-methods"
       />
 

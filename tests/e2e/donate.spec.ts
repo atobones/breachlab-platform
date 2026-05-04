@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 
 test.describe("donate landing page", () => {
-  test("renders three payment method cards", async ({ page }) => {
+  test("renders crypto and liberapay payment method cards", async ({ page }) => {
     await page.goto("/donate");
     await expect(page.locator('[data-testid="donate-page"]')).toBeVisible();
     await expect(page.getByText(/Support BreachLab/)).toBeVisible();
@@ -9,11 +9,11 @@ test.describe("donate landing page", () => {
       page.locator('[data-testid="donate-card-crypto"]'),
     ).toBeVisible();
     await expect(
-      page.locator('[data-testid="donate-card-github"]'),
-    ).toBeVisible();
-    await expect(
       page.locator('[data-testid="donate-card-liberapay"]'),
     ).toBeVisible();
+    await expect(
+      page.locator('[data-testid="donate-card-github"]'),
+    ).toHaveCount(0);
   });
 
   test("crypto card links to /donate/crypto", async ({ page }) => {
