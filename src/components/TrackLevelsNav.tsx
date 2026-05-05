@@ -42,11 +42,12 @@ export function TrackLevelsNav({
           const isOptionalSideQuest = track.slug === "phantom" && l.idx === 9;
           let cls = "text-text";
           if (isActive) cls = "text-amber";
-          else if (isOptionalSideQuest) cls = "text-muted italic";
+          else if (isOptionalSideQuest) cls = "text-muted italic opacity-50";
           return (
             <li key={l.id}>
               <Link href={`/tracks/${track.slug}/${l.idx}`} className={cls}>
                 Level {l.idx} → Level {l.idx + 1}
+                {isOptionalSideQuest ? " (optional)" : ""}
               </Link>
             </li>
           );
