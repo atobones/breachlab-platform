@@ -196,23 +196,26 @@ binary — there's no `printf("%p", ...)`, no `read(stdin)` that echoes
 addresses back. Information-theoretically, how can you possibly know
 where to point saved RIP?
 
-There are two things to understand here. The first sounds like a
-clean win. The second is what makes L9 actually hard.
+There are two facts to internalize. The first looks like a clean win
+and isn't. The second is what the level actually charges you.
 
-**What's deterministic.** When the kernel `execve`s a binary, the
-layout of `argv[]` and `envp[]` strings on the new stack is
-deterministic given a small set of inputs. If you hold these four
-constant:
+**Fact 1 — the byte offset within page is deterministic.** When the
+kernel `execve`s a binary, the layout of `argv[]` and `envp[]`
+strings on the new stack is a function of a small set of inputs.
+Hold these four constant:
 
 - the length of `argv[0]` (the path the binary was invoked under),
 - the number of argv entries,
 - the total length of all argv strings combined,
 - the environment (envp contents and ordering),
 
-then the **offset** of `argv[1]` from the top of the stack VMA is the
-same across two different binaries. Build a tiny "probe" binary that
-prints the address of its own `argv[1]`, invoke it under the same
-four conditions as the real exploit, and you learn that offset.
+and the **byte offset of `argv[1]` within its memory page** —
+i.e. `argv[1] & 0xfff` — is identical on every `execve`. The bottom
+twelve bits of the address are something you can know without ever
+seeing the real exploit run.
+
+A tiny "probe" binary that prints the address of its own `argv[1]`
+gives you those bottom twelve bits experimentally:
 
 ```c
 #include <stdio.h>
@@ -222,15 +225,10 @@ int main(int argc, char **argv) {
 }
 ```
 
-**What's still random.** What the probe gives you is *the offset
-within a page*, not the absolute address. Linux ASLR randomizes the
-stack VMA's base address per `execve`, with roughly 24 bits of
-entropy on x86_64. The bottom 12 bits — the page offset — are stable
-between two execs that share the four inputs above. The middle 24
-bits roll fresh every exec.
-
-In numbers: run the probe three times in a row with identical
-arguments and you'll see something like
+Invoke it under the same four conditions as the real exploit (same
+path-length, same argc, same total argv length, same envp), look at
+the low twelve bits, and write them down. You only do this **once**.
+Across runs you'll see something like
 
 ```
 0x7ffe71260e92
@@ -238,47 +236,81 @@ arguments and you'll see something like
 0x7ffc29250e92
 ```
 
-The trailing `e92` is constant — that's your real signal. Everything
-above the third nibble from the right is rolling.
+The trailing `e92` is your number. Everything above the third nibble
+from the right is what's about to bite you.
 
-So the probe is **not** a one-shot oracle that tells you where your
-payload will land. It's a per-attempt oracle inside a brute-force
-loop. Run probe → use that address → run exploit → if SIGSEGV, the
-middle bits rolled differently, retry with a fresh probe → repeat
-until your guess collides with that exec's stack base. Hit rate per
-attempt is roughly **1 in 4096** (12 stable bits over the 24 random
-bits). Expected solve: thousands of attempts, minutes on one core. A
-small NOP sled in your padding widens the landing zone slightly but
-doesn't change the order of magnitude.
+**Fact 2 — the page address is fresh-random per `execve`.** Linux
+x86_64 stack ASLR randomizes the stack VMA's base by 22 bits,
+page-aligned. The kernel uses `STACK_RND_MASK = 0x3fffff` shifted
+by `PAGE_SHIFT` (see `arch/x86/include/asm/elf.h` and
+`fs/binfmt_elf.c::randomize_stack_top`); the often-quoted "24-bit"
+figure is the 32-bit number, not yours. That's roughly 4 million
+possible pages where your stack — and your `argv[1]` — could end
+up. Bits 12 through 33 of the address come out of a fresh
+`get_random_long()` call on every `execve`. They are not correlated
+to the previous run, and they are not predictable from outside.
+
+In particular, the probe **does not** tell you where your real
+exploit will land. The probe is itself an `execve` with its own
+independent random page bits. Re-running it in a tight loop just
+gives you the same constant twelve bits over and over and
+uncorrelated middle bits each time. The probe is a one-time tool
+for learning the deterministic part — it is not an oracle for
+predicting the next `execve`.
+
+**The path is brute force on the page bits.** Pick a plausible
+target page (anywhere in `0x7ff?_xxxx_x000` is fine), set the bottom
+twelve bits of your guess to the constant the probe gave you, and
+fire the exploit repeatedly. Each attempt is an independent draw
+against ~2²² ≈ 4 million pages. Hit rate per attempt is therefore
+roughly **1 in 4 million**. Plan accordingly.
+
+A few practical notes for the loop:
+
+- A NOP sled doesn't meaningfully widen the landing zone in this
+  setup. Your byte offset is deterministic and exactly known, so
+  every attempt already targets the right offset within the page;
+  what you're brute-forcing is the page itself, and a sled inside a
+  single page doesn't help you hit a different page. Keep a few
+  bytes of sled for off-by-one safety, but don't expect it to drop
+  the hit-rate denominator by a meaningful factor.
+- Run attempts in parallel. Multi-core scales linearly here — there
+  is no shared state between attempts.
+- At a few tens of milliseconds per `kern-tool` invocation, expected
+  solve is on the order of **hours to a couple of days** of CPU
+  time on a single core. This is brute force by design, not a
+  parlor trick; budget the patience and the parallelism.
 
 If your reflex is "I'll just disable ASLR with `setarch -R`", check
 the seccomp profile first — Docker's default blocks the
 `personality(ADDR_NO_RANDOMIZE)` syscall, so `setarch -R bash` exits
 with `Operation not permitted`. The container is locked into
-`randomize_va_space=2`. There is no shortcut here; the brute-force
-loop is the path.
+`randomize_va_space=2`. There is no shortcut.
 
-Two things to keep clean across iterations:
+A few invariants to actually hold across the loop:
 
-1. **Re-probe each attempt.** A probe address from one iteration is
-   useless to the next — middle bits rolled. Sample fresh.
-2. **Identical four conditions.** `argv[0]` length, argc, total argv
-   length, envp must match between probe and exploit on the same
-   iteration. The most common silent failure is forgetting that the
-   probe path needs to be the same byte length as the real binary's
-   path — which often forces you to symlink the probe to a name that
-   matches the target's path length character-for-character. Yes,
-   really.
+1. **One probe is enough.** The bottom twelve bits don't change. Read
+   them once at startup and reuse them; don't waste an `execve` per
+   iteration on a probe that tells you nothing new.
+2. **Match the four conditions exactly.** `argv[0]` length, argc,
+   total argv length, and envp must match between the probe binary
+   and the real exploit invocation, otherwise the byte offset shifts
+   and you've burned the probe. The most common silent failure is
+   forgetting that the probe path needs to be the same byte length
+   as the real binary's path — which often forces you to symlink the
+   probe to a name that matches the target's path length
+   character-for-character. Yes, really.
 
 Don't reach for `getenv()` tricks — those work for environment
 variables, not argv. Don't reach for return-to-libc — you don't need
-ROP gadgets when you have an executable stack and a per-attempt
-oracle.
+ROP gadgets when you have an executable stack and a known byte
+offset within page.
 
-The probe technique reads as a hack the first time, but it's
-fundamental: **deterministic-given-inputs collapses 24 bits of
-ASLR entropy into a 12-bit brute force** — that's the senior-pwn
-insight, not the false claim that ASLR vanishes.
+The senior-pwn insight here isn't "the probe defeats ASLR". It's
+the opposite: **the probe exposes which bits of ASLR are real
+entropy and which are deterministic — twelve deterministic
+byte-offset bits, twenty-two random page bits.** The first twelve
+you keep for free; the next twenty-two you pay for in attempts.
 
 ---
 
@@ -357,12 +389,14 @@ hint that you've solved 3 of the 4 locks but missed one.
   Almost always: you `execve`d a shell. Re-read Lock 1.
 - **`SIGSEGV` on a beautifully-crafted RIP, attempt #1.**
   This is *expected*, not a bug. Per Lock 3, the probe gives you
-  bottom-12-bit certainty and a 1/4096 hit rate against the rolling
-  middle 24 bits. Your first attempt was a free draw; keep looping.
-  Wrap probe-then-exploit in a retry loop and let it run. If you're
-  still missing after ~50k attempts, then *that's* a bug — re-check
-  the four invariants below.
-- **Even the loop never lands.**
+  bottom-12-bit certainty and the rest is a brute force against
+  ~2²² ≈ 4 million random page values, so the hit rate per attempt
+  is roughly 1 in 4 million. Your first attempt was a free draw;
+  wrap the exploit in a retry loop, run it in parallel across cores,
+  and let it grind for hours. If you're still missing after a
+  multiple-hour run with the loop pinned at full CPU, *that's* a
+  bug — re-check the invariants below.
+- **The loop never lands no matter how long it runs.**
   Probe and exploit are out-of-sync on one of the four invariants.
   Most common cause: payload length differed between probe and
   exploit, or you ran them in different shell sessions, or your
