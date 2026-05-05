@@ -116,15 +116,34 @@ export function PhantomLevelTable({
                   const content = getPhantomLevelContent(l.idx);
                   const recentlyUpdated =
                     content && isRecentlyUpdated(content.mitigationVersion);
+                  // L9 (Stack Day) is currently moved to phantom-deep
+                  // ephemeral as an OPTIONAL side quest (mono chain
+                  // skips it). Render the row dimmed so players see at
+                  // a glance the level isn't part of the linear path
+                  // right now. Once 4 prep levels land and L9 returns
+                  // to the canonical chain, drop this conditional.
+                  const isOptionalSideQuest = l.idx === 9;
                   return (
-                    <tr key={l.id} className="border-b border-border/50">
+                    <tr
+                      key={l.id}
+                      className={
+                        isOptionalSideQuest
+                          ? "border-b border-border/50 text-muted opacity-60"
+                          : "border-b border-border/50"
+                      }
+                    >
                       <td className="py-1 text-muted">{l.idx}</td>
                       <td className="py-1">
                         <Link
                           href={`/tracks/phantom/${l.idx}`}
-                          className="hover:text-amber"
+                          className={
+                            isOptionalSideQuest
+                              ? "text-muted hover:text-amber italic"
+                              : "hover:text-amber"
+                          }
                         >
                           {l.title}
+                          {isOptionalSideQuest && " (optional · ephemeral)"}
                         </Link>
                       </td>
                       <td className="py-1 text-right">{l.pointsBase}</td>

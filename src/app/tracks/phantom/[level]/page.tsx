@@ -255,47 +255,51 @@ export default async function PhantomLevelPage({
         <p className="text-muted text-sm">Level content not yet written.</p>
       )}
 
-      <section className="border-t border-border pt-4">
-        <h2 className="text-red text-sm uppercase mb-2">
-          How to reach this level
-        </h2>
-        <p className="text-sm mb-2">
-          Use the password for <code className="text-amber">phantom{idx}</code>{" "}
-          that you captured on the previous level, then:
-        </p>
-        <pre className="bg-border/40 p-3 text-xs">
-          ssh phantom{idx}@204.168.229.209 -p {
-            idx === 13 ? 2224 :
-            idx === 14 ? 2225 :
-            idx === 15 ? 2226 :
-            idx === 30 ? 2227 : 2223
-          }
-        </pre>
-        {(idx === 13 || idx === 14 || idx === 15 || idx === 30) && (
-          <p className="text-xs text-muted mt-2">
-            This level runs on its own ephemeral container — each SSH
-            connect spawns a fresh box that disappears on disconnect.
+      {idx !== 9 && (
+        <section className="border-t border-border pt-4">
+          <h2 className="text-red text-sm uppercase mb-2">
+            How to reach this level
+          </h2>
+          <p className="text-sm mb-2">
+            Use the password for <code className="text-amber">phantom{idx}</code>{" "}
+            that you captured on the previous level, then:
           </p>
-        )}
-        {idx === 0 && (
-          <p className="text-xs text-muted mt-2">
-            Level 0 is the entry point. Starting password:{" "}
-            <code className="text-amber">phantom0</code>.
-          </p>
-        )}
-      </section>
+          <pre className="bg-border/40 p-3 text-xs">
+            ssh phantom{idx}@204.168.229.209 -p {
+              idx === 13 ? 2224 :
+              idx === 14 ? 2225 :
+              idx === 15 ? 2226 :
+              idx === 30 ? 2227 : 2223
+            }
+          </pre>
+          {(idx === 13 || idx === 14 || idx === 15 || idx === 30) && (
+            <p className="text-xs text-muted mt-2">
+              This level runs on its own ephemeral container — each SSH
+              connect spawns a fresh box that disappears on disconnect.
+            </p>
+          )}
+          {idx === 0 && (
+            <p className="text-xs text-muted mt-2">
+              Level 0 is the entry point. Starting password:{" "}
+              <code className="text-amber">phantom0</code>.
+            </p>
+          )}
+        </section>
+      )}
 
-      {user ? (
-        <p className="text-sm">
-          Found the flag?{" "}
-          <a href="/submit" className="text-amber">
-            Submit it →
-          </a>
-        </p>
-      ) : (
-        <p className="text-sm text-muted">
-          <a href="/login">Log in</a> to submit flags and track progress.
-        </p>
+      {idx !== 9 && (
+        user ? (
+          <p className="text-sm">
+            Found the flag?{" "}
+            <a href="/submit" className="text-amber">
+              Submit it →
+            </a>
+          </p>
+        ) : (
+          <p className="text-sm text-muted">
+            <a href="/login">Log in</a> to submit flags and track progress.
+          </p>
+        )
       )}
 
       <PrevNextLevel
