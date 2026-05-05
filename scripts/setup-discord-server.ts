@@ -298,12 +298,13 @@ async function main() {
   const tracks = await category("TRACKS");
   await text("ghost-track", tracks, "public-talk", "Ghost track — Linux & shell fundamentals. NO SPOILERS for level answers.");
   await text("phantom-track", tracks, "public-talk", "Phantom track — privesc, container escape, K8s. NO SPOILERS.");
-  // NB: no spoiler-zone. Curated walkthroughs live on the platform
-  // (gated by prior-level completion); Discord mirrors them as
-  // announce-only drops in #writeups. Solution-discussion channels —
-  // even gated — contradict the manifesto ("not a place that hands
-  // you walkthroughs"). Removed 2026-05-05 after a brief restoration
-  // attempt surfaced the contradiction.
+  // Announce-only feed for new platform writeup drops. Players see
+  // and can react, only the bot/admin posts. Solution-discussion
+  // channels — even gated — contradict the manifesto ("not a place
+  // that hands you walkthroughs"); the platform's own /writeups page
+  // is the only walkthrough surface, gated L(N-1) → L(N) and never
+  // for Ghost/intro levels. Discord just mirrors drops here.
+  await text("writeups", tracks, "announce-only", "New platform writeup drops are announced here. Curated walkthroughs themselves live on https://breachlab.org/writeups, gated by prior-level completion.");
 
   // HELP — operatives help recruits
   const help = await category("HELP");
