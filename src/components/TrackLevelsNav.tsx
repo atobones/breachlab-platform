@@ -35,12 +35,17 @@ export function TrackLevelsNav({
         </li>
         {publicLevels.map((l) => {
           const isActive = activeLevelIdx === l.idx;
+          // Phantom L9 is currently moved to phantom-deep ephemeral as
+          // an OPTIONAL side quest (mono chain skips it). Dim the entry
+          // so players see it isn't part of the linear path right now.
+          // Drop this conditional once L9 returns to the canonical chain.
+          const isOptionalSideQuest = track.slug === "phantom" && l.idx === 9;
+          let cls = "text-text";
+          if (isActive) cls = "text-amber";
+          else if (isOptionalSideQuest) cls = "text-muted italic";
           return (
             <li key={l.id}>
-              <Link
-                href={`/tracks/${track.slug}/${l.idx}`}
-                className={isActive ? "text-amber" : "text-text"}
-              >
+              <Link href={`/tracks/${track.slug}/${l.idx}`} className={cls}>
                 Level {l.idx} → Level {l.idx + 1}
               </Link>
             </li>
