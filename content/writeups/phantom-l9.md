@@ -196,34 +196,23 @@ binary — there's no `printf("%p", ...)`, no `read(stdin)` that echoes
 addresses back. Information-theoretically, how can you possibly know
 where to point saved RIP?
 
-The answer hinges on a Linux loader detail that's not widely
-internalized: when the kernel `execve`s a binary, the layout of
-`argv[]` and `envp[]` strings on the new stack is **fully
-deterministic given a small set of inputs**. Specifically, if you
-hold these four constant:
+There are two things to understand here. The first sounds like a
+clean win. The second is what makes L9 actually hard.
+
+**What's deterministic.** When the kernel `execve`s a binary, the
+layout of `argv[]` and `envp[]` strings on the new stack is
+deterministic given a small set of inputs. If you hold these four
+constant:
 
 - the length of `argv[0]` (the path the binary was invoked under),
 - the number of argv entries,
 - the total length of all argv strings combined,
 - the environment (envp contents and ordering),
 
-then the runtime address of `argv[1]` will be **byte-identical**
-across two different binaries — *as long as both share those four
-properties*.
-
-That's the lever. Build a tiny "probe" binary whose only job is to
-print the address of its `argv[1]`. Invoke it with `argv[0]` of the
-**same length** as the target binary's path, with `argv[1]` of the
-**same length** as your future payload, in the **same shell session**
-(so envp is unchanged). The address it prints is the address your
-real exploit's payload will land at.
-
-Don't reach for `getenv()` tricks here — those work for environment
-variables, not argv. Don't reach for return-to-libc — you don't need
-ROP gadgets when you have an executable stack and a deterministic
-landing site.
-
-The probe binary itself is trivially small:
+then the **offset** of `argv[1]` from the top of the stack VMA is the
+same across two different binaries. Build a tiny "probe" binary that
+prints the address of its own `argv[1]`, invoke it under the same
+four conditions as the real exploit, and you learn that offset.
 
 ```c
 #include <stdio.h>
@@ -233,16 +222,63 @@ int main(int argc, char **argv) {
 }
 ```
 
-What's *not* trivial is invoking it under the same four conditions as
-the real binary. Two of those conditions force you into uncomfortable
-moves — for example, you may end up creating a symlink to your probe
-just so the path you exec it under has the same byte length as the
-target's path. Yes, really. That's the kind of careful detail this
-lock rewards.
+**What's still random.** What the probe gives you is *the offset
+within a page*, not the absolute address. Linux ASLR randomizes the
+stack VMA's base address per `execve`, with roughly 24 bits of
+entropy on x86_64. The bottom 12 bits — the page offset — are stable
+between two execs that share the four inputs above. The middle 24
+bits roll fresh every exec.
+
+In numbers: run the probe three times in a row with identical
+arguments and you'll see something like
+
+```
+0x7ffe71260e92
+0x7fff7f964e92
+0x7ffc29250e92
+```
+
+The trailing `e92` is constant — that's your real signal. Everything
+above the third nibble from the right is rolling.
+
+So the probe is **not** a one-shot oracle that tells you where your
+payload will land. It's a per-attempt oracle inside a brute-force
+loop. Run probe → use that address → run exploit → if SIGSEGV, the
+middle bits rolled differently, retry with a fresh probe → repeat
+until your guess collides with that exec's stack base. Hit rate per
+attempt is roughly **1 in 4096** (12 stable bits over the 24 random
+bits). Expected solve: thousands of attempts, minutes on one core. A
+small NOP sled in your padding widens the landing zone slightly but
+doesn't change the order of magnitude.
+
+If your reflex is "I'll just disable ASLR with `setarch -R`", check
+the seccomp profile first — Docker's default blocks the
+`personality(ADDR_NO_RANDOMIZE)` syscall, so `setarch -R bash` exits
+with `Operation not permitted`. The container is locked into
+`randomize_va_space=2`. There is no shortcut here; the brute-force
+loop is the path.
+
+Two things to keep clean across iterations:
+
+1. **Re-probe each attempt.** A probe address from one iteration is
+   useless to the next — middle bits rolled. Sample fresh.
+2. **Identical four conditions.** `argv[0]` length, argc, total argv
+   length, envp must match between probe and exploit on the same
+   iteration. The most common silent failure is forgetting that the
+   probe path needs to be the same byte length as the real binary's
+   path — which often forces you to symlink the probe to a name that
+   matches the target's path length character-for-character. Yes,
+   really.
+
+Don't reach for `getenv()` tricks — those work for environment
+variables, not argv. Don't reach for return-to-libc — you don't need
+ROP gadgets when you have an executable stack and a per-attempt
+oracle.
 
 The probe technique reads as a hack the first time, but it's
-fundamental: **deterministic-given-inputs is just as good as
-deterministic-everywhere when the inputs are under your control**.
+fundamental: **deterministic-given-inputs collapses 24 bits of
+ASLR entropy into a 12-bit brute force** — that's the senior-pwn
+insight, not the false claim that ASLR vanishes.
 
 ---
 
@@ -319,11 +355,19 @@ hint that you've solved 3 of the 4 locks but missed one.
   `path/file<garbage>`.
 - **Shellcode runs cleanly but the flag stays mode 600.**
   Almost always: you `execve`d a shell. Re-read Lock 1.
-- **`SIGSEGV` on a beautifully-crafted RIP.**
-  Probe address doesn't match real-run. Most common cause:
-  payload length differed between probe and exploit, or you ran
-  them in different shell sessions, or your `argv[0]` lengths
-  weren't equal. The probe technique is unforgiving on inputs.
+- **`SIGSEGV` on a beautifully-crafted RIP, attempt #1.**
+  This is *expected*, not a bug. Per Lock 3, the probe gives you
+  bottom-12-bit certainty and a 1/4096 hit rate against the rolling
+  middle 24 bits. Your first attempt was a free draw; keep looping.
+  Wrap probe-then-exploit in a retry loop and let it run. If you're
+  still missing after ~50k attempts, then *that's* a bug — re-check
+  the four invariants below.
+- **Even the loop never lands.**
+  Probe and exploit are out-of-sync on one of the four invariants.
+  Most common cause: payload length differed between probe and
+  exploit, or you ran them in different shell sessions, or your
+  `argv[0]` lengths weren't equal. The probe technique is unforgiving
+  on inputs — a one-byte mismatch shifts every offset.
 - **`strcpy` truncates at offset N < your payload length.**
   A NUL byte slipped in. Common locations: a small immediate you
   thought was non-zero (check the encoding, not the value), the
