@@ -8,6 +8,10 @@ export type PhantomLevelContent = {
   approach?: string;
   mitigationVersion: string;
   hidden?: boolean;
+  // Optional notice rendered as a prominent banner above Mission. Used for
+  // temporary level-state changes (skipped/moved/ephemeral) so players see
+  // the chain shape change before they read the brief.
+  notice?: { kind: "info" | "warning"; title: string; body: string };
 };
 
 export const PHANTOM_LEVEL_CONTENT: Record<number, PhantomLevelContent> = {
@@ -21,7 +25,21 @@ export const PHANTOM_LEVEL_CONTENT: Record<number, PhantomLevelContent> = {
   6: { tier: "act1", goal: "Hijack a group-writable cron script running as root every minute.", realWorldSkill: "Scheduled tasks with loose permissions are a top-3 privilege-escalation vector on Linux. Systemd-timer and NFS variants are covered in Wraith / Sentinel.", mitigationVersion: "2026-04" },
   7: { tier: "act1", goal: "Exploit command injection in a SUID binary.", realWorldSkill: "Custom SUID binaries with unsanitized input are everywhere in enterprise environments.", mitigationVersion: "2026-04" },
   8: { tier: "act1", goal: "Inject code into a running root process via ptrace.", realWorldSkill: "Live process injection is the foundation of every memory-resident implant.", mitigationVersion: "2026-04" },
-  9: { tier: "act1", goal: "★ MOVED TO EPHEMERAL — OPTIONAL SIDE QUEST. The mono Phantom L9 (Stack Day) was retired 2026-05-06; the level lives only on phantom-deep now. To attempt it, ssh phantom9@204.168.229.209 -p 2228 (use your L8 flag as the password). Exploit a stack buffer overflow in a SUID binary (no NX, no stack canary, no PIE) — senior-pwn challenge. SKIPPABLE: L8 unlocks phantom10 directly, you can come back to L9 anytime for the badge. Four prep levels (Lock 1-4 standalone) are planned to introduce each piece before this capstone returns to the canonical chain.", realWorldSkill: "Memory corruption is the gateway to exploit development. Full kernel-CVE exploitation lives in the Flux track.", mitigationVersion: "2026-05" },
+  9: {
+    tier: "act1",
+    goal: "Exploit a stack buffer overflow in a SUID binary (no NX, no stack canary, no PIE).",
+    realWorldSkill: "Memory corruption is the gateway to exploit development. Full kernel-CVE exploitation lives in the Flux track.",
+    mitigationVersion: "2026-05",
+    notice: {
+      kind: "info",
+      title: "★ Optional side quest — moved to phantom-deep",
+      body:
+        "L9 was retired from the mono chain on 2026-05-06. Your L8 flag now unlocks phantom10 directly — you can skip L9 and continue with the rest of the track. " +
+        "If you want the level for the badge / completion / HoF, it lives as an ephemeral phantom-deep instance: " +
+        "ssh phantom9@204.168.229.209 -p 2228 (use your L8 flag as the password). Same challenge, same flag, same points. " +
+        "Plan: four prep levels (Lock 1-4 standalone) will be added before L9 to introduce each piece — once that's in, L9 returns to the canonical chain unchanged.",
+    },
+  },
 
   // ACT II: HARVEST & PERSIST (10-15)
   10: { tier: "act2", goal: "Harvest credentials from history, config files, SSH keys, environment variables.", realWorldSkill: "Root on one machine is nothing — the real value is credentials to other systems.", mitigationVersion: "2026-04" },

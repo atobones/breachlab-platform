@@ -186,6 +186,26 @@ export default async function PhantomLevelPage({
 
       {content ? (
         <>
+          {content.notice && (
+            <section
+              className={
+                content.notice.kind === "warning"
+                  ? "border-2 border-orange p-4"
+                  : "border-2 border-yellow p-4"
+              }
+            >
+              <h2
+                className={
+                  content.notice.kind === "warning"
+                    ? "text-orange text-sm font-bold uppercase tracking-wider mb-2"
+                    : "text-yellow text-sm font-bold uppercase tracking-wider mb-2"
+                }
+              >
+                {content.notice.title}
+              </h2>
+              <p className="text-sm whitespace-pre-line">{content.notice.body}</p>
+            </section>
+          )}
           <section>
             <h2 className="text-muted text-xs uppercase tracking-wider mb-2">
               Mission
