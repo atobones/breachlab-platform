@@ -66,7 +66,7 @@ export const SPECTER_LEVEL_CONTENT: Record<number, SpecterLevelContent> = {
   },
   9: {
     goal:
-      "Unmask a shell-company beneficial owner via SEC EDGAR + Companies House common-director graph analysis. Map the supply chain through trade data (ImportYeti, Datasur, Panjiva) and detect sanctions exposure through the chain.",
+      "Unmask a shell-company beneficial owner via SEC EDGAR + Companies House common-director graph analysis. Map the supply chain through trade data (ImportYeti, Datasur, Panjiva) and detect sanctions exposure through the chain. Heads up: the cap-math endpoint has a 5-call budget per player; if you exhaust it, the budget auto-refills 24h after exhaustion (re-SSH won't reset it earlier).",
     realWorldSkill:
       "Sanctions enforcement, fraud investigation and supply-chain compromise all run on the same corporate-records primitives — once you can chain them, the entire commercial graph opens up.",
   },
