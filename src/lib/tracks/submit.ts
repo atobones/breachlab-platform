@@ -238,32 +238,56 @@ export async function submitFlag(
   // The deeper structural fix is per-player flags (HMAC-derived, see
   // BreachLab Killer Features Per-Player Flags brainstorm). This change
   // is the immediate gate.
+  // Skipped levels — solving idx is allowed when (idx-1) is in this set,
+  // provided the level BEFORE the skipped one was honestly solved. Used
+  // 2026-05-06 to make Phantom L9 (Stack Day) optional: senior-pwn cliff
+  // was blocking ~99% of progressing players, so the level moved to a
+  // phantom-deep ephemeral instance and the mono chain now flows
+  // L8 → L10 directly. L9 stays solvable as an OPTIONAL side quest.
+  // Keyed by `${trackSlug}:${idx}` so it's track-scoped.
+  const SKIPPABLE_PRIORS = new Set<string>([
+    "phantom:9", // L10 chain-check accepts L8 instead of L9
+  ]);
   let chainIntact = level.idx === 0;
   if (!chainIntact) {
-    const [prior] = await db
-      .select({ id: levels.id })
-      .from(levels)
-      .where(
-        and(eq(levels.trackId, level.trackId), eq(levels.idx, level.idx - 1)),
-      )
-      .limit(1);
-    if (prior) {
-      const priorSubmitted = await db
-        .select({ id: submissions.id })
-        .from(submissions)
+    const trackSlugForChain = trackRow?.slug ?? "";
+    let priorIdx = level.idx - 1;
+    // Walk backwards over any contiguous skippable priors so a future
+    // multi-level skip remains supported without reshaping this block.
+    while (
+      priorIdx >= 0 &&
+      SKIPPABLE_PRIORS.has(`${trackSlugForChain}:${priorIdx}`)
+    ) {
+      priorIdx -= 1;
+    }
+    if (priorIdx < 0) {
+      chainIntact = true;
+    } else {
+      const [prior] = await db
+        .select({ id: levels.id })
+        .from(levels)
         .where(
-          and(
-            eq(submissions.userId, userId),
-            eq(submissions.levelId, prior.id),
-            gt(submissions.pointsAwarded, 0),
-          ),
+          and(eq(levels.trackId, level.trackId), eq(levels.idx, priorIdx)),
         )
         .limit(1);
-      chainIntact = priorSubmitted.length > 0;
-    } else {
-      // Defensive: if somehow there is no idx-1 row on this track,
-      // do not block the submission — treat as intact.
-      chainIntact = true;
+      if (prior) {
+        const priorSubmitted = await db
+          .select({ id: submissions.id })
+          .from(submissions)
+          .where(
+            and(
+              eq(submissions.userId, userId),
+              eq(submissions.levelId, prior.id),
+              gt(submissions.pointsAwarded, 0),
+            ),
+          )
+          .limit(1);
+        chainIntact = priorSubmitted.length > 0;
+      } else {
+        // Defensive: if somehow there is no priorIdx row on this track,
+        // do not block the submission — treat as intact.
+        chainIntact = true;
+      }
     }
   }
 
