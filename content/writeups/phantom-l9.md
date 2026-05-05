@@ -259,11 +259,13 @@ for learning the deterministic part — it is not an oracle for
 predicting the next `execve`.
 
 **The path is brute force on the page bits.** Pick a plausible
-target page (anywhere in `0x7ff?_xxxx_x000` is fine), set the bottom
-twelve bits of your guess to the constant the probe gave you, and
-fire the exploit repeatedly. Each attempt is an independent draw
-against ~2²² ≈ 4 million pages. Hit rate per attempt is therefore
-roughly **1 in 4 million**. Plan accordingly.
+target page in the actual stack range — on x86_64 with 4-level
+paging that's roughly `0x7ffc_0000_0000` to `0x7fff_ffff_f000`,
+which is exactly the 22-bit window `STACK_RND_MASK` randomizes over
+— set the bottom twelve bits of your guess to the constant the
+probe gave you, and fire the exploit repeatedly. Each attempt is
+an independent draw against ~2²² ≈ 4 million pages. Hit rate per
+attempt is therefore roughly **1 in 4 million**. Plan accordingly.
 
 A few practical notes for the loop:
 
