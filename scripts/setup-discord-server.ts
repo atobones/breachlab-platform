@@ -298,7 +298,13 @@ async function main() {
   const tracks = await category("TRACKS");
   await text("ghost-track", tracks, "public-talk", "Ghost track — Linux & shell fundamentals. NO SPOILERS for level answers.");
   await text("phantom-track", tracks, "public-talk", "Phantom track — privesc, container escape, K8s. NO SPOILERS.");
-  await text("spoiler-zone", tracks, "operative-only", "Full spoilers OK. Only operatives (cleared at least one public level) can see this.");
+  // Announce-only feed for new platform writeup drops. Players see
+  // and can react, only the bot/admin posts. Solution-discussion
+  // channels — even gated — contradict the manifesto ("not a place
+  // that hands you walkthroughs"); the platform's own /writeups page
+  // is the only walkthrough surface, gated L(N-1) → L(N) and never
+  // for Ghost/intro levels. Discord just mirrors drops here.
+  await text("writeups", tracks, "announce-only", "New platform writeup drops are announced here. Curated walkthroughs themselves live on https://breachlab.org/writeups, gated by prior-level completion.");
 
   // HELP — operatives help recruits
   const help = await category("HELP");
@@ -346,7 +352,7 @@ Good luck, operative.
   console.log(`
 **BreachLab Server Rules**
 
-**1. No spoilers.** Never post level solutions, flag values, or step-by-step walkthroughs in public channels. Talk about concepts, not answers. If you must discuss a solution, use #spoiler-zone (only visible to operatives who have cleared at least one level).
+**1. No spoilers.** No level solutions, no flag values, no step-by-step walkthroughs anywhere on this server. Talk concepts, not answers. Curated walkthroughs for senior chokepoints (gated by prior-level completion) live on the platform — announcements drop in #writeups. Frustration is the lesson — see the manifesto: https://breachlab.org/manifesto.
 
 **2. Be kind to beginners.** Everyone was new once. Push people toward "the man page" or "read the level description again," not the answer.
 

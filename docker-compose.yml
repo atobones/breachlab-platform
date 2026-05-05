@@ -40,6 +40,22 @@ services:
       # Bearer the Specter oracle uses to call /api/specter/auth-check
       # and /api/specter/resolve-token. Same value as on specter-mgmt.
       SPECTER_ORACLE_SECRET: ${SPECTER_ORACLE_SECRET:?SPECTER_ORACLE_SECRET must be exported}
+      # Discord — OAuth (account linking) + bot (role sync, channel posts).
+      # Without these the OAuth callback silently no-ops and linked
+      # players never get the Operative baseline role (so #spoiler-zone
+      # and other operative-only channels stay invisible). Caught
+      # 2026-05-05 after I-baLL/ciabatta reported missing roles.
+      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID}
+      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET}
+      DISCORD_BOT_TOKEN: ${DISCORD_BOT_TOKEN}
+      DISCORD_GUILD_ID: ${DISCORD_GUILD_ID}
+      DISCORD_ROLE_OPERATIVE: ${DISCORD_ROLE_OPERATIVE}
+      DISCORD_ROLE_SUPPORTER: ${DISCORD_ROLE_SUPPORTER}
+      DISCORD_ROLE_FIRST_BLOOD: ${DISCORD_ROLE_FIRST_BLOOD}
+      DISCORD_ROLE_GHOST_MASTER: ${DISCORD_ROLE_GHOST_MASTER}
+      DISCORD_ROLE_PHANTOM_OPERATIVE: ${DISCORD_ROLE_PHANTOM_OPERATIVE}
+      DISCORD_CHANNEL_VICTORIES: ${DISCORD_CHANNEL_VICTORIES}
+      DISCORD_CHANNEL_ANNOUNCEMENTS: ${DISCORD_CHANNEL_ANNOUNCEMENTS}
     depends_on:
       db:
         condition: service_healthy
