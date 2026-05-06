@@ -268,11 +268,12 @@ export default async function PhantomTrackPage() {
           Land on the expected port once you reach that level.
         </p>
         <p className="text-xs text-muted mt-2">
-          L9 also lives on port 2228 as an optional ephemeral mirror of
-          the main-track level. Same mission, same flag — fresh /home and
-          isolated stack layout per session, useful if shared L9 on 2223
-          gave you residue from another operator. Use whichever you
-          prefer.
+          L9 is currently optional — your L8 flag unlocks phantom10
+          directly on the mono chain, so you can skip it and keep
+          going. To do L9 anyway, it lives as an ephemeral phantom-deep
+          instance on port 2228 (same mission, same flag, same points).
+          Plan: four Lock 1-4 prep levels will land before L9 first, then
+          it returns to the canonical chain.
         </p>
       </section>
 
