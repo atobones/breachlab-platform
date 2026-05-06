@@ -92,7 +92,7 @@ export function TracksNav() {
                       const isLive = s.status === "LIVE";
                       const row = (
                         <span
-                          className={`subtrack-row grid grid-cols-[1.5rem_1fr_auto] items-baseline gap-1.5 text-xs ${
+                          className={`subtrack-row grid grid-cols-[1.5rem_1fr_auto] items-center gap-1.5 text-xs ${
                             isLive ? "" : "opacity-60"
                           }`}
                         >
@@ -101,10 +101,12 @@ export function TracksNav() {
                           </span>
                           <span className="truncate">{s.name}</span>
                           <span
-                            className={`text-[10px] uppercase tracking-wider ${STATUS_COLOR[s.status]}`}
-                          >
-                            {s.status}
-                          </span>
+                            className={`pulse-dot inline-block h-2 w-2 rounded-full ${
+                              isLive ? "bg-green" : "bg-red"
+                            }`}
+                            aria-label={s.status}
+                            title={s.status}
+                          />
                         </span>
                       );
                       return (
