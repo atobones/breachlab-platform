@@ -56,6 +56,10 @@ services:
       DISCORD_ROLE_PHANTOM_OPERATIVE: ${DISCORD_ROLE_PHANTOM_OPERATIVE}
       DISCORD_CHANNEL_VICTORIES: ${DISCORD_CHANNEL_VICTORIES}
       DISCORD_CHANNEL_ANNOUNCEMENTS: ${DISCORD_CHANNEL_ANNOUNCEMENTS}
+      # Site-wide ops banner (OpsAlertBanner). Empty values = no banner.
+      # Multi-line via literal \n inside the message string.
+      OPS_ALERT_TITLE: ${OPS_ALERT_TITLE:-}
+      OPS_ALERT_MESSAGE: ${OPS_ALERT_MESSAGE:-}
     depends_on:
       db:
         condition: service_healthy
