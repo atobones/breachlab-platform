@@ -18,7 +18,8 @@ export type AuditAction =
   | "hall_of_fame.create"
   | "hall_of_fame.confirm"
   | "hall_of_fame.reject"
-  | "hall_of_fame.delete";
+  | "hall_of_fame.delete"
+  | "ops.broadcast";
 
 type WriteParams = {
   actor: { id: string; username: string };
