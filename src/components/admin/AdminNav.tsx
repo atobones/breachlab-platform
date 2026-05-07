@@ -9,6 +9,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/sponsors", label: "Sponsors" },
   { href: "/admin/hall-of-fame", label: "Hall of Fame" },
   { href: "/admin/review", label: "Review queue" },
+  { href: "/admin/ops-broadcast", label: "Ops broadcast" },
   { href: "/admin/audit", label: "Audit" },
 ];
 
