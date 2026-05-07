@@ -222,6 +222,19 @@ export default async function GhostLevelPage({
         )}
       </section>
 
+      {idx === 0 && (
+        <section className="border border-red/60 bg-red/5 p-4 space-y-1 text-xs">
+          <p className="text-red uppercase">[ save your flags ]</p>
+          <p className="text-text">
+            Each level&apos;s flag is also the SSH password for the next
+            user. The platform does not show it again. Save it the moment
+            you find it — to a password manager, a notebook, anywhere
+            durable. This is part of the training: real ops, you log
+            credentials as you obtain them.
+          </p>
+        </section>
+      )}
+
       {user ? (
         <p className="text-sm">
           Found the flag?{" "}
