@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CopyableAddress } from "@/components/donate/CopyableAddress";
 
 const BTC_ADDRESS = "bc1q0g5vzgjryau35saf37fngz60nrf5r97c4jn0nz";
+const SOLANA_ADDRESS = "FBXpm7m1FK6SRngPBZ69WMSwtTLCBwQeEhUPSp5bVNUV";
 
 export default function DonateCryptoPage() {
   return (
@@ -15,21 +16,36 @@ export default function DonateCryptoPage() {
       <header className="space-y-2">
         <h1 className="text-amber text-2xl">Pay with crypto</h1>
         <p className="text-sm text-muted max-w-xl">
-          Send any amount directly to the wallet address below. No
+          Send any amount directly to one of the wallets below. No
           intermediaries, no processing fees, no KYC. Your coins go straight
           into the BreachLab infrastructure fund.
         </p>
       </header>
 
-      <CopyableAddress label="Bitcoin (BTC)" address={BTC_ADDRESS} />
+      <section className="space-y-3">
+        <CopyableAddress label="Bitcoin (BTC)" address={BTC_ADDRESS} />
+        <p className="text-[11px] text-muted max-w-xl">
+          <span className="text-amber">Bitcoin mainnet</span> only (Native
+          Segwit, starts with bc1). Do not send BCH, BSV, wrapped-BTC, or
+          tokens from other chains — funds cannot be recovered.
+        </p>
+      </section>
 
-      <p className="text-[11px] text-muted max-w-xl">
-        This is a <span className="text-amber">Bitcoin mainnet</span> address
-        (Native Segwit, starts with bc1). Send{" "}
-        <span className="text-amber">only BTC</span> to this address — not
-        BCH, BSV, wrapped-BTC, or tokens on other chains. If you send the
-        wrong coin, the funds cannot be recovered.
-      </p>
+      <section className="space-y-3">
+        <CopyableAddress
+          label="Solana (SOL / USDC / USDT)"
+          address={SOLANA_ADDRESS}
+        />
+        <p className="text-[11px] text-muted max-w-xl">
+          <span className="text-amber">Solana network</span> only. Accepts
+          native SOL and SPL stablecoins (USDC, USDT) at the same address.{" "}
+          <span className="text-amber">
+            Do not send USDC or USDT on Ethereum (ERC-20), Tron (TRC-20),
+            BSC, Polygon, or any other chain
+          </span>{" "}
+          — wrong-network sends are unrecoverable.
+        </p>
+      </section>
 
       <div className="border-t border-muted/20 pt-4 max-w-xl">
         <p className="text-xs text-muted">
@@ -37,7 +53,8 @@ export default function DonateCryptoPage() {
           <span className="text-amber">Supporter</span> badge on your
           BreachLab profile and Discord role — message{" "}
           <span className="text-amber">@atobones</span> in Discord with the
-          transaction ID. Badges are granted manually for crypto donations.
+          transaction ID (or Solana signature). Badges are granted manually
+          for crypto donations.
         </p>
       </div>
     </div>

@@ -8,11 +8,11 @@ const DONATE_METHODS: SpotlightCardData[] = [
     href: "/donate/crypto",
     icon: "⚡",
     title: "Pay with crypto",
-    summary: "Send Bitcoin directly to the BreachLab wallet",
+    summary: "BTC, SOL, USDC, or USDT — straight to the BreachLab wallets",
     bullets: [
       "0% processing fees",
       "Non-custodial — your coins, our address",
-      "One-click copy, any amount",
+      "Bitcoin mainnet + Solana (SPL stablecoins)",
     ],
     cta: "Donate crypto →",
     testId: "donate-card-crypto",
