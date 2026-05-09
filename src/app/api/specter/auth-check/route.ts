@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { and, eq, gt } from "drizzle-orm";
+import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { specterSessionCreds } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
@@ -8,6 +8,15 @@ import { safeBearerMatch } from "@/lib/auth/tokens";
 // into a Specter L1+ ephemeral. The oracle has already received the raw
 // password from PAM and hashed it; we look up the row inserted by /submit
 // when the player solved the previous level. No row → 401 → PAM denies.
+//
+// TTL note (2026-05-09): the original implementation also gated on
+// `expiresAt > now()` (24h, then 30d). Removed because the rationale was
+// inherited from web-session conventions and didn't carry over: the SSH
+// passwords here are deterministic per-player HMACs, server-derivable
+// any time, so TTL added zero security and locked out returning players
+// after their pause window — manual cred-refresh became a recurring
+// support burden (drolu et al, 2026-05-09 incident). The column itself
+// is kept as informational metadata; submit.ts still stamps it on issue.
 export async function POST(req: Request) {
   const expected = process.env.SPECTER_ORACLE_SECRET;
   if (!expected) {
@@ -41,7 +50,6 @@ export async function POST(req: Request) {
       and(
         eq(specterSessionCreds.nextLevel, level),
         eq(specterSessionCreds.passwordSha256, password_sha256),
-        gt(specterSessionCreds.expiresAt, new Date()),
       ),
     )
     .limit(1);
