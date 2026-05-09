@@ -6,6 +6,7 @@ import type { BadgeKind } from "@/lib/badges/types";
 export type GraduateRow = {
   username: string;
   awardedAt: Date;
+  isHallOfFame: boolean;
 };
 
 export async function getTrackGraduates(
@@ -16,6 +17,7 @@ export async function getTrackGraduates(
     .select({
       username: users.username,
       awardedAt: badges.awardedAt,
+      isHallOfFame: users.isHallOfFame,
     })
     .from(badges)
     .innerJoin(users, eq(users.id, badges.userId))
@@ -28,5 +30,6 @@ export async function getTrackGraduates(
     .map((r) => ({
       username: r.username,
       awardedAt: r.awardedAt as Date,
+      isHallOfFame: r.isHallOfFame,
     }));
 }

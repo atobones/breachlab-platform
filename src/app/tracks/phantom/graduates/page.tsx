@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTrackGraduates } from "@/lib/tracks/graduates";
+import { OperativeName } from "@/components/operatives/OperativeName";
 
 export const dynamic = "force-dynamic";
 
@@ -58,12 +59,13 @@ export default async function PhantomGraduatesPage() {
                 >
                   <td className="py-2 text-muted">{idx + 1}</td>
                   <td className="py-2">
-                    <Link
+                    @
+                    <OperativeName
+                      username={g.username}
+                      isHallOfFame={g.isHallOfFame}
                       href={`/u/${g.username}`}
-                      className="text-amber hover:underline"
-                    >
-                      @{g.username}
-                    </Link>
+                      className={g.isHallOfFame ? "" : "text-amber"}
+                    />
                   </td>
                   <td className="py-2 text-right text-muted text-xs">
                     {formatDate(g.awardedAt)}
