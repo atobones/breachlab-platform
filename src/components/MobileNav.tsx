@@ -7,17 +7,19 @@ export function MobileNav() {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
+  // Toggle body[data-nav-open] only — CSS handles the scroll-lock via the
+  // attribute selector. Avoids leaving body.style.overflow stuck in the
+  // "hidden" state if a route change or rerender races the cleanup
+  // (ChrisDewa report 2026-05-09: scroll dead on phone, had to use
+  // desktop mode). Pure declarative state = no stuck inline style.
   useEffect(() => {
     if (open) {
       document.body.setAttribute("data-nav-open", "true");
-      document.body.style.overflow = "hidden";
     } else {
       document.body.removeAttribute("data-nav-open");
-      document.body.style.overflow = "";
     }
     return () => {
       document.body.removeAttribute("data-nav-open");
-      document.body.style.overflow = "";
     };
   }, [open]);
 

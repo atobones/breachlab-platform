@@ -1041,6 +1041,11 @@ body::after {
     padding-top: 3.2rem;
   }
   body[data-nav-open] .bl-sidebar { transform: translateX(0); }
+  /* Lock body scroll while the drawer is open — declarative replacement
+     for the prior `body.style.overflow = "hidden"` JS in MobileNav.tsx
+     which could leave the scroll stuck if a navigation raced the
+     cleanup (ChrisDewa 2026-05-09 report: scroll dead on phone). */
+  body[data-nav-open] { overflow: hidden; }
 
   .bl-main {
     width: 100%;
