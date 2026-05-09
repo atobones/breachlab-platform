@@ -1007,14 +1007,21 @@ body::after {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Mobile responsive overrides. Below 768px the layout collapses:
+   Mobile / touch responsive overrides. Triggered by EITHER:
+     • viewport < 1024px (catches phones, small tablets, landscape
+       phones up to "phablet" size — bumped from 768px after
+       ChrisDewa 2026-05-09 report on Firefox Android getting the
+       desktop layout because his viewport was just over 768px)
+     • OR coarse-pointer touch-only devices regardless of width
+       (catches large Android tablets in landscape, etc)
+   Layout collapses:
    • sidebar becomes an off-canvas drawer
    • header nav wraps + drops uppercase tracking on small screens
    • terminal padding shrinks, titlebar metadata hides
    • status bar drops session/quip segments, keeps utc + link up
    • home-page hero shrinks, ops grid stacks
    ───────────────────────────────────────────────────────────── */
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px), (hover: none) and (pointer: coarse) {
   .bl-burger { display: inline-flex; }
 
   /* Body becomes column-stacked. Top padding leaves room for the
@@ -1129,7 +1136,7 @@ body::after {
 /* Prevent horizontal overflow from oversized prose / code blocks
    on touch devices. <pre> / wide tables stay scrollable inline. */
 html, body { overscroll-behavior-y: none; }
-@media (max-width: 767.98px) {
+@media (max-width: 1023.98px), (hover: none) and (pointer: coarse) {
   html, body { overflow-x: hidden; }
   pre, code, table { max-width: 100%; }
   pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
