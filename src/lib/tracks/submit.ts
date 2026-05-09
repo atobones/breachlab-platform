@@ -1,4 +1,4 @@
-import { eq, and, sql, gt, desc } from "drizzle-orm";
+import { eq, and, sql, gt, desc, notInArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   flags,
@@ -331,13 +331,27 @@ export async function submitFlag(
   // closes. Existing 0-pts records stay as audit data only.
 
   // Track completion detection — excludes hidden levels (marked with
-  // a "[HIDDEN]" description prefix). Hidden bonuses are graduation,
-  // not part of the public track completion set.
+  // a "[HIDDEN]" description prefix) AND optional levels. Hidden bonuses
+  // are graduation, not part of the public track completion set.
+  // Optional levels are intentionally side-quest: skipping them must
+  // still earn the track_complete badge (Phantom L9 Stack Day, made
+  // optional 2026-05-06 — senior-pwn cliff was blocking ~99% of players;
+  // its mono-chain prior is also in SKIPPABLE_PRIORS above).
+  const OPTIONAL_LEVEL_IDXS_BY_TRACK: Record<string, number[]> = {
+    phantom: [9],
+  };
+  const trackSlugForCompletion = trackRow?.slug ?? "";
+  const optionalIdxs =
+    OPTIONAL_LEVEL_IDXS_BY_TRACK[trackSlugForCompletion] ?? [];
   const publicFilter = sql`coalesce(${levels.description}, '') not like '[HIDDEN]%'`;
+  const requiredFilter =
+    optionalIdxs.length > 0
+      ? and(publicFilter, notInArray(levels.idx, optionalIdxs))
+      : publicFilter;
   const [totalRow] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(levels)
-    .where(and(eq(levels.trackId, level.trackId), publicFilter));
+    .where(and(eq(levels.trackId, level.trackId), requiredFilter));
   const solvedInTrack = await db
     .select({ levelId: submissions.levelId })
     .from(submissions)
@@ -346,7 +360,7 @@ export async function submitFlag(
       and(
         eq(submissions.userId, userId),
         eq(levels.trackId, level.trackId),
-        publicFilter,
+        requiredFilter,
       ),
     );
   const totalInTrack = Number(totalRow?.total ?? 0);
