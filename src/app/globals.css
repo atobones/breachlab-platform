@@ -1041,7 +1041,14 @@ body::after {
     padding-bottom: 2.5rem;
   }
 
-  /* Sidebar slides in from the left when body[data-nav-open]. */
+  /* Sidebar slides in from the left when body[data-nav-open].
+     Off-canvas sidebar gets pointer-events:none + visibility:hidden so
+     Android touch hit-testing can't accidentally route touches to it
+     even if the underlying browser's hit-test ignores the transform
+     (ChrisDewa S24 Ultra retest 2026-05-09 — symptom of "scroll only
+     from bottom bar, dead center of screen" matched the off-canvas
+     sidebar's overflow-y:auto silently swallowing touches). When the
+     drawer opens (data-nav-open), pointer-events + visibility return. */
   .bl-sidebar {
     position: fixed !important;
     top: 0;
@@ -1056,8 +1063,14 @@ body::after {
     transform: translateX(-100%);
     transition: transform 220ms ease-out;
     padding-top: 3.2rem;
+    pointer-events: none;
+    visibility: hidden;
   }
-  body[data-nav-open] .bl-sidebar { transform: translateX(0); }
+  body[data-nav-open] .bl-sidebar {
+    transform: translateX(0);
+    pointer-events: auto;
+    visibility: visible;
+  }
   /* Lock body scroll while the drawer is open — declarative replacement
      for the prior `body.style.overflow = "hidden"` JS in MobileNav.tsx
      which could leave the scroll stuck if a navigation raced the
