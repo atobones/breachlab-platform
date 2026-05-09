@@ -6,7 +6,7 @@
  *
  *   OPS_ALERT_TITLE     — header text rendered as `[ TITLE ]`
  *   OPS_ALERT_MESSAGE   — body, multi-line via literal `\n`
- *   OPS_ALERT_SEVERITY  — `info` | `warn` | `danger` (default: `info`)
+ *   OPS_ALERT_SEVERITY  — `info` | `warn` | `danger` (default: `danger`)
  *
  * Lines that begin with a known command (`ssh`, `curl`, `bash`, `sudo`,
  * `nc`, `wget`, `telnet`, `ssh-keygen`) are auto-rendered as a copyable
@@ -45,9 +45,9 @@ const COMMAND_LINE_RE =
 
 function parseSeverity(raw: string | undefined): Severity {
   const v = raw?.trim().toLowerCase();
+  if (v === "info") return "info";
   if (v === "warn" || v === "warning") return "warn";
-  if (v === "danger" || v === "error" || v === "critical") return "danger";
-  return "info";
+  return "danger";
 }
 
 export function OpsAlertBanner() {
@@ -77,14 +77,12 @@ export function OpsAlertBanner() {
             COMMAND_LINE_RE.test(line) ? (
               <pre
                 key={i}
-                className="font-mono text-[12px] text-amber bg-black/40 border border-amber/25 px-3 py-1.5 overflow-x-auto select-all whitespace-pre"
+                className={`text-[12px] ${style.title} bg-black/40 border ${style.rule} px-3 py-1.5 overflow-x-auto select-all whitespace-pre`}
               >
                 {line}
               </pre>
             ) : (
-              <p key={i} className="font-sans">
-                {line}
-              </p>
+              <p key={i}>{line}</p>
             ),
           )}
         </div>
