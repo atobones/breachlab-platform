@@ -182,6 +182,68 @@ export default async function SpecterIPage() {
         </p>
       </section>
 
+      <section className="border border-border p-4 space-y-3">
+        <h2 className="text-amber text-sm uppercase">Toolkit</h2>
+        <p className="text-xs text-muted">
+          Every Specter I ephemeral ships with the core OSINT/recon
+          toolkit pre-installed. No package install required, no internet
+          to PyPI from inside — everything you need to solve the level is
+          on disk when you connect.
+        </p>
+        <dl className="text-sm space-y-1 font-mono">
+          <div>
+            <dt className="inline text-muted">HTTP &amp; download: </dt>
+            <dd className="inline">curl, wget</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">DNS &amp; whois: </dt>
+            <dd className="inline">dig, nslookup, whois</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">JSON &amp; YAML: </dt>
+            <dd className="inline">jq, python3 -m json.tool, python3-yaml</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Text &amp; viewing: </dt>
+            <dd className="inline">cat, less, head, tail, grep, awk, sed, sort, uniq</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Files &amp; search: </dt>
+            <dd className="inline">find, file, xargs</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Net diagnostics: </dt>
+            <dd className="inline">nc (netcat), ip, ss</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Code &amp; scripting: </dt>
+            <dd className="inline">git, python3, python3-requests</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Editors: </dt>
+            <dd className="inline">vim, nano</dd>
+          </div>
+        </dl>
+        <p className="text-xs text-muted pt-2 border-t border-border/40">
+          <span className="text-amber">Level-specific additions:</span>{" "}
+          L6 ships <code>exiftool</code> + <code>imagemagick</code> for
+          image forensics; L7 adds <code>python3-pil</code> for synthetic-
+          media analysis; L10 adds <code>binwalk</code>,{" "}
+          <code>gnupg2</code>, <code>openssl</code>, and routes via
+          per-spawn Tor side-cars. Each level&apos;s brief lists what is
+          additionally available.
+        </p>
+        <p className="text-xs text-muted">
+          <span className="text-amber">Verifier:</span> every level ships
+          a local <code>/opt/verify-&lt;slug&gt;.sh</code>{" "}
+          (e.g. <code>/opt/verify-paper-trail.sh</code>,{" "}
+          <code>/opt/verify-image-geo.sh</code>) that consumes the
+          evidence files described in the brief and prints either
+          findings or the level flag. Per-player flags — sharing them
+          won&apos;t unlock anyone else&apos;s chain.
+        </p>
+      </section>
+
       <section>
         <h2 className="text-amber text-lg mb-2">Levels</h2>
         <SpecterLevelTable
