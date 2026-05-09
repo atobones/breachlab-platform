@@ -1024,10 +1024,20 @@ body::after {
 @media (max-width: 1023.98px), (hover: none) and (pointer: coarse) {
   .bl-burger { display: inline-flex; }
 
-  /* Body becomes column-stacked. Top padding leaves room for the
-     fixed burger button so headings don't slide under it. */
+  /* Body switches from flex to block on touch/narrow devices.
+     With `display: flex` + `flex-direction: column` the `<main
+     class="flex-1">` child inherits flex-basis 0% and is constrained
+     by the flex algorithm to fill the parent's main-axis size
+     (= 100vh). Main's CONTENT overflows main visually but body
+     itself never grows beyond 100vh — so on touch devices the page
+     can't be scrolled by dragging in the main area (ChrisDewa
+     S24 Ultra report 2026-05-09). Block layout lets main take its
+     natural content height and body grows with it; standard
+     touch scroll works everywhere.
+     Top padding leaves room for the fixed burger button so headings
+     don't slide under it. */
   body.bl-shell {
-    flex-direction: column;
+    display: block;
     padding-bottom: 2.5rem;
   }
 
