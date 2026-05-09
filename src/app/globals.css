@@ -1160,7 +1160,17 @@ body::after {
    on touch devices. <pre> / wide tables stay scrollable inline. */
 html, body { overscroll-behavior-y: none; }
 @media (max-width: 1023.98px), (hover: none) and (pointer: coarse) {
-  html, body { overflow-x: hidden; }
+  /* On touch/narrow viewports we relax overscroll-behavior — Firefox
+     Android (Gecko) has had recurring regressions where this rule
+     interacts badly with touch scroll on long pages, manifesting as
+     "can't scroll up after scrolling down" (ChrisDewa S24 Ultra
+     2026-05-09 retest). We don't need pull-to-refresh suppression
+     on mobile; let the browser handle scroll natively. */
+  html, body { overscroll-behavior-y: auto; overflow-x: hidden; }
+  /* Defensive — explicit `touch-action: pan-y` unblocks vertical
+     scroll if any nested element or browser-default rule accidentally
+     stole the touch via `touch-action: none`. */
+  html, body.bl-shell { touch-action: pan-y; }
   pre, code, table { max-width: 100%; }
   pre { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
