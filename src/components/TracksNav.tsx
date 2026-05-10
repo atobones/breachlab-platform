@@ -34,6 +34,7 @@ const SPECTER_SUBTRACKS: SpecterSubTrack[] = [
   { slug: "specter/i", numeral: "I", name: "OSINT", status: "LIVE" },
   { slug: "specter/ii", numeral: "II", name: "Network & WiFi", status: "PLANNED" },
   { slug: "specter/iii", numeral: "III", name: "Defence Evasion", status: "PLANNED" },
+  { slug: "specter/iv", numeral: "IV", name: "Social Engineering", status: "PLANNED" },
 ];
 
 const STATUS_COLOR: Record<TrackStatus, string> = {
