@@ -721,24 +721,39 @@ body::after {
    default, summoned with backtick (`). Real router commands
    (cd, ls, whoami, submit, tracks). For power-user nav.
    ───────────────────────────────────────────────────────────── */
-.palette-hint {
+/* Green-smoke leak treatment — the shell button is wrapped in
+   .palette-hint-shell so smoke layers can be SIBLINGS of the button
+   (not children).  The button's opaque dark bg paints over any smoke
+   that crosses behind it; only the displacement-shredded EDGES that
+   spill past the button perimeter are visible.  Combined with three
+   rising stream plumes that drift up from the button top edge, the
+   effect reads as smoke leaking out of the button rather than an
+   ambient halo around it.  All animation is pure SVG/CSS — no JS.
+   Performance-conscious: button is hidden on mobile (existing rule). */
+.palette-hint-shell {
   position: fixed;
   bottom: 2.2rem;
   right: 0.6rem;
   z-index: 1100;
+  display: inline-block;
+}
+
+.palette-hint {
+  position: relative;       /* shell is fixed; button is relative inside */
+  z-index: 2;               /* paints over smoke layers (z-index 1) */
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
   padding: 0.3rem 0.5rem;
-  background: var(--bl-bg);
+  background: var(--bl-bg); /* opaque — masks smoke at center */
   border: 1px solid color-mix(in oklab, var(--bl-amber) 30%, transparent);
   color: var(--bl-amber);
   font-family: var(--bl-font-mono);
   font-size: 11px;
   letter-spacing: 0.05em;
   cursor: pointer;
-  opacity: 0.7;
-  transition: opacity 120ms, border-color 120ms;
+  opacity: 0.92;
+  transition: opacity 200ms ease, border-color 200ms ease;
 }
 .palette-hint:hover { opacity: 1; border-color: var(--bl-amber); }
 .palette-hint-key {
@@ -749,6 +764,85 @@ body::after {
   font-family: var(--bl-font-display);
 }
 .palette-hint-text { color: var(--bl-muted); text-transform: uppercase; }
+
+/* ---- Smoke halo layers ---------------------------------------- */
+.smoke-field {
+  position: absolute;
+  top: 50%; left: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+.smoke-field-a {
+  width: 220px; height: 110px;
+  margin: -55px 0 0 -110px;
+  z-index: 1;
+  animation: smoke-drift-a 41s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+.smoke-field-b {
+  width: 180px; height: 95px;
+  margin: -47px 0 0 -90px;
+  z-index: 1;
+  opacity: 0.85;
+  animation: smoke-drift-b 53s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+@keyframes smoke-drift-a {
+  0%   { transform: translate(0, 0)        scale(1.00); }
+  25%  { transform: translate(4px, -3px)   scale(1.04); }
+  50%  { transform: translate(-2px, -5px)  scale(1.02); }
+  75%  { transform: translate(-3px, 2px)   scale(0.97); }
+  100% { transform: translate(0, 0)        scale(1.00); }
+}
+@keyframes smoke-drift-b {
+  0%   { transform: translate(0, 0)        scale(1.00); }
+  25%  { transform: translate(-3px, -2px)  scale(0.96); }
+  50%  { transform: translate(3px, -4px)   scale(1.05); }
+  75%  { transform: translate(2px, 3px)    scale(1.02); }
+  100% { transform: translate(0, 0)        scale(1.00); }
+}
+
+/* ---- Rising stream plumes ------------------------------------- */
+.stream {
+  position: absolute;
+  top: 0;
+  pointer-events: none;
+  z-index: 1;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  width: 60px;
+  height: 110px;
+  margin-top: -55px;       /* stream ORIGINATES at button top edge */
+  margin-left: -30px;
+}
+.stream-mid    { left: 50%; animation: stream-rise-mid    16s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; }
+.stream-left   { left: 25%; animation: stream-rise-left   19s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; animation-delay: -7s; }
+.stream-right  { left: 75%; animation: stream-rise-right  22s cubic-bezier(0.25, 0.1, 0.25, 1) infinite; animation-delay: -13s; }
+
+@keyframes stream-rise-mid {
+  0%   { transform: translate(0, 0)        scale(0.5, 0.4);  opacity: 0; }
+  18%  { transform: translate(0, -18px)    scale(0.65, 0.7); opacity: 0.5; }
+  50%  { transform: translate(0, -50px)    scale(0.95, 1.1); opacity: 0.7; }
+  80%  { transform: translate(0, -75px)    scale(1.2, 1.45); opacity: 0.25; }
+  100% { transform: translate(0, -90px)    scale(1.4, 1.7);  opacity: 0; }
+}
+@keyframes stream-rise-left {
+  0%   { transform: translate(0, 0)         scale(0.5, 0.4);  opacity: 0; }
+  18%  { transform: translate(-4px, -18px)  scale(0.65, 0.7); opacity: 0.45; }
+  50%  { transform: translate(-10px, -50px) scale(0.9, 1.1);  opacity: 0.65; }
+  80%  { transform: translate(-18px, -75px) scale(1.2, 1.45); opacity: 0.22; }
+  100% { transform: translate(-25px, -90px) scale(1.4, 1.7);  opacity: 0; }
+}
+@keyframes stream-rise-right {
+  0%   { transform: translate(0, 0)         scale(0.5, 0.4);  opacity: 0; }
+  18%  { transform: translate(4px, -18px)   scale(0.65, 0.7); opacity: 0.45; }
+  50%  { transform: translate(10px, -50px)  scale(0.9, 1.1);  opacity: 0.65; }
+  80%  { transform: translate(18px, -75px)  scale(1.2, 1.45); opacity: 0.22; }
+  100% { transform: translate(25px, -90px)  scale(1.4, 1.7);  opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .smoke-field, .stream { animation: none; opacity: 0.45; }
+}
 
 .palette-backdrop {
   position: fixed;
