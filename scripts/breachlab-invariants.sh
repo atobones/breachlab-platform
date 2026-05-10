@@ -167,6 +167,39 @@ PHANTOM_CRON_FILES=(
     "/etc/cron.d/system-maintenance"
 )
 
+# Hardened files: chattr +i protects bash, sudoers, shadow, etc against
+# even root-from-inside-container modification. If a player or operator
+# (re-)applies a chmod or `chattr -i`, the +i bit drops and the
+# fingerprint changes. Catches the protection itself being lifted.
+# Added 2026-05-10 to expand Phantom mono coverage from 9-flag-only to
+# baseline-hardening-also.
+PHANTOM_HARDENED_FILES=(
+    "/etc/sudoers"
+    "/etc/shadow"
+    "/etc/passwd"
+    "/etc/ssh/sshd_config"
+    "/usr/bin/bash"
+    "/etc/cron.d"
+)
+
+# All player accounts on Phantom mono. phantom9 intentionally omitted
+# (removed from mono 2026-05-06 — L9 lives on phantom-deep ephemeral
+# port 2228 only). phantom13/14/15/30 have shell=/usr/local/bin/
+# phantom-deep-redirect (they punt to ephemeral); the rest /bin/bash.
+# phantom31 is the graduation account. Drift = passwd line changed
+# (deletion, UID/GID flip, shell swap, home rewrite) — any of which is
+# either an attack or a botched deploy.
+PHANTOM_USERS=(
+    phantom0  phantom1  phantom2  phantom3  phantom4
+    phantom5  phantom6  phantom7  phantom8
+                                            phantom10
+    phantom11 phantom12 phantom13 phantom14 phantom15
+    phantom16 phantom17 phantom18 phantom19 phantom20
+    phantom21 phantom22 phantom23 phantom24 phantom25
+    phantom26 phantom27 phantom28 phantom29 phantom30
+    phantom31
+)
+
 # Whitelist of paths flagkeeperN files are *expected* to live at. Anything
 # outside this list = leak. The `*` is a sentinel meaning "anywhere under".
 PHANTOM_LEAK_WHITELIST=(
@@ -195,6 +228,16 @@ GHOST_MISSION_FILES=(
 
 GHOST_SERVICE_PORTS=(30000 30001 30002 30100 30101 31339 31790 41337)
 
+# All player accounts on Ghost mono (L0-L22 = 23 accounts). Drift =
+# passwd entry tampered. Added 2026-05-10 alongside Phantom user check
+# so every player-facing account on every mono is fingerprinted.
+GHOST_USERS=(
+    ghost0  ghost1  ghost2  ghost3  ghost4  ghost5  ghost6
+    ghost7  ghost8  ghost9  ghost10 ghost11 ghost12 ghost13
+    ghost14 ghost15 ghost16 ghost17 ghost18 ghost19 ghost20
+    ghost21 ghost22
+)
+
 # ---------------------------------------------------------------------------
 # Phantom-Deep track invariants. Ephemeral architecture (deep-roots,
 # shadow, clean, clean-exit, stack-day) — orchestrator on 2224-2228 +
@@ -205,6 +248,17 @@ GHOST_SERVICE_PORTS=(30000 30001 30002 30100 30101 31339 31790 41337)
 PHANTOM_DEEP_ORCH_PORTS=(2224 2225 2226 2227 2228)
 PHANTOM_DEEP_NET="breachlab-phantom_phantom-net"
 PHANTOM_DEEP_MGMT_IP="10.13.37.30"
+
+# phantom-deep ephemeral architecture uses a single shared image with
+# the level distinguished by a baked /etc/phantom-deep/level marker
+# (per orchestrator/spawn.sh: IMAGE=${PHANTOM_DEEP_IMAGE:-phantom-deep:latest}).
+# Plus the orchestrator container's own image. Fingerprint both — drift
+# = either was rebuilt (legit deploy → re-init baseline) or deleted
+# (catastrophic; spawn.sh would fail until rebuild). Added 2026-05-10.
+PHANTOM_DEEP_IMAGES=(
+    "phantom-deep:latest"                # ephemeral level image (shared)
+    "phantom-deep-orchestrator:latest"   # the listener
+)
 
 # ---------------------------------------------------------------------------
 # Specter track invariants. Ephemerals are stateless by design, so the
@@ -254,6 +308,25 @@ collect_phantom() {
         for p in "${PHANTOM_CRON_FILES[@]}"; do
             fp=$(fingerprint_in_container "$PHANTOM_CONTAINER" "$p")
             printf 'CRON\t%s\t%s\n' "$p" "$fp"
+        done
+        # Hardened files (chattr +i invariants). Same fingerprinter as
+        # FLAG/SUID — md5 + mode + owner + immutable bit. The +i bit
+        # is the load-bearing one here; if it drops, attacker (or
+        # operator drift) can rewrite the file next.
+        for p in "${PHANTOM_HARDENED_FILES[@]}"; do
+            fp=$(fingerprint_in_container "$PHANTOM_CONTAINER" "$p")
+            printf 'HARDENED\t%s\t%s\n' "$p" "$fp"
+        done
+        # Player account inventory — `getent passwd <user>` per user.
+        # Drift = entry deleted, UID/GID changed, shell flipped, home
+        # rewrite. Stored as the full passwd line minus the bcrypt
+        # hash (which is in /shadow, not /passwd). Missing user yields
+        # MISSING via the literal `getent` exit code.
+        for u in "${PHANTOM_USERS[@]}"; do
+            local entry
+            entry=$(docker exec "$PHANTOM_CONTAINER" getent passwd "$u" 2>/dev/null)
+            [ -z "$entry" ] && entry="MISSING"
+            printf 'USER\t%s\t%s\n' "$u" "$entry"
         done
         # Daemon liveness — sshd and any phantom-specific watchdog'd
         # services. Just check sshd PID 1 is alive (entrypoint guarantees
@@ -308,6 +381,13 @@ collect_ghost() {
                 printf 'PORT\t%d\tDOWN\n' "$port"
             fi
         done
+        # Player account inventory (added 2026-05-10).
+        for u in "${GHOST_USERS[@]}"; do
+            local entry
+            entry=$(docker exec "$GHOST_CONTAINER" getent passwd "$u" 2>/dev/null)
+            [ -z "$entry" ] && entry="MISSING"
+            printf 'USER\t%s\t%s\n' "$u" "$entry"
+        done
     } >> "$out"
 }
 
@@ -342,6 +422,13 @@ collect_phantom_deep() {
         attached=$(docker network inspect "$PHANTOM_DEEP_NET" \
             --format '{{len .Containers}}' 2>/dev/null || echo '?')
         printf 'NET\tphantom-net-attached\t%s\n' "$attached"
+        # Per-image fingerprints (added 2026-05-10).
+        for img in "${PHANTOM_DEEP_IMAGES[@]}"; do
+            local img_id
+            img_id=$(docker image inspect "$img" --format '{{.Id}}' 2>/dev/null)
+            [ -z "$img_id" ] && img_id="MISSING"
+            printf 'IMAGE\t%s\t%s\n' "$img" "$img_id"
+        done
     } >> "$out"
 }
 
@@ -631,18 +718,25 @@ cmd_summary() {
                 local n_flag=$(grep -c $'^FLAG\t' "$current" || echo 0)
                 local n_suid=$(grep -c $'^SUID\t' "$current" || echo 0)
                 local n_cron=$(grep -c $'^CRON\t' "$current" || echo 0)
+                local n_hard=$(grep -c $'^HARDENED\t' "$current" || echo 0)
+                local n_user=$(grep -c $'^USER\t' "$current" || echo 0)
+                local n_user_missing=$(awk -F'\t' '/^USER/ && $3=="MISSING"' "$current" | wc -l)
                 local leak=$(awk -F'\t' '/^LEAK\tcount/ {print $3}' "$current")
-                stats="${n_flag} flags, ${n_suid} SUIDs, ${n_cron} cron, leak=${leak:-?}"
+                stats="${n_flag} flags, ${n_suid} SUIDs, ${n_cron} cron, ${n_hard} hardened, ${n_user} users ($((n_user - n_user_missing)) present), leak=${leak:-?}"
                 ;;
             ghost)
                 local n_mission=$(grep -c $'^MISSION\t' "$current" || echo 0)
                 local n_ports_up=$(awk -F'\t' '/^PORT/ && $3=="LISTEN"' "$current" | wc -l)
-                stats="${n_mission} mission files, ${n_ports_up} ports listening"
+                local n_user=$(grep -c $'^USER\t' "$current" || echo 0)
+                local n_user_missing=$(awk -F'\t' '/^USER/ && $3=="MISSING"' "$current" | wc -l)
+                stats="${n_mission} mission files, ${n_ports_up} ports listening, ${n_user} users ($((n_user - n_user_missing)) present)"
                 ;;
             phantom-deep)
                 local n_ports_up=$(awk -F'\t' '/^PORT/ && $3=="LISTEN"' "$current" | wc -l)
                 local pd_alive=$(awk -F'\t' '/^CONTAINER\tphantom-deep-orchestrator/ {print $3}' "$current")
-                stats="${n_ports_up} orch ports, orchestrator=${pd_alive}"
+                local n_img=$(grep -c $'^IMAGE\t' "$current" || echo 0)
+                local n_img_missing=$(awk -F'\t' '/^IMAGE/ && $3=="MISSING"' "$current" | wc -l)
+                stats="${n_ports_up} orch ports, orchestrator=${pd_alive}, ${n_img} images ($((n_img - n_img_missing)) intact)"
                 ;;
             specter)
                 local n_ports_up=$(awk -F'\t' '/^PORT/ && $3=="LISTEN"' "$current" | wc -l)
