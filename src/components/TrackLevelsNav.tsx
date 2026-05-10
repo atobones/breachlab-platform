@@ -33,20 +33,27 @@ export function TrackLevelsNav({
             {track.name}
           </Link>
         </li>
-        {publicLevels.map((l) => {
+        {publicLevels.map((l, i) => {
           const isActive = activeLevelIdx === l.idx;
           // Phantom L9 is currently moved to phantom-deep ephemeral as
           // an OPTIONAL side quest (mono chain skips it). Dim the entry
           // so players see it isn't part of the linear path right now.
           // Drop this conditional once L9 returns to the canonical chain.
           const isOptionalSideQuest = track.slug === "phantom" && l.idx === 9;
+          // Last public level: don't render "→ Level (idx+1)" because the
+          // next index is either a hidden graduation chain (specter L13 →
+          // L14 secret) or the graduation page itself. Either way the
+          // arrow leaks the existence of a next level we don't list.
+          const isLastPublic = i === publicLevels.length - 1;
           let cls = "text-text";
           if (isActive) cls = "text-amber";
           else if (isOptionalSideQuest) cls = "text-muted italic opacity-50";
           return (
             <li key={l.id}>
               <Link href={`/tracks/${track.slug}/${l.idx}`} className={cls}>
-                Level {l.idx} → Level {l.idx + 1}
+                {isLastPublic
+                  ? `Level ${l.idx}`
+                  : `Level ${l.idx} → Level ${l.idx + 1}`}
                 {isOptionalSideQuest ? " (optional)" : ""}
               </Link>
             </li>
