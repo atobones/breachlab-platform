@@ -1,0 +1,21 @@
+[Unit]
+Description=BreachLab daily watchdog summary (consolidated TG report across all tracks)
+Documentation=man:breachlab-invariants.sh(8)
+After=docker.service breachlab-invariants.timer
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/breachlab-invariants.sh summary
+User=root
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadWritePaths=/var/log /var/lib/breachlab-invariants
+PrivateTmp=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+TimeoutStartSec=120
+
+[Install]
+WantedBy=multi-user.target
