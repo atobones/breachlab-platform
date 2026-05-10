@@ -257,15 +257,301 @@ export function CommandPalette({ username }: Props) {
 
   if (!open) {
     return (
-      <button
-        className="palette-hint"
-        onClick={() => setOpen(true)}
-        aria-label="Open command palette"
-        title="Press ` to open shell"
-      >
-        <span className="palette-hint-key">`</span>
-        <span className="palette-hint-text">shell</span>
-      </button>
+      <div className="palette-hint-shell">
+        {/* Layer A — primary smoke halo. Solid green ellipse run
+            through heavy turbulence so the EDGES shred into wispy
+            smoke; dense center sits behind the button (button bg
+            masks it), wispy edges escape past button perimeter. */}
+        <svg
+          className="smoke-field smoke-field-a"
+          viewBox="0 0 220 110"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="bl-smoke-shred-a"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.014 0.022"
+                numOctaves={4}
+                seed={3}
+                result="n"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  dur="38s"
+                  calcMode="spline"
+                  values="0.014 0.022; 0.013 0.023; 0.015 0.021; 0.014 0.022"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="n"
+                scale={55}
+                xChannelSelector="R"
+                yChannelSelector="G"
+              >
+                <animate
+                  attributeName="scale"
+                  dur="45s"
+                  calcMode="spline"
+                  values="55; 62; 50; 55"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feDisplacementMap>
+              <feGaussianBlur stdDeviation={5} />
+            </filter>
+            <radialGradient id="bl-smoke-grad-a" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stopColor="#00ff88" stopOpacity="0.85" />
+              <stop offset="35%" stopColor="#22c55e" stopOpacity="0.70" />
+              <stop offset="60%" stopColor="#10b981" stopOpacity="0.40" />
+              <stop offset="80%" stopColor="#00ff88" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse
+            cx={110}
+            cy={55}
+            rx={100}
+            ry={48}
+            fill="url(#bl-smoke-grad-a)"
+            filter="url(#bl-smoke-shred-a)"
+          />
+        </svg>
+
+        {/* Layer B — smaller, paler, OFFSET timing.  When layer A is
+            mid-loop, layer B is at boundary; together they read as
+            one continuously evolving volume. */}
+        <svg
+          className="smoke-field smoke-field-b"
+          viewBox="0 0 180 95"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="bl-smoke-shred-b"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.018 0.026"
+                numOctaves={3}
+                seed={11}
+                result="n"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  dur="51s"
+                  calcMode="spline"
+                  values="0.018 0.026; 0.019 0.024; 0.017 0.027; 0.018 0.026"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap
+                in="SourceGraphic"
+                in2="n"
+                scale={42}
+                xChannelSelector="R"
+                yChannelSelector="G"
+              >
+                <animate
+                  attributeName="scale"
+                  dur="58s"
+                  calcMode="spline"
+                  values="42; 48; 38; 42"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feDisplacementMap>
+              <feGaussianBlur stdDeviation={4} />
+            </filter>
+            <radialGradient id="bl-smoke-grad-b" cx="50%" cy="50%" r="55%">
+              <stop offset="0%" stopColor="#b9f8d4" stopOpacity="0.65" />
+              <stop offset="40%" stopColor="#22c55e" stopOpacity="0.45" />
+              <stop offset="65%" stopColor="#10b981" stopOpacity="0.22" />
+              <stop offset="85%" stopColor="#00ff88" stopOpacity="0.08" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse
+            cx={90}
+            cy={47}
+            rx={82}
+            ry={40}
+            fill="url(#bl-smoke-grad-b)"
+            filter="url(#bl-smoke-shred-b)"
+          />
+        </svg>
+
+        {/* RISING STREAMS — 3 thin elongated plumes that drift up
+            from the button top edge.  Adds directional flow on top
+            of the ambient halo so smoke clearly "leaks from button"
+            instead of just hovering symmetrically. */}
+        <svg
+          className="stream stream-mid"
+          viewBox="0 0 60 110"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="bl-stream-mid"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.020 0.015"
+                numOctaves={3}
+                seed={7}
+                result="n"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  dur="22s"
+                  calcMode="spline"
+                  values="0.020 0.015; 0.022 0.014; 0.018 0.016; 0.020 0.015"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale={38} xChannelSelector="R" yChannelSelector="G" />
+              <feGaussianBlur stdDeviation={4} />
+            </filter>
+            <radialGradient id="bl-stream-grad-mid" cx="50%" cy="65%" r="55%">
+              <stop offset="0%" stopColor="#00ff88" stopOpacity="0.80" />
+              <stop offset="40%" stopColor="#22c55e" stopOpacity="0.55" />
+              <stop offset="75%" stopColor="#10b981" stopOpacity="0.18" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx={30} cy={70} rx={25} ry={35} fill="url(#bl-stream-grad-mid)" filter="url(#bl-stream-mid)" />
+        </svg>
+
+        <svg
+          className="stream stream-left"
+          viewBox="0 0 60 110"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="bl-stream-lt"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.024 0.014"
+                numOctaves={3}
+                seed={13}
+                result="n"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  dur="26s"
+                  calcMode="spline"
+                  values="0.024 0.014; 0.022 0.016; 0.026 0.013; 0.024 0.014"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale={40} xChannelSelector="R" yChannelSelector="G" />
+              <feGaussianBlur stdDeviation={4} />
+            </filter>
+            <radialGradient id="bl-stream-grad-lt" cx="50%" cy="65%" r="55%">
+              <stop offset="0%" stopColor="#b9f8d4" stopOpacity="0.65" />
+              <stop offset="40%" stopColor="#22c55e" stopOpacity="0.45" />
+              <stop offset="75%" stopColor="#10b981" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx={30} cy={70} rx={25} ry={35} fill="url(#bl-stream-grad-lt)" filter="url(#bl-stream-lt)" />
+        </svg>
+
+        <svg
+          className="stream stream-right"
+          viewBox="0 0 60 110"
+          preserveAspectRatio="none"
+          aria-hidden="true"
+        >
+          <defs>
+            <filter
+              id="bl-stream-rt"
+              x="-30%"
+              y="-30%"
+              width="160%"
+              height="160%"
+              colorInterpolationFilters="sRGB"
+            >
+              <feTurbulence
+                type="fractalNoise"
+                baseFrequency="0.018 0.016"
+                numOctaves={3}
+                seed={19}
+                result="n"
+              >
+                <animate
+                  attributeName="baseFrequency"
+                  dur="29s"
+                  calcMode="spline"
+                  values="0.018 0.016; 0.020 0.014; 0.016 0.018; 0.018 0.016"
+                  keyTimes="0; 0.33; 0.66; 1"
+                  keySplines="0.45 0 0.55 1; 0.45 0 0.55 1; 0.45 0 0.55 1"
+                  repeatCount="indefinite"
+                />
+              </feTurbulence>
+              <feDisplacementMap in="SourceGraphic" in2="n" scale={36} xChannelSelector="R" yChannelSelector="G" />
+              <feGaussianBlur stdDeviation={4} />
+            </filter>
+            <radialGradient id="bl-stream-grad-rt" cx="50%" cy="65%" r="55%">
+              <stop offset="0%" stopColor="#00ff88" stopOpacity="0.75" />
+              <stop offset="40%" stopColor="#10b981" stopOpacity="0.50" />
+              <stop offset="75%" stopColor="#22c55e" stopOpacity="0.16" />
+              <stop offset="100%" stopColor="#00ff88" stopOpacity="0" />
+            </radialGradient>
+          </defs>
+          <ellipse cx={30} cy={70} rx={25} ry={35} fill="url(#bl-stream-grad-rt)" filter="url(#bl-stream-rt)" />
+        </svg>
+
+        <button
+          className="palette-hint"
+          onClick={() => setOpen(true)}
+          aria-label="Open command palette"
+          title="Press ` to open shell"
+        >
+          <span className="palette-hint-key">`</span>
+          <span className="palette-hint-text">shell</span>
+        </button>
+      </div>
     );
   }
 

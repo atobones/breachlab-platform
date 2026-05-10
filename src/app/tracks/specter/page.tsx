@@ -38,6 +38,15 @@ const SUBTRACKS: SubTrackCard[] = [
     pitch:
       "Both sides of the line. DDoS attack and defence, firewall bypass, IDS signature evasion, DNS/HTTPS/ICMP tunneling.",
   },
+  {
+    slug: "specter/iv",
+    numeral: "IV",
+    title: "Social Engineering & Human Operations",
+    status: "PLANNED",
+    levels: "8 levels",
+    pitch:
+      "The human attack surface. Pretexting, vishing, baiting, USB drops (Rubber Ducky), targeted elicitation, persona ops. Every target is an LLM-simulated mark with scripted personality, jargon, security awareness level, and detection cues — you craft pretext, run conversation, exfiltrate intel without tripping the alarm. The only wargame track that actually grades social tradecraft.",
+  },
 ];
 
 export default function SpecterOverviewPage() {
@@ -46,9 +55,9 @@ export default function SpecterOverviewPage() {
       <header className="space-y-3">
         <h1 className="text-amber text-2xl">Specter</h1>
         <p className="text-sm text-muted">
-          Recon &amp; Initial Access. Three sub-tracks, ~32 levels, ephemeral
-          per-session containers from day one. Specter I is live; II and III
-          ship next.
+          Recon &amp; Initial Access. Four sub-tracks, ~40 levels, ephemeral
+          per-session containers from day one. Specter I is live; II, III,
+          and IV ship in order.
         </p>
       </header>
 
@@ -59,11 +68,12 @@ export default function SpecterOverviewPage() {
           public training currently reaches. The second teaches how to move
           across a network and through the air. The third teaches how to slip
           past the people watching for you — and how to disrupt them when you
-          can&apos;t.
+          can&apos;t. The fourth teaches the oldest attack surface there is:
+          the human in front of the screen.
         </p>
         <p className="text-sm text-muted">
           Each sub-track is independent. You can take them in order or
-          specialise. Specter I ships first; Specter II and III follow.
+          specialise. Specter I ships first; II, III, and IV follow.
         </p>
       </section>
 
