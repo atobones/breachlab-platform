@@ -40,6 +40,13 @@ services:
       # Bearer the Specter oracle uses to call /api/specter/auth-check
       # and /api/specter/resolve-token. Same value as on specter-mgmt.
       SPECTER_ORACLE_SECRET: ${SPECTER_ORACLE_SECRET:?SPECTER_ORACLE_SECRET must be exported}
+      # Specter pre-release allowlist gates — comma-separated user.id
+      # values. Empty/unset → notFound() for all users at /tracks/specter/{10,11,12}.
+      # Cleanup TODO: drop these when Specter I track ships (gated on L13
+      # per feedback_breachlab_specter_gated_until_full_track).
+      SPECTER_L10_ALLOWLIST: ${SPECTER_L10_ALLOWLIST:-}
+      SPECTER_L11_ALLOWLIST: ${SPECTER_L11_ALLOWLIST:-}
+      SPECTER_L12_ALLOWLIST: ${SPECTER_L12_ALLOWLIST:-}
       # Discord — OAuth (account linking) + bot (role sync, channel posts).
       # Without these the OAuth callback silently no-ops and linked
       # players never get the Operative baseline role (so #spoiler-zone

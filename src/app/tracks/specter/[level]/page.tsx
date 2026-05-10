@@ -57,6 +57,33 @@ export default async function SpecterLevelPage({
   const info = LEVEL_INFO[idx];
   const { user } = await getCurrentSession();
 
+  // ── L10/L11/L12 ALLOWLIST GATE — pre-release gating per Boss directive.
+  // Specter trek gated until full L0-L13 ready
+  // (feedback_breachlab_specter_gated_until_full_track). Per-level allowlist
+  // envs (comma-separated user.id) let Boss test on prod ahead of ship.
+  if (idx === 10) {
+    const allowlist = (process.env.SPECTER_L10_ALLOWLIST || "")
+      .split(",").map(s => s.trim()).filter(Boolean);
+    if (!user || !allowlist.includes(user.id)) {
+      notFound();
+    }
+  }
+  if (idx === 11) {
+    const allowlist = (process.env.SPECTER_L11_ALLOWLIST || "")
+      .split(",").map(s => s.trim()).filter(Boolean);
+    if (!user || !allowlist.includes(user.id)) {
+      notFound();
+    }
+  }
+  if (idx === 12) {
+    const allowlist = (process.env.SPECTER_L12_ALLOWLIST || "")
+      .split(",").map(s => s.trim()).filter(Boolean);
+    if (!user || !allowlist.includes(user.id)) {
+      notFound();
+    }
+  }
+  // ── END ALLOWLIST GATE ──
+
   let solved = false;
   let priorSolved = idx === 0;
   if (user) {

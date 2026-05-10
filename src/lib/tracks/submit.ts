@@ -44,7 +44,7 @@ const SPECTER_SSH_PORTS: Record<string, number> = {
   "corporate-intel": 2239,
   "dark-web": 2240,
   "telegram-intel": 2241,
-  "adversarial-osint": 2242,
+  "adversarial-counter-intel": 2242,
   "berkeley-protocol": 2243,
 };
 const SPECTER_SSH_HOST = "204.168.229.209";
