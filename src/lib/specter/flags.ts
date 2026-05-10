@@ -13,7 +13,10 @@ import { createHmac, createHash } from "crypto";
 // L0 = paper-trail, L1 = search-operator, L2 = code-hunter, L3 = js-recon,
 // L4 = people-recon, L5 = sock-puppet, L6 = image-geo, L7 = reverse-image,
 // L8 = travel-pattern, L9 = corporate-intel, L10 = dark-web,
-// L11 = telegram-intel, L12 = adversarial-osint, L13 = berkeley-protocol.
+// L11 = telegram-intel, L12 = adversarial-counter-intel, L13 = berkeley-protocol.
+// L12 slug aligned with mgmt grader LEVEL + spawn.sh case + image
+// /etc/specter/level + verifier shell name; pre-fix value was
+// "adversarial-osint" which mismatched the chain (SSH auth would 401).
 export const SPECTER_LEVEL_SLUGS = [
   "paper-trail",
   "search-operator",
@@ -27,7 +30,7 @@ export const SPECTER_LEVEL_SLUGS = [
   "corporate-intel",
   "dark-web",
   "telegram-intel",
-  "adversarial-osint",
+  "adversarial-counter-intel",
   "berkeley-protocol",
 ] as const;
 

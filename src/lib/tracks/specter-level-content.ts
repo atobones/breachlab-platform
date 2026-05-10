@@ -84,9 +84,9 @@ export const SPECTER_LEVEL_CONTENT: Record<number, SpecterLevelContent> = {
   },
   12: {
     goal:
-      "The target fights back. Classify five intel candidates: three are SOC traps (canary tokens, dangle accounts that alert on login, poisoned pastes with backdoored creds, watermarked leaks, fake-leak campaigns à la 0APT 2025), two are real.",
+      "Six weeks after L11 the dust settled — partially. You have become the target. Counter-surveillance probes against your spawn-fingerprint identity. Mid-op burn of your L5 sock-puppet. A 14-day counter-narrative window before the adversary moves first. Operate under active observation while keeping every artifact legal-tier-pure — and call attribution-deferred when classified-handoff is the correct senior call.",
     realWorldSkill:
-      "Mature defenders bait OSINT operators with traps. Spotting them is the difference between stealing intel and burning your operation in front of the SOC's own dashboard.",
+      "Bellingcat / Citizen Lab / Mandiant daily discipline. Counter-surveillance detection, persona-burn diagnosis, multi-layer coordinated deception detection, controlled disinfo without crossing into fabrication, flipped-asset legal_tier handling, triple-layer false-flag attribution. Berkeley Protocol uncertainty preservation as senior PASS.",
   },
   13: {
     goal:

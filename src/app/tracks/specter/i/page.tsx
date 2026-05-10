@@ -28,9 +28,27 @@ export default async function SpecterIPage() {
   const firstBloodByLevelId = await getFirstBloodByLevel();
   const { user } = await getCurrentSession();
 
+  // L10/L11/L12 ALLOWLIST GATE — pre-release gating per Boss directive.
+  // CLEANUP TODO: Remove these filters when Boss issues "Specter I track go-live"
+  // (gated on L13 ship per feedback_breachlab_specter_gated_until_full_track).
+  const _l10Allowlist = (process.env.SPECTER_L10_ALLOWLIST || "")
+    .split(",").map(s => s.trim()).filter(Boolean);
+  const _allowL10ForCurrentUser = !!user && _l10Allowlist.includes(user.id);
+  const _l11Allowlist = (process.env.SPECTER_L11_ALLOWLIST || "")
+    .split(",").map(s => s.trim()).filter(Boolean);
+  const _allowL11ForCurrentUser = !!user && _l11Allowlist.includes(user.id);
+  const _l12Allowlist = (process.env.SPECTER_L12_ALLOWLIST || "")
+    .split(",").map(s => s.trim()).filter(Boolean);
+  const _allowL12ForCurrentUser = !!user && _l12Allowlist.includes(user.id);
+
   // Specter I is L0..L13. Filter the wider Specter track if other
   // sub-tracks ever land in the same `levels` table.
-  const levelRows = allLevels.filter((l) => l.idx >= 0 && l.idx <= 13);
+  const levelRows = allLevels.filter((l) => {
+    if (l.idx === 10 && !_allowL10ForCurrentUser) return false;
+    if (l.idx === 11 && !_allowL11ForCurrentUser) return false;
+    if (l.idx === 12 && !_allowL12ForCurrentUser) return false;
+    return l.idx >= 0 && l.idx <= 13;
+  });
 
   let solvedLevelIds = new Set<string>();
   if (user && levelRows.length > 0) {
