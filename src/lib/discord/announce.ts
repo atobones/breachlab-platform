@@ -128,29 +128,22 @@ export async function announcePhantomGraduate(args: {
 }
 
 export async function announceDailyStats(args: {
-  newOperatives: number;
   flagsSubmitted: number;
   newGraduatesGhost: number;
   newGraduatesPhantom: number;
-  topOperativeOfDay: string | null;
-  topPointsOfDay: number;
+  newGraduatesSpecter: number;
 }): Promise<void> {
   const channel = announcementsChannel();
   if (!channel) return;
   const lines = [
     `📊 **BreachLab · 24h report**`,
     ``,
-    `  • New operatives: **${args.newOperatives}**`,
     `  • Flags submitted: **${args.flagsSubmitted}**`,
     `  • Ghost graduations: **${args.newGraduatesGhost}**`,
     `  • Phantom graduations: **${args.newGraduatesPhantom}**`,
+    `  • Specter graduations: **${args.newGraduatesSpecter}**`,
+    ``,
+    `https://breachlab.org/leaderboard`,
   ];
-  if (args.topOperativeOfDay) {
-    lines.push(
-      `  • Top operative: **@${args.topOperativeOfDay}** (${args.topPointsOfDay} pts)`,
-    );
-  }
-  lines.push(``);
-  lines.push(`https://breachlab.org/leaderboard`);
   await post(channel, lines.join("\n"));
 }

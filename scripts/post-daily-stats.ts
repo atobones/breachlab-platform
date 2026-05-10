@@ -16,38 +16,25 @@ import { announceDailyStats } from "../src/lib/discord/announce";
 
 async function main() {
   const [stats] = await db.execute<{
-    new_operatives: number;
     flags_submitted: number;
     new_graduates_ghost: number;
     new_graduates_phantom: number;
+    new_graduates_specter: number;
   }>(sql`
     SELECT
-      (SELECT count(*)::int FROM users       WHERE created_at  > now() - interval '24 hours')                                         AS new_operatives,
       (SELECT count(*)::int FROM submissions WHERE submitted_at > now() - interval '24 hours')                                        AS flags_submitted,
       (SELECT count(*)::int FROM badges      WHERE kind='ghost_graduate'  AND awarded_at > now() - interval '24 hours')              AS new_graduates_ghost,
-      (SELECT count(*)::int FROM badges      WHERE kind='phantom_master'  AND awarded_at > now() - interval '24 hours')              AS new_graduates_phantom
-  `);
-
-  const [top] = await db.execute<{ username: string; points: number }>(sql`
-    SELECT u.username, sum(s.points_awarded)::int AS points
-    FROM submissions s
-    JOIN users u ON u.id = s.user_id
-    WHERE s.submitted_at > now() - interval '24 hours'
-    GROUP BY u.username
-    ORDER BY points DESC
-    LIMIT 1
+      (SELECT count(*)::int FROM badges      WHERE kind='phantom_master'  AND awarded_at > now() - interval '24 hours')              AS new_graduates_phantom,
+      (SELECT count(*)::int FROM badges      WHERE kind='specter_master'  AND awarded_at > now() - interval '24 hours')              AS new_graduates_specter
   `);
 
   console.log("stats:", stats);
-  console.log("top:", top ?? "none");
 
   await announceDailyStats({
-    newOperatives: Number(stats?.new_operatives ?? 0),
     flagsSubmitted: Number(stats?.flags_submitted ?? 0),
     newGraduatesGhost: Number(stats?.new_graduates_ghost ?? 0),
     newGraduatesPhantom: Number(stats?.new_graduates_phantom ?? 0),
-    topOperativeOfDay: top?.username ?? null,
-    topPointsOfDay: Number(top?.points ?? 0),
+    newGraduatesSpecter: Number(stats?.new_graduates_specter ?? 0),
   });
 
   console.log("daily stats posted");
