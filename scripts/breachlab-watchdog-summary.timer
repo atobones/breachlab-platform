@@ -1,0 +1,13 @@
+[Unit]
+Description=BreachLab daily watchdog summary timer (09:00 UTC daily)
+
+[Timer]
+# Daily report at 09:00 UTC. OnCalendar fires once per day; Persistent
+# means if the host was down at 09:00, the run fires on next boot
+# (rather than skipping that day silently).
+OnCalendar=*-*-* 09:00:00 UTC
+Persistent=true
+Unit=breachlab-watchdog-summary.service
+
+[Install]
+WantedBy=timers.target
