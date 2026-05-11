@@ -79,6 +79,7 @@ export default function HelpPage() {
   #help           stuck on a level? ask here
   #ghost          Ghost track discussion
   #phantom        Phantom track discussion
+  #specter        Specter track discussion
   #general        general talk
   #victories      share your wins
   #bugs           report platform issues
@@ -99,14 +100,39 @@ ssh-keygen -R "[204.168.229.209]:2224"
 ssh-keygen -R "[204.168.229.209]:2225"
 ssh-keygen -R "[204.168.229.209]:2226"
 ssh-keygen -R "[204.168.229.209]:2227"
+ssh-keygen -R "[204.168.229.209]:2228"
+for p in 2230 2231 2232 2233 2234 2235 2236 2237 2238 2239 2240 2241 2242 2243; do
+  ssh-keygen -R "[204.168.229.209]:\${p}"
+done
 
-# If connection is refused, check port number
-# Ghost:         port 2222
-# Phantom main:  port 2223  (L0-L12, L16-L29)
-# Phantom L13:   port 2224  (ephemeral)
-# Phantom L14:   port 2225  (ephemeral)
-# Phantom L15:   port 2226  (ephemeral)
-# Phantom L30:   port 2227  (ephemeral)`}
+# If connection is refused, check the port number for the level you're on.
+
+# Ghost (track 1, foundation):
+# Ghost L0-L21:    port 2222
+
+# Phantom (track 2, post-exploitation):
+# Phantom main:    port 2223   (L0-L8, L10-L12, L16-L29, L31 graduation)
+# Phantom L9:      port 2228   (ephemeral — Stack Day, optional)
+# Phantom L13:     port 2224   (ephemeral — Deep Roots)
+# Phantom L14:     port 2225   (ephemeral — Shadow Mode)
+# Phantom L15:     port 2226   (ephemeral — Clean Slate)
+# Phantom L30:     port 2227   (ephemeral — Clean Exit)
+
+# Specter I (track 3, OSINT — every level is ephemeral):
+# Specter L0:      port 2230   (paper-trail)
+# Specter L1:      port 2231   (search-operator)
+# Specter L2:      port 2232   (code-hunter)
+# Specter L3:      port 2233   (js-recon)
+# Specter L4:      port 2234   (people-recon)
+# Specter L5:      port 2235   (sock-puppet)
+# Specter L6:      port 2236   (image-geo)
+# Specter L7:      port 2237   (reverse-image)
+# Specter L8:      port 2238   (travel-pattern)
+# Specter L9:      port 2239   (corporate-intel)
+# Specter L10:     port 2240   (dark-web)
+# Specter L11:     port 2241   (telegram-intel)
+# Specter L12:     port 2242   (adversarial-counter-intel)
+# Specter L13:     port 2243   (berkeley-protocol — finale)`}
         </pre>
       </section>
 
