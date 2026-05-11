@@ -375,6 +375,8 @@ export async function submitFlag(
     chainIntact && trackRow?.slug === "ghost" && level.idx === 22;
   const isPhantomGraduate =
     chainIntact && trackRow?.slug === "phantom" && level.idx === 31;
+  const isSpecterGraduate =
+    chainIntact && trackRow?.slug === "specter" && level.idx === 13;
 
   let alreadyGraduate = false;
   if (isGhostGraduate) {
@@ -408,6 +410,22 @@ export async function submitFlag(
     alreadyPhantomGraduate = existing.length > 0;
   }
 
+  let alreadySpecterGraduate = false;
+  if (isSpecterGraduate) {
+    const existing = await db
+      .select({ id: badges.id })
+      .from(badges)
+      .where(
+        and(
+          eq(badges.userId, userId),
+          eq(badges.kind, "specter_graduate"),
+          eq(badges.refId, level.trackId),
+        ),
+      )
+      .limit(1);
+    alreadySpecterGraduate = existing.length > 0;
+  }
+
   const toAward = decideBadgesToAward({
     isFirstBlood,
     levelId: level.id,
@@ -415,6 +433,7 @@ export async function submitFlag(
     trackCompleted,
     isGhostGraduate: isGhostGraduate && !alreadyGraduate,
     isPhantomGraduate: isPhantomGraduate && !alreadyPhantomGraduate,
+    isSpecterGraduate: isSpecterGraduate && !alreadySpecterGraduate,
   });
   if (toAward.length > 0) {
     await db.insert(badges).values(

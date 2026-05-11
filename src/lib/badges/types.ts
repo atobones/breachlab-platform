@@ -5,6 +5,7 @@ export type BadgeKind =
   | "speedrun_top10"
   | "ghost_graduate"
   | "phantom_master"
+  | "specter_graduate"
   | "sponsor_recruit"
   | "sponsor_operator"
   | "sponsor_phantom"
@@ -17,6 +18,7 @@ const KINDS = new Set<BadgeKind>([
   "speedrun_top10",
   "ghost_graduate",
   "phantom_master",
+  "specter_graduate",
   "sponsor_recruit",
   "sponsor_operator",
   "sponsor_phantom",
@@ -34,6 +36,7 @@ export const BADGE_LABEL: Record<BadgeKind, string> = {
   speedrun_top10: "Speedrun Top 10",
   ghost_graduate: "Ghost Graduate",
   phantom_master: "Phantom Operative",
+  specter_graduate: "Specter Analyst",
   sponsor_recruit: "Recruit Sponsor",
   sponsor_operator: "Operator Sponsor",
   sponsor_phantom: "Phantom Sponsor",

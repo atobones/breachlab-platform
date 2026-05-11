@@ -7,7 +7,7 @@ export type EarnedCertificate = {
   trackName: string;
   trackId: string;
   awardedAt: Date;
-  badgeKind: "ghost_graduate" | "phantom_master";
+  badgeKind: "ghost_graduate" | "phantom_master" | "specter_graduate";
 };
 
 /**
@@ -30,7 +30,7 @@ export async function getEarnedCertificates(
     .where(
       and(
         eq(badges.userId, userId),
-        inArray(badges.kind, ["ghost_graduate", "phantom_master"]),
+        inArray(badges.kind, ["ghost_graduate", "phantom_master", "specter_graduate"]),
       ),
     );
 

@@ -4,13 +4,19 @@ import Link from "next/link";
 import { getTrackCertificate } from "@/lib/certificate/queries";
 import { OperativeCertificate } from "@/components/certificate/OperativeCertificate";
 import { PhantomCertificate } from "@/components/certificate/PhantomCertificate";
+import { SpecterCertificate } from "@/components/certificate/SpecterCertificate";
 import { CertificateActions } from "@/components/certificate/CertificateActions";
 import { getCurrentSession } from "@/lib/auth/session";
 import { operativeSerial } from "@/lib/certificate/serial";
 
 export const dynamic = "force-dynamic";
 
-const SUPPORTED_TRACKS = new Set(["ghost", "phantom"]);
+const SUPPORTED_TRACKS = new Set(["ghost", "phantom", "specter"]);
+const SERIAL_PREFIX: Record<string, string> = {
+  ghost: "GHST",
+  phantom: "PHNM",
+  specter: "SPCT",
+};
 
 export async function generateMetadata({
   params,
@@ -42,7 +48,7 @@ export default async function TrackCertificatePage({
     cert.userId,
     cert.trackId,
     cert.awardedAt,
-    track === "phantom" ? "PHNM" : "GHST"
+    SERIAL_PREFIX[track] ?? "GHST"
   );
 
   return (
@@ -55,6 +61,8 @@ export default async function TrackCertificatePage({
       />
       {track === "phantom" ? (
         <PhantomCertificate cert={cert} />
+      ) : track === "specter" ? (
+        <SpecterCertificate cert={cert} />
       ) : (
         <OperativeCertificate cert={cert} />
       )}
