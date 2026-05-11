@@ -144,10 +144,10 @@ const SPECTER_LEVELS: SpecterLevel[] = [
   },
   {
     idx: 12,
-    slug: "adversarial-osint",
-    title: "Adversarial OSINT",
+    slug: "adversarial-counter-intel",
+    title: "Adversarial Counter-Intel",
     description:
-      "The target fights back. Detect canary tokens, dangle accounts that alert SOC on login, poisoned pastes with backdoored creds, watermarked leaks, fake-leak campaigns (0APT 2025 case). Classify five candidates: three traps, two real.",
+      "Six weeks after L11 the dust settled — partially. You have become the target. Counter-surveillance probes against your spawn-fingerprint identity, mid-op burn of your L5 sock-puppet, a 14-day counter-narrative window before the adversary moves first. Operate under active observation while keeping every artifact legal-tier-pure: counter-surveillance detection, persona-burn diagnosis, multi-layer coordinated deception detection, controlled disinfo injection without crossing into fabrication, flipped-asset legal_tier handling, triple-layer false-flag attribution (with senior PASS at attribution-deferred when classified-handoff is the correct call).",
     pointsBase: 1800,
     pointsFirstBloodBonus: 125,
   },

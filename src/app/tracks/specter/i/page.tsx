@@ -28,8 +28,10 @@ export default async function SpecterIPage() {
   const firstBloodByLevelId = await getFirstBloodByLevel();
   const { user } = await getCurrentSession();
 
-  // Specter I is L0..L13. Filter the wider Specter track if other
-  // sub-tracks ever land in the same `levels` table.
+  // Specter I track go-live 2026-05-11 — L0-L13 all shipped + audited.
+  // Allowlist gates removed (track-gating discipline satisfied per
+  // feedback_breachlab_specter_gated_until_full_track). Rollback:
+  // restore prior block from git history + populate env vars to lock.
   const levelRows = allLevels.filter((l) => l.idx >= 0 && l.idx <= 13);
 
   let solvedLevelIds = new Set<string>();

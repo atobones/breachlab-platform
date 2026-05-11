@@ -57,6 +57,10 @@ export default async function SpecterLevelPage({
   const info = LEVEL_INFO[idx];
   const { user } = await getCurrentSession();
 
+  // Specter I track go-live 2026-05-11 — L0-L13 all shipped + audited.
+  // Allowlist gates for L10/L11/L12 removed (feedback_breachlab_specter_
+  // gated_until_full_track satisfied). Rollback: restore from git history.
+
   let solved = false;
   let priorSolved = idx === 0;
   if (user) {
