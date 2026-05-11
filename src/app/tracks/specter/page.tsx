@@ -45,7 +45,7 @@ const SUBTRACKS: SubTrackCard[] = [
     status: "PLANNED",
     levels: "8 levels",
     pitch:
-      "The human attack surface. Pretexting, vishing, baiting, USB drops (Rubber Ducky), targeted elicitation, persona ops. Every target is an LLM-simulated mark with scripted personality, jargon, security awareness level, and detection cues — you craft pretext, run conversation, exfiltrate intel without tripping the alarm. The only wargame track that actually grades social tradecraft.",
+      "The human attack surface. Pretexting, vishing, baiting, USB drops (Rubber Ducky), targeted elicitation, persona ops. Every target is a scripted mark with its own personality, jargon, security awareness level, and detection cues — you craft pretext, run conversation, exfiltrate intel without tripping the alarm. The only wargame track that actually grades social tradecraft.",
   },
 ];
 
