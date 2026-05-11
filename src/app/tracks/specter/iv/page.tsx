@@ -61,8 +61,8 @@ export default function SpecterIVPage() {
           first place.
         </p>
         <p className="text-sm">
-          Every target on Specter IV is an LLM-driven simulated mark with a
-          scripted persona — background, beliefs, current emotional state,
+          Every target on Specter IV is a simulated mark with a scripted
+          persona — background, beliefs, current emotional state,
           security-awareness level, internal jargon dictionary, and
           allowed-versus-forbidden-intel boundaries. You craft a pretext, run
           a conversation through email, chat, or voice transcript, and try to
@@ -118,7 +118,7 @@ export default function SpecterIVPage() {
       <section className="space-y-3 border border-border p-4">
         <h2 className="text-amber text-lg">Status</h2>
         <p className="text-sm">
-          Design begins after Specter II ships. The LLM-driven NPC harness is
+          Design begins after Specter II ships. The simulated-NPC harness is
           a new platform-wide capability — once it lands, it unlocks future
           tracks that involve graded human interaction (negotiation,
           influence operations, insider-threat detection).
