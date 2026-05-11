@@ -36,6 +36,11 @@ const SEVERITY_STYLES = {
     title: "text-red-400",
     rule: "border-red-500/40",
   },
+  specter: {
+    container: "border-green/50 bg-green/[0.05]",
+    title: "text-green",
+    rule: "border-green/30",
+  },
 } as const;
 
 type Severity = keyof typeof SEVERITY_STYLES;
@@ -47,6 +52,7 @@ function parseSeverity(raw: string | undefined): Severity {
   const v = raw?.trim().toLowerCase();
   if (v === "info") return "info";
   if (v === "warn" || v === "warning") return "warn";
+  if (v === "specter") return "specter";
   return "danger";
 }
 
