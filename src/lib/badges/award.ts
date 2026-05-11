@@ -7,6 +7,7 @@ export type AwardContext = {
   trackCompleted: boolean;
   isGhostGraduate?: boolean;
   isPhantomGraduate?: boolean;
+  isSpecterGraduate?: boolean;
 };
 
 export type BadgeToAward = { kind: BadgeKind; refId: string };
@@ -20,5 +21,7 @@ export function decideBadgesToAward(ctx: AwardContext): BadgeToAward[] {
     out.push({ kind: "ghost_graduate", refId: ctx.trackId });
   if (ctx.isPhantomGraduate)
     out.push({ kind: "phantom_master", refId: ctx.trackId });
+  if (ctx.isSpecterGraduate)
+    out.push({ kind: "specter_graduate", refId: ctx.trackId });
   return out;
 }

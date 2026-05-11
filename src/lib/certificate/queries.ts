@@ -18,6 +18,7 @@ export type GhostCertificate = TrackCertificate;
 const TRACK_BADGE_KIND: Record<string, BadgeKind> = {
   ghost: "ghost_graduate",
   phantom: "phantom_master",
+  specter: "specter_graduate",
 };
 
 export async function getTrackCertificate(

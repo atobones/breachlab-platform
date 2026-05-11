@@ -9,9 +9,9 @@ type TrackMeta = {
   name: string;
   tier: TrackTier;
   operativeName?: string;
-  badgeKind?: "ghost_graduate" | "phantom_master";
+  badgeKind?: "ghost_graduate" | "phantom_master" | "specter_graduate";
   serialPrefix?: string;
-  color?: "amber" | "red";
+  color?: "amber" | "red" | "green";
   description: string;
 };
 
@@ -39,8 +39,12 @@ const TRACKS: TrackMeta[] = [
   {
     slug: "specter",
     name: "Specter",
-    tier: "soon",
-    description: "Network, WiFi, phishing & initial access",
+    tier: "active",
+    operativeName: "Specter Analyst",
+    badgeKind: "specter_graduate",
+    serialPrefix: "SPCT",
+    color: "green",
+    description: "Open-source intelligence — Berkeley Protocol discipline",
   },
   {
     slug: "mirage",
@@ -128,9 +132,15 @@ function EarnedCard({
   const colorClasses =
     meta.color === "red"
       ? "border-red text-red shadow-[0_0_16px_rgba(239,68,68,0.25)]"
+      : meta.color === "green"
+      ? "border-green text-green shadow-[0_0_16px_rgba(34,197,94,0.25)]"
       : "border-amber text-amber shadow-[0_0_16px_rgba(245,158,11,0.25)]";
   const hoverClasses =
-    meta.color === "red" ? "hover:bg-red/5" : "hover:bg-amber/5";
+    meta.color === "red"
+      ? "hover:bg-red/5"
+      : meta.color === "green"
+      ? "hover:bg-green/5"
+      : "hover:bg-amber/5";
 
   return (
     <article
@@ -161,6 +171,8 @@ function EarnedCard({
         className={`inline-block px-3 py-1 text-[10px] uppercase tracking-widest border ${
           meta.color === "red"
             ? "border-red hover:bg-red/10 hover:border-red transition-colors"
+            : meta.color === "green"
+            ? "border-green hover:bg-green/10 hover:border-green transition-colors"
             : "border-amber hover:bg-amber/10 hover:border-amber transition-colors"
         }`}
       >
