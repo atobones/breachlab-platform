@@ -18,16 +18,17 @@ export async function loginAction(
   formData: FormData
 ): Promise<State> {
   const parsed = loginSchema.safeParse({
-    username: formData.get("username"),
+    identifier: formData.get("identifier"),
     password: formData.get("password"),
   });
   if (!parsed.success) return { error: "Invalid input" };
 
-  const { username, password } = parsed.data;
+  const { identifier, password } = parsed.data;
+  const isEmail = identifier.includes("@");
   const [user] = await db
     .select()
     .from(users)
-    .where(eq(users.username, username))
+    .where(isEmail ? eq(users.email, identifier) : eq(users.username, identifier))
     .limit(1);
 
   if (!user) return { error: "Invalid credentials" };
