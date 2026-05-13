@@ -11,9 +11,10 @@ export function LoginForm() {
   return (
     <form action={formAction} className="space-y-3 text-sm">
       <label className="block">
-        <span className="block text-muted mb-1">Username</span>
+        <span className="block text-muted mb-1">Username or email</span>
         <input
-          name="username"
+          name="identifier"
+          autoComplete="username"
           required
           className="w-full bg-bg border border-border p-2 text-text focus:outline-none focus:border-amber"
         />
