@@ -178,6 +178,13 @@ export default async function GhostLevelPage({
       {content ? (
         <>
           <section>
+            <h2 className="text-muted text-xs uppercase tracking-wider mb-2">
+              Mission
+            </h2>
+            <p className="text-sm whitespace-pre-line">{content.goal}</p>
+          </section>
+
+          <section>
             <h2 className="text-amber text-lg mb-2">
               Commands you may need to solve this level
             </h2>
