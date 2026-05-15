@@ -24,6 +24,21 @@ export const users = pgTable("users", {
   isSupporter: boolean("is_supporter").notNull().default(false),
   isHallOfFame: boolean("is_hall_of_fame").notNull().default(false),
   securityScore: integer("security_score").notNull().default(0),
+  // Specter Sovereign meta-game (L14). Rank=1 is the first-solver
+  // ("Sovereign"); rank>=2 are subsequent solvers (Mystery-Solved).
+  // Rank 1 carries the green name-aura site-wide.
+  specterSovereignSolvedAt: timestamp("specter_sovereign_solved_at", {
+    withTimezone: true,
+  }),
+  specterSovereignRank: integer("specter_sovereign_rank"),
+  // Rate-limit / anti-brute counters for the vault-seal endpoint.
+  specterSovereignAttempts: integer("specter_sovereign_attempts")
+    .notNull()
+    .default(0),
+  specterSovereignLastAttemptAt: timestamp(
+    "specter_sovereign_last_attempt_at",
+    { withTimezone: true },
+  ),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),

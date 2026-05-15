@@ -4,6 +4,7 @@ import { getUserSecurityProfile } from "@/lib/hall-of-fame/queries";
 import { ProfileHeader } from "@/components/profile/ProfileHeader";
 import { ProfileStats } from "@/components/profile/ProfileStats";
 import { ProfileBadges } from "@/components/profile/ProfileBadges";
+import { SpecterSovereignCard } from "@/components/profile/SpecterSovereignCard";
 import { formatHhMmSs } from "@/lib/speedrun/format";
 
 export const dynamic = "force-dynamic";
@@ -48,6 +49,13 @@ export default async function ProfilePage({
         )}
       </div>
       <ProfileStats profile={profile} />
+      {profile.user.specterSovereignRank !== null &&
+        profile.user.specterSovereignSolvedAt && (
+          <SpecterSovereignCard
+            rank={profile.user.specterSovereignRank}
+            solvedAt={profile.user.specterSovereignSolvedAt}
+          />
+        )}
       <section className="space-y-2">
         <h2 className="text-sm text-muted uppercase tracking-wider">Badges</h2>
         <ProfileBadges badges={profile.badges} />

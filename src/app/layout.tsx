@@ -12,6 +12,7 @@ import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { OpsAlertBanner } from "@/components/OpsAlertBanner";
 import { MobileNav } from "@/components/MobileNav";
 import { getCurrentSession } from "@/lib/auth/session";
+import { loadSovereignContext } from "@/lib/specter-sovereign/queries";
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -42,6 +43,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const { user } = await getCurrentSession();
+  const sovereignContext = await loadSovereignContext(user?.id ?? null);
   return (
     <html
       lang="en"
@@ -59,7 +61,10 @@ export default async function RootLayout({
           </TerminalWindow>
         </main>
         <StatusBar />
-        <CommandPalette username={user?.username ?? null} />
+        <CommandPalette
+          username={user?.username ?? null}
+          sovereignContext={sovereignContext}
+        />
         <BootSequence />
       </body>
     </html>

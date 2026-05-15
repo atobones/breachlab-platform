@@ -2,11 +2,35 @@
 
 import { useRouter, usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  shellB32DecodeToHex,
+  shellReverse,
+  shellRot13,
+  shellSha256,
+} from "@/lib/specter-sovereign/shell-tools";
+import {
+  LISTEN_PROTOCOL,
+  vignetteSovereign,
+  vignetteMysterySolved,
+  vignetteRejected,
+  vignetteCooldown,
+  vignetteCapped,
+  BRIEF_SOVEREIGN,
+  BRIEF_MYSTERY_SOLVED,
+} from "@/lib/specter-sovereign/vignettes";
 
 type HistoryLine =
   | { kind: "input"; cwd: string; user: string; text: string }
   | { kind: "output"; text: string }
   | { kind: "error"; text: string };
+
+export type SovereignClientContext = {
+  hasSpecterCert: boolean;
+  mySovereignRank: number | null;
+  claimedGlobally: boolean;
+  sovereignUsername: string | null;
+  sovereignClaimedAt: string | null;
+};
 
 const ROUTES: { path: string; alias?: string[]; desc: string }[] = [
   { path: "/", alias: ["home", "~"], desc: "homepage" },
@@ -44,6 +68,10 @@ const COMMANDS = [
   { name: "whoami", desc: "show current user" },
   { name: "tracks", desc: "list all tracks" },
   { name: "submit <flag>", desc: "go to submission page (with flag prefilled)" },
+  { name: "b32 -d <s>", desc: "RFC 4648 base32 decode → hex" },
+  { name: "rev <s>", desc: "reverse a string" },
+  { name: "rot13 <s>", desc: "ROT13 letter substitution" },
+  { name: "sha256 <s>", desc: "SHA-256 digest of input (hex)" },
   { name: "clear / cls", desc: "clear the buffer" },
   { name: "exit / quit", desc: "close the prompt (or press Esc)" },
 ];
@@ -66,9 +94,24 @@ function resolvePath(input: string): string | null {
 
 type Props = {
   username: string | null;
+  sovereignContext?: SovereignClientContext;
 };
 
-export function CommandPalette({ username }: Props) {
+const EMPTY_SOVEREIGN: SovereignClientContext = {
+  hasSpecterCert: false,
+  mySovereignRank: null,
+  claimedGlobally: false,
+  sovereignUsername: null,
+  sovereignClaimedAt: null,
+};
+
+export function CommandPalette({ username, sovereignContext }: Props) {
+  const sovCtx = sovereignContext ?? EMPTY_SOVEREIGN;
+  // Local override so the brief unlocks IMMEDIATELY after a successful
+  // seal without a page reload (the server context was fetched at
+  // request time and won't have the just-recorded rank).
+  const [unlockedRank, setUnlockedRank] = useState<number | null>(null);
+  const effectiveRank = sovCtx.mySovereignRank ?? unlockedRank;
   const router = useRouter();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -115,6 +158,40 @@ export function CommandPalette({ username }: Props) {
     setHistory((h) => [...h, ...lines].slice(-200));
   }, []);
 
+  const appendLines = useCallback(
+    (texts: string[]) => {
+      append(texts.map((t) => ({ kind: "output" as const, text: t })));
+    },
+    [append],
+  );
+
+  const submitSeal = useCallback(
+    async (
+      key: string,
+    ): Promise<{
+      ok: boolean;
+      sovereign?: boolean;
+      rank?: number;
+      sovereignUsername?: string;
+      sovereignClaimedAt?: string;
+      reason?: string;
+      attemptsLeft?: number;
+      secondsLeft?: number;
+    }> => {
+      try {
+        const r = await fetch("/api/specter-sovereign/seal", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ key }),
+        });
+        return await r.json();
+      } catch {
+        return { ok: false, reason: "network" };
+      }
+    },
+    [],
+  );
+
   const run = useCallback(
     (raw: string) => {
       const text = raw.trim();
@@ -150,7 +227,7 @@ export function CommandPalette({ username }: Props) {
         return;
       }
       if (cmd === "whoami") {
-        append([
+        const lines: HistoryLine[] = [
           echo,
           {
             kind: "output",
@@ -159,7 +236,25 @@ export function CommandPalette({ username }: Props) {
                 ? "guest (not logged in) — `cd login` or `cd register`"
                 : `${username}  uid=${username}  on breachlab.org`,
           },
-        ]);
+        ];
+        // Hidden trigger: Specter Analyst cert-holders see a subtle
+        // hum-line that nudges them toward the meta-game. Nobody else
+        // sees this. Stops appearing once they're on the ledger.
+        if (
+          sovCtx.hasSpecterCert &&
+          effectiveRank === null
+        ) {
+          lines.push({ kind: "output", text: "" });
+          lines.push({
+            kind: "output",
+            text: "      . . a hum from the shell . .",
+          });
+          lines.push({
+            kind: "output",
+            text: "      ‹ try listen ›",
+          });
+        }
+        append(lines);
         return;
       }
       if (cmd === "ls") {
@@ -194,6 +289,141 @@ export function CommandPalette({ username }: Props) {
         setOpen(false);
         return;
       }
+
+      // ─── Crypto tools (Specter Sovereign meta-game enablers, but
+      //     useful generally for any decoding work) ────────────────
+      if (cmd === "b32") {
+        // Support `b32 -d <s>` (decode) and bare `b32 <s>` (default to decode).
+        const parts = args.filter((a) => a.length > 0);
+        let decode = true;
+        let payload = "";
+        if (parts[0] === "-d") {
+          decode = true;
+          payload = parts.slice(1).join("");
+        } else if (parts[0] === "-e") {
+          decode = false;
+          payload = parts.slice(1).join("");
+        } else {
+          payload = parts.join("");
+        }
+        if (!payload) {
+          append([echo, { kind: "error", text: "usage: b32 [-d|-e] <string>" }]);
+          return;
+        }
+        if (decode) {
+          try {
+            append([echo, { kind: "output", text: shellB32DecodeToHex(payload) }]);
+          } catch (e) {
+            append([
+              echo,
+              { kind: "error", text: e instanceof Error ? e.message : "b32: decode failed" },
+            ]);
+          }
+        } else {
+          append([echo, { kind: "error", text: "b32 -e (encode) not implemented yet" }]);
+        }
+        return;
+      }
+      if (cmd === "rev") {
+        if (!arg) {
+          append([echo, { kind: "error", text: "usage: rev <string>" }]);
+          return;
+        }
+        append([echo, { kind: "output", text: shellReverse(arg) }]);
+        return;
+      }
+      if (cmd === "rot13") {
+        if (!arg) {
+          append([echo, { kind: "error", text: "usage: rot13 <string>" }]);
+          return;
+        }
+        append([echo, { kind: "output", text: shellRot13(arg) }]);
+        return;
+      }
+      if (cmd === "sha256") {
+        if (!arg) {
+          append([echo, { kind: "error", text: "usage: sha256 <string>" }]);
+          return;
+        }
+        // Async — echo placeholder, then result.
+        append([echo, { kind: "output", text: "computing..." }]);
+        void shellSha256(arg).then((hex) => {
+          // Replace last "computing..." line with result.
+          setHistory((h) => {
+            const last = h[h.length - 1];
+            if (last?.kind === "output" && last.text === "computing...") {
+              return [...h.slice(0, -1), { kind: "output", text: hex }];
+            }
+            return [...h, { kind: "output", text: hex }];
+          });
+        });
+        return;
+      }
+
+      // ─── Specter Sovereign meta-game commands (hidden) ──────────
+      if (cmd === "listen") {
+        if (!sovCtx.hasSpecterCert) {
+          // No special response — fall through to "command not found"
+          // so non-cert-holders don't learn anything from probing.
+          append([echo, { kind: "error", text: `bash: ${cmd}: command not found  (try \`help\`)` }]);
+          return;
+        }
+        append([echo, ...LISTEN_PROTOCOL.split("\n").map((t) => ({ kind: "output" as const, text: t }))]);
+        return;
+      }
+      if (cmd === "seal") {
+        if (!sovCtx.hasSpecterCert) {
+          append([echo, { kind: "error", text: `bash: ${cmd}: command not found  (try \`help\`)` }]);
+          return;
+        }
+        const key = arg.trim().toLowerCase();
+        if (!/^[0-9a-f]{16}$/.test(key)) {
+          append([
+            echo,
+            { kind: "error", text: "usage: seal <16-char-hex-key>" },
+          ]);
+          return;
+        }
+        append([echo, { kind: "output", text: "   the gate hums ..." }]);
+        void submitSeal(key).then((res) => {
+          if (res.ok && res.sovereign) {
+            setUnlockedRank(1);
+            appendLines(vignetteSovereign().split("\n"));
+          } else if (res.ok) {
+            setUnlockedRank(res.rank ?? 2);
+            appendLines(
+              vignetteMysterySolved(
+                res.rank ?? 2,
+                res.sovereignUsername ?? "unknown",
+                res.sovereignClaimedAt
+                  ? new Date(res.sovereignClaimedAt).toISOString().replace("T", " ").slice(0, 19) + " UTC"
+                  : "earlier",
+              ).split("\n"),
+            );
+          } else if (res.reason === "cooldown" && res.secondsLeft) {
+            appendLines(vignetteCooldown(res.secondsLeft).split("\n"));
+          } else if (res.reason === "capped") {
+            appendLines(vignetteCapped().split("\n"));
+          } else if (res.reason === "rejected") {
+            appendLines(vignetteRejected(res.attemptsLeft ?? 0).split("\n"));
+          } else {
+            appendLines([
+              "   the gate refuses. try again.",
+            ]);
+          }
+        });
+        return;
+      }
+      if (cmd === "brief") {
+        if (effectiveRank === null) {
+          append([echo, { kind: "error", text: `bash: ${cmd}: command not found  (try \`help\`)` }]);
+          return;
+        }
+        const text =
+          effectiveRank === 1 ? BRIEF_SOVEREIGN : BRIEF_MYSTERY_SOLVED;
+        append([echo, ...text.split("\n").map((t) => ({ kind: "output" as const, text: t }))]);
+        return;
+      }
       if (cmd === "cd" || cmd === "open") {
         const target = resolvePath(arg || "/");
         if (!target) {
@@ -223,7 +453,17 @@ export function CommandPalette({ username }: Props) {
         },
       ]);
     },
-    [append, cwd, router, user, username]
+    [
+      append,
+      appendLines,
+      cwd,
+      effectiveRank,
+      router,
+      sovCtx,
+      submitSeal,
+      user,
+      username,
+    ]
   );
 
   const onSubmit = (e: React.FormEvent) => {
@@ -255,6 +495,11 @@ export function CommandPalette({ username }: Props) {
     }
   };
 
+  // Once a Sovereign has been claimed globally, the haze leaves the
+  // shell button and lives on the Sovereign's name instead. We render
+  // the smoke SVGs only when the gate is still open.
+  const showHaze = !sovCtx.claimedGlobally;
+
   if (!open) {
     return (
       <div className="palette-hint-shell">
@@ -262,6 +507,8 @@ export function CommandPalette({ username }: Props) {
             through heavy turbulence so the EDGES shred into wispy
             smoke; dense center sits behind the button (button bg
             masks it), wispy edges escape past button perimeter. */}
+        {showHaze && (
+        <>
         <svg
           className="smoke-field smoke-field-a"
           viewBox="0 0 220 110"
@@ -541,6 +788,8 @@ export function CommandPalette({ username }: Props) {
           </defs>
           <ellipse cx={30} cy={70} rx={25} ry={35} fill="url(#bl-stream-grad-rt)" filter="url(#bl-stream-rt)" />
         </svg>
+        </>
+        )}
 
         <button
           className="palette-hint"
