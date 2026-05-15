@@ -1,5 +1,6 @@
 import { StatusStrip } from "./StatusStrip";
 import { ConquestWall } from "./ConquestWall";
+import { TrackBoard } from "./TrackBoard";
 import { LiveFeed } from "./LiveFeed";
 import { Heartbeat } from "./Heartbeat";
 import { TopBurners } from "./TopBurners";
@@ -27,16 +28,19 @@ export function OpsWallRail() {
       >
         <StatusStrip />
         <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)] gap-3 flex-1 min-h-0">
-          <ConquestWall />
+          <div className="grid grid-rows-[minmax(0,1.4fr)_minmax(0,1fr)] gap-3 min-h-0">
+            <ConquestWall />
+            <TrackBoard />
+          </div>
           <div className="grid grid-rows-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 min-h-0">
             <LiveFeed />
             <Heartbeat />
             <TopBurners />
           </div>
         </div>
-        {/* Bottom of the rail is intentionally left empty — that's where the
-            interactive shell docks when opened (see globals.css 3xl block
-            that anchors `.palette-backdrop` to the bottom-right rail area). */}
+        {/* Bottom-right corner of the rail is intentionally left as the
+            shell-dock target — see the @media (min-width: 2200px)
+            `.palette-backdrop` block in globals.css. */}
       </section>
       <BattlesRail />
     </aside>

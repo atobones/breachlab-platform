@@ -214,6 +214,60 @@ export async function getConquestWall(
   return { tracks: trackList, rows };
 }
 
+export type TrackBoardRow = {
+  slug: string;
+  name: string;
+  status: string;
+  totalLevels: number;
+  solves24h: number;
+  uniqueSolvers: number;
+  lastSolveAt: Date | null;
+};
+
+export async function getTrackBoard(): Promise<TrackBoardRow[]> {
+  // Per-track stats: total levels, 24h solve count, unique solvers in 24h,
+  // last solve timestamp. One row per track (LIVE + PLANNED). Ordered by
+  // tracks.order_idx so the board matches the sidebar order.
+  const rows = await db
+    .select({
+      slug: tracks.slug,
+      name: tracks.name,
+      status: tracks.status,
+      orderIdx: tracks.orderIdx,
+      totalLevels: sql<number>`(
+        select count(*)::int from ${levels} l where l.track_id = ${tracks.id}
+      )`,
+      solves24h: sql<number>`(
+        select count(*)::int from ${submissions} s
+        join ${levels} l on l.id = s.level_id
+        where l.track_id = ${tracks.id}
+          and s.submitted_at > now() - interval '24 hours'
+      )`,
+      uniqueSolvers: sql<number>`(
+        select count(distinct s.user_id)::int from ${submissions} s
+        join ${levels} l on l.id = s.level_id
+        where l.track_id = ${tracks.id}
+          and s.submitted_at > now() - interval '24 hours'
+      )`,
+      lastSolveAt: sql<Date | null>`(
+        select max(s.submitted_at) from ${submissions} s
+        join ${levels} l on l.id = s.level_id
+        where l.track_id = ${tracks.id}
+      )`,
+    })
+    .from(tracks)
+    .orderBy(tracks.orderIdx);
+  return rows.map((r) => ({
+    slug: r.slug,
+    name: r.name,
+    status: r.status,
+    totalLevels: Number(r.totalLevels),
+    solves24h: Number(r.solves24h),
+    uniqueSolvers: Number(r.uniqueSolvers),
+    lastSolveAt: r.lastSolveAt ? new Date(r.lastSolveAt as unknown as string) : null,
+  }));
+}
+
 export async function getTopBurners(limit: number): Promise<TopBurner[]> {
   const rows = await db
     .select({
