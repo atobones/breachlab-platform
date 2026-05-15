@@ -76,34 +76,26 @@ export async function ConquestWall() {
                   </td>
                   {tracks.map((t) => {
                     const solved = row.perTrack[t.slug] ?? 0;
-                    const pct =
-                      t.total > 0 ? Math.round((solved / t.total) * 100) : 0;
                     const isComplete = t.total > 0 && solved === t.total;
+                    const inProgress = solved > 0 && !isComplete;
+                    const glyph = isComplete ? "✓" : inProgress ? "◐" : "·";
+                    const tone = isComplete
+                      ? "text-green"
+                      : inProgress
+                        ? "text-amber"
+                        : "text-muted/30";
                     return (
-                      <td key={t.slug} className="px-2 py-1.5">
-                        <div className="flex items-center gap-1.5 min-w-0">
-                          <div className="relative h-[6px] bg-amber/5 flex-1 min-w-[24px]">
-                            <div
-                              className={
-                                isComplete
-                                  ? "absolute inset-y-0 left-0 bg-green/80"
-                                  : "absolute inset-y-0 left-0 bg-amber/70"
-                              }
-                              style={{ width: `${pct}%` }}
-                            />
-                          </div>
-                          <span
-                            className={`tabular-nums text-[10px] w-8 text-right ${
-                              isComplete
-                                ? "text-green"
-                                : solved > 0
-                                  ? "text-amber/80"
-                                  : "text-muted/40"
-                            }`}
-                          >
-                            {solved}/{t.total}
+                      <td
+                        key={t.slug}
+                        className={`px-2 py-1.5 tabular-nums ${tone}`}
+                      >
+                        <span className="inline-flex items-baseline gap-1.5">
+                          <span aria-hidden>{glyph}</span>
+                          <span>
+                            {solved}
+                            <span className="text-muted/40">/{t.total}</span>
                           </span>
-                        </div>
+                        </span>
                       </td>
                     );
                   })}
