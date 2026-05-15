@@ -3,7 +3,6 @@ import { ConquestWall } from "./ConquestWall";
 import { LiveFeed } from "./LiveFeed";
 import { Heartbeat } from "./Heartbeat";
 import { TopBurners } from "./TopBurners";
-import { ShellSlot } from "./ShellSlot";
 import { BattlesRail } from "./BattlesRail";
 
 // Renders only on ultrawide (`3xl:`), defined at 2200px in globals.css.
@@ -35,7 +34,9 @@ export function OpsWallRail() {
             <TopBurners />
           </div>
         </div>
-        <ShellSlot />
+        {/* Bottom of the rail is intentionally left empty — that's where the
+            interactive shell docks when opened (see globals.css 3xl block
+            that anchors `.palette-backdrop` to the bottom-right rail area). */}
       </section>
       <BattlesRail />
     </aside>

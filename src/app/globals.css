@@ -1414,16 +1414,19 @@ section.ops-rail-battles:target {
 
 /* Interactive shell — on ultrawide (3xl), reposition the existing
    CommandPalette overlay from a centered viewport modal into the
-   bottom-right rail area (where ShellSlot is docked). The overlay's
-   backdrop is dropped (we're not dimming anything) and the window
-   shrinks to fit the rail's bottom strip. The component itself doesn't
-   change — only its CSS frame does. */
+   bottom-right rail area. The overlay's backdrop drops (no dimming
+   the rest of the wall) and the window stays at a fixed, modest
+   "terminal in the corner" size — never a giant overlay. Component
+   logic doesn't change; only its CSS frame does. */
 @media (min-width: 2200px) {
   .palette-backdrop {
     position: fixed;
-    inset: auto 1rem 1.5rem auto;
-    width: clamp(720px, 50vw, 1600px);
-    height: clamp(360px, 50vh, 700px);
+    top: auto;
+    left: auto;
+    right: 1rem;
+    bottom: 2rem;
+    width: min(820px, 30vw);
+    height: min(460px, 45vh);
     background: transparent;
     backdrop-filter: none;
     padding: 0;
