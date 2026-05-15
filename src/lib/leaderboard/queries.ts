@@ -235,24 +235,24 @@ export async function getTrackBoard(): Promise<TrackBoardRow[]> {
       status: tracks.status,
       orderIdx: tracks.orderIdx,
       totalLevels: sql<number>`(
-        select count(*)::int from ${levels} l where l.track_id = ${tracks.id}
+        select count(*)::int from ${levels} l where l.track_id = "tracks"."id"
       )`,
       solves24h: sql<number>`(
         select count(*)::int from ${submissions} s
         join ${levels} l on l.id = s.level_id
-        where l.track_id = ${tracks.id}
+        where l.track_id = "tracks"."id"
           and s.submitted_at > now() - interval '24 hours'
       )`,
       uniqueSolvers: sql<number>`(
         select count(distinct s.user_id)::int from ${submissions} s
         join ${levels} l on l.id = s.level_id
-        where l.track_id = ${tracks.id}
+        where l.track_id = "tracks"."id"
           and s.submitted_at > now() - interval '24 hours'
       )`,
       lastSolveAt: sql<Date | null>`(
         select max(s.submitted_at) from ${submissions} s
         join ${levels} l on l.id = s.level_id
-        where l.track_id = ${tracks.id}
+        where l.track_id = "tracks"."id"
       )`,
     })
     .from(tracks)
