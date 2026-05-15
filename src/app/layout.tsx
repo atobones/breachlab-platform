@@ -10,6 +10,7 @@ import { CommandPalette } from "@/components/CommandPalette";
 import { BootSequence } from "@/components/BootSequence";
 import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { OpsAlertBanner } from "@/components/OpsAlertBanner";
+import { SpecterMysteryBanner } from "@/components/SpecterMysteryBanner";
 import { MobileNav } from "@/components/MobileNav";
 import { getCurrentSession } from "@/lib/auth/session";
 import { loadSovereignContext } from "@/lib/specter-sovereign/queries";
@@ -54,6 +55,7 @@ export default async function RootLayout({
         <Sidebar />
         <main className="bl-main flex-1 p-4 max-w-5xl">
           <TerminalWindow username={user?.username ?? null}>
+            <SpecterMysteryBanner />
             <OpsAlertBanner />
             <EarlyAccessBanner />
             <Header />
