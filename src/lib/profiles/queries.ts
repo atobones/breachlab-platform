@@ -34,6 +34,8 @@ export type Profile = {
     securityScore: number;
     discordUsername: string | null;
     discordId: string | null;
+    specterSovereignRank: number | null;
+    specterSovereignSolvedAt: Date | null;
   };
   totalPoints: number;
   solvedLevels: number;
@@ -54,6 +56,8 @@ export async function getProfileByUsername(
       securityScore: users.securityScore,
       discordUsername: users.discordUsername,
       discordId: users.discordId,
+      specterSovereignRank: users.specterSovereignRank,
+      specterSovereignSolvedAt: users.specterSovereignSolvedAt,
     })
     .from(users)
     .where(ilike(users.username, username))

@@ -9,6 +9,8 @@ const COLOR: Record<BadgeKind, string> = {
   ghost_graduate: "border-amber text-amber font-bold",
   phantom_master: "border-red text-red font-bold",
   specter_graduate: "border-green text-green font-bold",
+  specter_sovereign: "border-green text-green font-bold shadow-[0_0_10px_rgba(34,197,94,0.4)]",
+  specter_mystery_solved: "border-green text-green",
   sponsor_recruit: "border-green text-green",
   sponsor_operator: "border-green text-green font-bold",
   sponsor_phantom: "border-amber text-amber font-bold",

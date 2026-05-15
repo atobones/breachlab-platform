@@ -1,8 +1,12 @@
 import Link from "next/link";
+import { SovereignNameAura } from "./SovereignNameAura";
 
 type Props = {
   username: string | null;
   isHallOfFame?: boolean | null;
+  /** Specter Sovereign — first operator through the L14 hidden gate.
+   *  Renders the animated green smoke aura around the username. */
+  isSpecterSovereign?: boolean | null;
   href?: string | null;
   className?: string;
   anonymousLabel?: string;
@@ -16,6 +20,7 @@ type Props = {
 export function OperativeName({
   username,
   isHallOfFame,
+  isSpecterSovereign,
   href,
   className = "",
   anonymousLabel = "Anonymous",
@@ -28,8 +33,13 @@ export function OperativeName({
     ? "hof-name"
     : "text-amber hover:underline";
 
-  const inner = (
+  const name = (
     <span className={`${baseClasses} ${className}`.trim()}>{username}</span>
+  );
+  const inner = isSpecterSovereign ? (
+    <SovereignNameAura>{name}</SovereignNameAura>
+  ) : (
+    name
   );
 
   if (href === null) return inner;

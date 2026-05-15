@@ -21,7 +21,11 @@ function formatDate(d: Date): string {
 export async function SpecterCertificate({ cert }: { cert: TrackCertificate }) {
   const serial = operativeSerial(cert.userId, cert.trackId, cert.awardedAt, "SPCT");
   const date = formatDate(cert.awardedAt);
-  const verifyUrl = `https://breachlab.org/u/${cert.username}/certificate/specter`;
+  // QR scans → player's profile page (shows full Operator Record including
+  // this cert in context, all earned badges, leaderboard standing). Per
+  // Boss directive 2026-05-11 — Specter QR distinct from Ghost/Phantom
+  // (which scan → cert URL); profile context is the better verification UX.
+  const verifyUrl = `https://breachlab.org/u/${cert.username}`;
 
   return (
     <article
@@ -44,14 +48,15 @@ export async function SpecterCertificate({ cert }: { cert: TrackCertificate }) {
               textAlign: "left",
               display: "inline-block",
             }}
-            className="font-mono text-green text-[10px] select-none"
+            className="font-mono text-green text-[10px] sm:text-xs select-none font-bold"
           >
-{` ____  ____  _____ ____ _____ _____ ____
-/ ___||  _ \\| ____/ ___|_   _| ____|  _ \\
-\\___ \\| |_) |  _|| |     | | |  _| | |_) |
- ___) |  __/| |__| |___  | | | |___|  _ <
-|____/|_|   |_____\\____| |_| |_____|_| \\_\\
-                  ANALYST`}
+{`  _____ _____  ______ _____ _______ ______ _____
+ / ____|  __ \\|  ____/ ____|__   __|  ____|  __ \\
+| (___ | |__) | |__ | |       | |  | |__  | |__) |
+ \\___ \\|  ___/|  __|| |       | |  |  __| |  _  /
+ ____) | |    | |___| |____   | |  | |____| | \\ \\
+|_____/|_|    |______\\_____|  |_|  |______|_|  \\_\\
+                       ANALYST`}
           </pre>
         </div>
         <p className="text-[11px] tracking-[0.4em] text-muted">
