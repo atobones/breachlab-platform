@@ -1,4 +1,4 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { desc, eq, inArray, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   levels,
@@ -167,48 +167,50 @@ export async function getConquestWall(
     total: Number(t.total),
   }));
 
-  // Top N operatives by total points, with per-track solve counts.
-  const userRows = await db
+  // Step 1: pick the top-N operatives by total points (one row per user,
+  // safe GROUP BY — no window functions mixed in).
+  const topUsers = await db
     .select({
       userId: users.id,
       username: users.username,
       isHallOfFame: users.isHallOfFame,
-      trackSlug: tracks.slug,
-      solved: sql<number>`count(${submissions.id})::int`,
-      totalPoints: sql<number>`coalesce(sum(${submissions.pointsAwarded}) over (partition by ${users.id}), 0)::int`,
+      totalPoints: sql<number>`coalesce(sum(${submissions.pointsAwarded}), 0)::int`,
     })
     .from(users)
     .innerJoin(submissions, eq(submissions.userId, users.id))
+    .groupBy(users.id, users.username, users.isHallOfFame)
+    .orderBy(desc(sql`sum(${submissions.pointsAwarded})`))
+    .limit(topN);
+
+  const topIds = topUsers.map((u) => u.userId);
+  if (topIds.length === 0) return { tracks: trackList, rows: [] };
+
+  // Step 2: per-(user, track) solve counts for just those users.
+  const counts = await db
+    .select({
+      userId: submissions.userId,
+      trackSlug: tracks.slug,
+      solved: sql<number>`count(${submissions.id})::int`,
+    })
+    .from(submissions)
     .innerJoin(levels, eq(levels.id, submissions.levelId))
     .innerJoin(tracks, eq(tracks.id, levels.trackId))
-    .where(
-      sql`${users.id} IN (
-        SELECT u.id FROM users u
-        JOIN submissions s ON s.user_id = u.id
-        GROUP BY u.id
-        ORDER BY sum(s.points_awarded) DESC
-        LIMIT ${topN}
-      )`,
-    )
-    .groupBy(users.id, users.username, users.isHallOfFame, tracks.slug);
+    .where(inArray(submissions.userId, topIds))
+    .groupBy(submissions.userId, tracks.slug);
 
-  const byUser = new Map<string, ConquestRow>();
-  for (const r of userRows) {
-    let row = byUser.get(r.userId);
-    if (!row) {
-      row = {
-        username: r.username,
-        isHallOfFame: r.isHallOfFame ?? false,
-        totalPoints: Number(r.totalPoints),
-        perTrack: {},
-      };
-      byUser.set(r.userId, row);
-    }
-    row.perTrack[r.trackSlug] = Number(r.solved);
+  const perUserTrack = new Map<string, Record<string, number>>();
+  for (const c of counts) {
+    if (!perUserTrack.has(c.userId)) perUserTrack.set(c.userId, {});
+    perUserTrack.get(c.userId)![c.trackSlug] = Number(c.solved);
   }
-  const rows = Array.from(byUser.values()).sort(
-    (a, b) => b.totalPoints - a.totalPoints,
-  );
+
+  const rows: ConquestRow[] = topUsers.map((u) => ({
+    username: u.username,
+    isHallOfFame: u.isHallOfFame ?? false,
+    totalPoints: Number(u.totalPoints),
+    perTrack: perUserTrack.get(u.userId) ?? {},
+  }));
+
   return { tracks: trackList, rows };
 }
 
