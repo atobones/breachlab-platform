@@ -1398,8 +1398,43 @@ html, body { overscroll-behavior-y: none; }
 
 /* Default view is always rendered; battles teaser is hidden until the
    URL hash matches its id (`#ops-rail-battles`). This is a CSS-only
-   swap — no client JS, both sub-views are server-rendered side-by-side. */
-.ops-rail-battles { display: none; }
-.ops-rail-battles:target { display: flex; flex: 1 1 0%; min-width: 0; min-height: 0; }
-.ops-wall-rail:has(.ops-rail-battles:target) .ops-rail-default { display: none; }
+   swap — no client JS, both sub-views are server-rendered side-by-side.
+   `!important` defends against any Tailwind utility classes on the same
+   element that would otherwise win on flat specificity. */
+section.ops-rail-battles { display: none !important; }
+section.ops-rail-battles:target {
+  display: flex !important;
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+}
+.ops-wall-rail:has(section.ops-rail-battles:target) section.ops-rail-default {
+  display: none !important;
+}
+
+/* Interactive shell — on ultrawide (3xl), reposition the existing
+   CommandPalette overlay from a centered viewport modal into the
+   bottom-right rail area (where ShellSlot is docked). The overlay's
+   backdrop is dropped (we're not dimming anything) and the window
+   shrinks to fit the rail's bottom strip. The component itself doesn't
+   change — only its CSS frame does. */
+@media (min-width: 2200px) {
+  .palette-backdrop {
+    position: fixed;
+    inset: auto 1rem 1.5rem auto;
+    width: clamp(720px, 50vw, 1600px);
+    height: clamp(360px, 50vh, 700px);
+    background: transparent;
+    backdrop-filter: none;
+    padding: 0;
+    align-items: stretch;
+    justify-content: stretch;
+  }
+  .palette-window {
+    max-width: none;
+    max-height: none;
+    width: 100%;
+    height: 100%;
+  }
+}
 
