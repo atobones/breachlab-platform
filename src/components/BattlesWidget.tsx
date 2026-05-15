@@ -23,28 +23,20 @@ const cardBody = (
 const cardClasses =
   "border border-amber/30 bg-amber/5 p-2.5 text-xs hover:bg-amber/10 hover:border-amber/70 transition-colors group";
 
+// At ultrawide (3xl), the Battles surface lives in the Ops Wall rail
+// permanently, so the sidebar widget would be redundant — hide it there.
 export function BattlesWidget() {
   return (
-    <section>
+    <section className="3xl:hidden">
       <h2 className="text-muted text-sm uppercase mb-2 flex items-center gap-2">
         ▸ Battles
         <span className="text-[9px] text-amber/80 border border-amber/40 px-1 rounded uppercase tracking-wider">
           soon
         </span>
       </h2>
-      {/* Narrow + mid screens: full-page Battles route. */}
-      <Link href="/battles" className={`block 3xl:hidden ${cardClasses}`}>
+      <Link href="/battles" className={`block ${cardClasses}`}>
         {cardBody}
       </Link>
-      {/* Ultrawide: open the Battles teaser inside the Ops Wall via
-          `:target` hash. Plain <a> so Next.js doesn't intercept the
-          hash navigation. */}
-      <a
-        href="#ops-rail-battles"
-        className={`hidden 3xl:block ${cardClasses}`}
-      >
-        {cardBody}
-      </a>
     </section>
   );
 }

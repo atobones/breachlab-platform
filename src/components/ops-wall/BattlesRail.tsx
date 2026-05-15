@@ -45,21 +45,12 @@ const MODES: Mode[] = [
 
 export function BattlesRail() {
   return (
-    <section
-      id="ops-rail-battles"
-      className="ops-rail-battles border border-amber/30 flex-col min-h-0"
-    >
+    <section className="border border-amber/30 flex flex-col flex-1 min-w-0 min-h-0">
       <header className="flex items-center justify-between px-3 py-2 border-b border-amber/20 shrink-0">
         <div className="flex items-center gap-3 text-[11px]">
           <span className="text-amber">[ BATTLES — RECRUITMENT ]</span>
           <span className="text-muted">launching with first full wave</span>
         </div>
-        <a
-          href="#"
-          className="text-[11px] text-muted hover:text-amber transition-colors no-underline"
-        >
-          ← close
-        </a>
       </header>
 
       <div className="flex-1 min-h-0 overflow-y-auto p-4 flex flex-col gap-3">
