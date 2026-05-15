@@ -12,10 +12,10 @@ function relTime(d: Date): string {
 }
 
 export async function LiveFeed() {
-  const rows = await getRecentSubmits(8);
+  const rows = await getRecentSubmits(40);
   return (
-    <div className="border border-amber/20 p-3 flex flex-col gap-2">
-      <div className="flex items-center justify-between text-[11px]">
+    <div className="border border-amber/20 p-3 flex flex-col gap-2 min-h-0">
+      <div className="flex items-center justify-between text-[11px] shrink-0">
         <span className="text-amber">[ LIVE FEED ]</span>
         <Link
           href="/leaderboard"
@@ -27,14 +27,14 @@ export async function LiveFeed() {
       {rows.length === 0 ? (
         <div className="text-muted text-[11px]">awaiting first submission</div>
       ) : (
-        <ul className="flex flex-col gap-1 text-[11px]">
+        <ul className="flex flex-col gap-1 text-[11px] overflow-y-auto min-h-0">
           {rows.map((r, i) => (
             <li
               key={i}
               className="flex items-baseline gap-2 tabular-nums"
             >
               <span className="text-amber/40">▸</span>
-              <span className="truncate">
+              <span className="truncate max-w-[10rem]">
                 <OperativeName
                   username={r.username}
                   isHallOfFame={r.isHallOfFame}
