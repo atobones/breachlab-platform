@@ -1,5 +1,5 @@
 import { StatusStrip } from "./StatusStrip";
-import { WorldMap } from "./WorldMap";
+import { ConquestWall } from "./ConquestWall";
 import { LiveFeed } from "./LiveFeed";
 import { Heartbeat } from "./Heartbeat";
 import { TopBurners } from "./TopBurners";
@@ -17,9 +17,9 @@ export function OpsWallRail() {
     >
       <div className="flex flex-col gap-3 flex-1 min-w-0 min-h-0">
         <StatusStrip />
-        <div className="grid grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-3 flex-1 min-h-0">
-          <WorldMap />
-          <div className="flex flex-col gap-3 min-h-0 overflow-y-auto">
+        <div className="grid grid-cols-[minmax(0,1.8fr)_minmax(0,1fr)] gap-3 flex-1 min-h-0">
+          <ConquestWall />
+          <div className="grid grid-rows-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)] gap-3 min-h-0">
             <LiveFeed />
             <Heartbeat />
             <TopBurners />

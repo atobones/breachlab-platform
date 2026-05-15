@@ -1396,28 +1396,3 @@ html, body { overscroll-behavior-y: none; }
   color: var(--bl-text);
 }
 
-/* Pulsing connection dot for the GLOBAL THEATRE map. Pure CSS, no JS —
-   nine dots ride staggered animation-delays so the wall always has motion
-   without ever turning into a disco. */
-.ops-wall-dot {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  margin-left: -3px;
-  margin-top: -3px;
-  border-radius: 50%;
-  background: var(--bl-amber);
-  box-shadow: 0 0 6px var(--bl-amber);
-  animation: ops-wall-pulse 4s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes ops-wall-pulse {
-  0%, 100% { opacity: 0.15; transform: scale(1); }
-  50%      { opacity: 1;    transform: scale(1.6); }
-}
-
-/* Respect motion preferences — kill the pulse for users who asked for less. */
-@media (prefers-reduced-motion: reduce) {
-  .ops-wall-dot { animation: none; opacity: 0.6; }
-}

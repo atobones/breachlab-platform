@@ -130,6 +130,88 @@ export type TopBurner = {
   count: number;
 };
 
+export type ConquestRow = {
+  username: string;
+  isHallOfFame: boolean;
+  totalPoints: number;
+  perTrack: Record<string, number>; // trackSlug → solved count
+};
+
+export type ConquestTrackTotal = {
+  slug: string;
+  name: string;
+  status: string;
+  total: number;
+};
+
+export async function getConquestWall(
+  topN: number,
+): Promise<{ tracks: ConquestTrackTotal[]; rows: ConquestRow[] }> {
+  // Track denominators + ordering (LIVE tracks first, then PLANNED, by orderIdx).
+  const trackRows = await db
+    .select({
+      slug: tracks.slug,
+      name: tracks.name,
+      status: tracks.status,
+      orderIdx: tracks.orderIdx,
+      total: sql<number>`count(${levels.id})::int`,
+    })
+    .from(tracks)
+    .leftJoin(levels, eq(levels.trackId, tracks.id))
+    .groupBy(tracks.id, tracks.slug, tracks.name, tracks.status, tracks.orderIdx)
+    .orderBy(tracks.orderIdx);
+  const trackList: ConquestTrackTotal[] = trackRows.map((t) => ({
+    slug: t.slug,
+    name: t.name,
+    status: t.status,
+    total: Number(t.total),
+  }));
+
+  // Top N operatives by total points, with per-track solve counts.
+  const userRows = await db
+    .select({
+      userId: users.id,
+      username: users.username,
+      isHallOfFame: users.isHallOfFame,
+      trackSlug: tracks.slug,
+      solved: sql<number>`count(${submissions.id})::int`,
+      totalPoints: sql<number>`coalesce(sum(${submissions.pointsAwarded}) over (partition by ${users.id}), 0)::int`,
+    })
+    .from(users)
+    .innerJoin(submissions, eq(submissions.userId, users.id))
+    .innerJoin(levels, eq(levels.id, submissions.levelId))
+    .innerJoin(tracks, eq(tracks.id, levels.trackId))
+    .where(
+      sql`${users.id} IN (
+        SELECT u.id FROM users u
+        JOIN submissions s ON s.user_id = u.id
+        GROUP BY u.id
+        ORDER BY sum(s.points_awarded) DESC
+        LIMIT ${topN}
+      )`,
+    )
+    .groupBy(users.id, users.username, users.isHallOfFame, tracks.slug);
+
+  const byUser = new Map<string, ConquestRow>();
+  for (const r of userRows) {
+    let row = byUser.get(r.userId);
+    if (!row) {
+      row = {
+        username: r.username,
+        isHallOfFame: r.isHallOfFame ?? false,
+        totalPoints: Number(r.totalPoints),
+        perTrack: {},
+      };
+      byUser.set(r.userId, row);
+    }
+    row.perTrack[r.trackSlug] = Number(r.solved);
+  }
+  const rows = Array.from(byUser.values()).sort(
+    (a, b) => b.totalPoints - a.totalPoints,
+  );
+  return { tracks: trackList, rows };
+}
+
 export async function getTopBurners(limit: number): Promise<TopBurner[]> {
   const rows = await db
     .select({
