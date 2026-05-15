@@ -1396,3 +1396,10 @@ html, body { overscroll-behavior-y: none; }
   color: var(--bl-text);
 }
 
+/* Default view is always rendered; battles teaser is hidden until the
+   URL hash matches its id (`#ops-rail-battles`). This is a CSS-only
+   swap — no client JS, both sub-views are server-rendered side-by-side. */
+.ops-rail-battles { display: none; }
+.ops-rail-battles:target { display: flex; flex: 1 1 0%; min-width: 0; min-height: 0; }
+.ops-wall-rail:has(.ops-rail-battles:target) .ops-rail-default { display: none; }
+
