@@ -18,8 +18,10 @@ const cardBody = (
   </>
 );
 
+// No display utility in cardClasses — the wrappers decide block vs hidden
+// per viewport. Avoids `block` colliding with `hidden` from the variant.
 const cardClasses =
-  "block border border-amber/30 bg-amber/5 p-2.5 text-xs hover:bg-amber/10 hover:border-amber/70 transition-colors group";
+  "border border-amber/30 bg-amber/5 p-2.5 text-xs hover:bg-amber/10 hover:border-amber/70 transition-colors group";
 
 export function BattlesWidget() {
   return (
@@ -31,7 +33,7 @@ export function BattlesWidget() {
         </span>
       </h2>
       {/* Narrow + mid screens: full-page Battles route. */}
-      <Link href="/battles" className={`${cardClasses} 3xl:hidden`}>
+      <Link href="/battles" className={`block 3xl:hidden ${cardClasses}`}>
         {cardBody}
       </Link>
       {/* Ultrawide: open the Battles teaser inside the Ops Wall via
