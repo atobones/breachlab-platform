@@ -1412,6 +1412,13 @@ section.ops-rail-battles:target {
   display: none !important;
 }
 
+/* Mobile / phone-sized viewports: hide the corner SHELL button and its
+   green smoke halo entirely. No physical keyboard for the backtick
+   trigger anyway, and the smoke ate visual budget on a small screen. */
+@media (max-width: 767px) {
+  .palette-hint-shell { display: none !important; }
+}
+
 /* Interactive shell — on ultrawide (3xl), reposition the existing
    CommandPalette overlay from a centered viewport modal into the
    bottom-right rail area. The overlay's backdrop drops (no dimming
