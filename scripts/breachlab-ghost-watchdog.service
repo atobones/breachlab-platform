@@ -1,0 +1,12 @@
+[Unit]
+Description=BreachLab Ghost watchdog — restores KAEL briefs and home mode drift
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=-/etc/breachlab-invariants.env
+ExecStart=/usr/local/sbin/breachlab-ghost-watchdog.sh
+Nice=10
+IOSchedulingClass=best-effort
+IOSchedulingPriority=7
