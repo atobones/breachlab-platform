@@ -12,6 +12,7 @@ import { EarlyAccessBanner } from "@/components/EarlyAccessBanner";
 import { OpsAlertBanner } from "@/components/OpsAlertBanner";
 import { SpecterMysteryBanner } from "@/components/SpecterMysteryBanner";
 import { MobileNav } from "@/components/MobileNav";
+import { OpsWallRail } from "@/components/ops-wall/OpsWallRail";
 import { getCurrentSession } from "@/lib/auth/session";
 import { loadSovereignContext } from "@/lib/specter-sovereign/queries";
 
@@ -62,6 +63,7 @@ export default async function RootLayout({
             {children}
           </TerminalWindow>
         </main>
+        <OpsWallRail />
         <StatusBar />
         <CommandPalette
           username={user?.username ?? null}
