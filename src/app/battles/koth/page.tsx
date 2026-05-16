@@ -7,13 +7,14 @@ import { findKeyForUser } from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
 import { currentPricesForRound } from "@/lib/koth/paths";
 import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
+import { titleFromRoundWins } from "@/lib/koth/titles";
 import { submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const ROUND_DURATION_SECONDS = 20 * 60;
+const ROUND_DURATION_SECONDS = 30 * 60;
 const ARENA_HOST = "204.168.229.209";
 const ARENA_PORT = 2300;
 const ESCALATION_THRESHOLD_SECONDS = 300;
@@ -236,7 +237,7 @@ export default async function KothPage({
                 </span>
               </span>
               <span className="text-amber">
-                age {fmtDuration(state.round.ageSeconds)} / 20:00
+                age {fmtDuration(state.round.ageSeconds)} / 30:00
               </span>
               <span className="text-muted">·</span>
               <span className="text-text">
@@ -533,17 +534,26 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           <ol className="space-y-1 text-[12px] font-mono tabular-nums">
             {state.top5.map((row, i) => {
               const life = lifetimeStats.get(row.userId);
+              const title = life ? titleFromRoundWins(life.roundWins) : null;
               return (
                 <li key={row.userId} className="flex items-center gap-3">
                   <span className="text-amber w-4">{i + 1}.</span>
                   <span className="text-text flex-1 truncate flex items-baseline gap-1.5">
+                    {title && (
+                      <span
+                        className={`text-[9px] tracking-wider ${title.color}`}
+                        title={`${life?.roundWins ?? 0} round wins · ${life?.crowns ?? 0} crowns · ${life?.dethrones ?? 0} dethrones`}
+                      >
+                        {title.glyph} {title.label}
+                      </span>
+                    )}
                     {row.username}
                     {life && life.roundWins > 0 && (
                       <span
-                        className="text-[9px] text-amber/80 tracking-wider"
-                        title={`${life.roundWins} round wins · ${life.crowns} crowns · ${life.dethrones} dethrones lifetime`}
+                        className="text-[9px] text-muted/80 tracking-wider"
+                        title="lifetime round wins"
                       >
-                        ◆×{life.roundWins}
+                        ×{life.roundWins}
                       </span>
                     )}
                   </span>
@@ -584,6 +594,9 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           ← battles
         </Link>
         <div className="flex items-center gap-3">
+          <Link href="/battles/koth/champions" className="hover:text-amber tracking-[0.18em] uppercase">
+            champions
+          </Link>
           <Link href="/battles/koth/history" className="hover:text-amber tracking-[0.18em] uppercase">
             history
           </Link>

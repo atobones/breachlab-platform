@@ -134,7 +134,7 @@ export default function KothRulesPage() {
 
       <RuleSection title="Round cycle">
         <p className="text-[13px]">
-          20 minutes. Auto-reset on cron <code>*/20 UTC</code>. Container
+          30 minutes. Auto-reset on cron <code>*/30 UTC</code>. Container
           force-recreated · everything resets. SSH keys persist.
         </p>
       </RuleSection>

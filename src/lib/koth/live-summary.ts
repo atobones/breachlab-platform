@@ -19,7 +19,7 @@ export type KothLiveSummary = {
   oneLiner: string;
 };
 
-const ROUND_DURATION = 20 * 60;
+const ROUND_DURATION = 30 * 60;
 
 function fmt(seconds: number): string {
   const s = Math.max(0, Math.floor(seconds));

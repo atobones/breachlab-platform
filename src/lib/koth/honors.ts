@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { kothEvents, kothHonors } from "@/lib/db/schema";
+import { kothEvents, kothHonors, users } from "@/lib/db/schema";
 import { topNForRound } from "./scoring";
 
 // KoTH Honors — permanent operator records.
@@ -211,6 +211,35 @@ export async function maybeAwardFirstTime(opts: {
   } catch {
     return false;
   }
+}
+
+// Top-N operators by lifetime round wins. Powers the public Crown
+// Champions panel. Uses a single grouped query and joins users for
+// the display name.
+export async function topChampionsByRoundWins(limit: number): Promise<
+  Array<{
+    userId: string;
+    username: string;
+    roundWins: number;
+    firstWinAt: Date | null;
+    lastWinAt: Date | null;
+  }>
+> {
+  const rows = await db
+    .select({
+      userId: kothHonors.userId,
+      username: users.username,
+      roundWins: sql<number>`count(*)::int`,
+      firstWinAt: sql<Date>`min(${kothHonors.awardedAt})`,
+      lastWinAt: sql<Date>`max(${kothHonors.awardedAt})`,
+    })
+    .from(kothHonors)
+    .innerJoin(users, eq(users.id, kothHonors.userId))
+    .where(eq(kothHonors.kind, "round_winner"))
+    .groupBy(kothHonors.userId, users.username)
+    .orderBy(desc(sql`count(*)`), desc(sql`max(${kothHonors.awardedAt})`))
+    .limit(limit);
+  return rows;
 }
 
 // Most recent N round wins for a user, used on profile / hover cards.
