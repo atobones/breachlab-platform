@@ -17,7 +17,7 @@ export function WriteupCard({
 }) {
   return (
     <article
-      className="border border-border px-4 py-3 flex flex-col gap-2"
+      className="border border-border px-4 py-3 flex flex-col gap-2 h-full"
       data-testid="writeup-card"
     >
       <header className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -52,13 +52,13 @@ export function WriteupCard({
             href={writeup.externalUrl}
             target="_blank"
             rel="noopener noreferrer nofollow"
-            className="text-xs text-amber hover:underline"
+            className="mt-auto pt-1 text-xs text-amber hover:underline"
           >
             Read on author&apos;s site →
           </a>
         </>
       ) : (
-        <p className="text-xs text-muted italic">{unlockHint ?? "Locked"}</p>
+        <p className="mt-auto text-xs text-muted italic">{unlockHint ?? "Locked"}</p>
       )}
     </article>
   );
