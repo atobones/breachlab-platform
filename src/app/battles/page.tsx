@@ -258,11 +258,6 @@ export default function BattlesPage() {
               BATTLES
             </span>
           </h1>
-          <p className="text-muted text-[13px] leading-relaxed max-w-2xl">
-            Four operator archetypes. Four arenas. Real-time tradecraft against
-            thinking adversaries — not puzzle boxes. Where the campaign-trained
-            operator becomes field-ready.
-          </p>
         </div>
 
         <StatusBanner />
