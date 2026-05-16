@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export const metadata = {
   title: "Crown Wars · Rules — BreachLab",
@@ -112,7 +113,14 @@ export default function KothRulesPage() {
           <li>No sharing private keys.</li>
           <li>
             Unintended bugs · arena escape · platform vulns → DM{" "}
-            <code>@breachlab</code>. HoF credit (
+            <a
+              href={DISCORD_INVITE_URL}
+              rel="noreferrer"
+              className="text-amber"
+            >
+              @ato in Discord
+            </a>
+            . HoF credit (
             <Link href="/hall-of-operatives" className="text-amber">
               /hall-of-operatives
             </Link>
