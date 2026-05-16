@@ -55,6 +55,37 @@ export const liveOpsCounts = pgTable("live_ops_counts", {
 
 export type LiveOpsCount = typeof liveOpsCounts.$inferSelect;
 
+// Per-session roster — companion to the aggregate liveOpsCounts.
+// Populated by Specter/phantom-deep orchestrators on spawn/reap and
+// Ghost/Phantom mono PAM session_open/close hooks. Read-only visibility
+// surface for /admin; never consulted for grading or auth.
+export const liveSessions = pgTable(
+  "live_sessions",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    username: text("username").notNull(),
+    source: text("source").notNull(),
+    level: text("level"),
+    containerId: text("container_id"),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    lastHeartbeatAt: timestamp("last_heartbeat_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => ({
+    sourceHeartbeatIdx: index("live_sessions_source_heartbeat_idx").on(
+      t.source,
+      t.lastHeartbeatAt.desc(),
+    ),
+    usernameIdx: index("live_sessions_username_idx").on(t.username),
+    heartbeatIdx: index("live_sessions_heartbeat_idx").on(t.lastHeartbeatAt),
+  }),
+);
+
+export type LiveSession = typeof liveSessions.$inferSelect;
+
 // Admin action trail. Writes here are append-only — deletes should only
 // ever happen via manual retention policy, not from the app.
 export const adminAuditLog = pgTable("admin_audit_log", {

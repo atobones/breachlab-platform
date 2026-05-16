@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql } from "drizzle-orm";
+import { sql, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { liveOpsCounts } from "@/lib/db/schema";
+import { liveOpsCounts, liveSessions } from "@/lib/db/schema";
 import { parseHeartbeatPayload } from "@/lib/live-ops/heartbeat";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 
@@ -37,6 +37,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid payload" }, { status: 400 });
   }
 
+  // The aggregate count is the contract every existing heartbeat client
+  // already honours — always update it first, even when a richer session
+  // roster is also provided. That keeps `/admin` "live SSH" counts
+  // continuous if the roster path ever fails.
   await db
     .insert(liveOpsCounts)
     .values({
@@ -48,6 +52,29 @@ export async function POST(req: NextRequest) {
       target: liveOpsCounts.source,
       set: { count: payload.count, updatedAt: sql`now()` },
     });
+
+  // Optional per-session roster — replace-on-write within (source) scope.
+  // Each heartbeat is the authoritative truth for its source at that
+  // instant, so we wipe the source's prior rows and insert the current
+  // snapshot transactionally. Sources that never send `sessions` keep
+  // working as before (the aggregate count above is enough for them).
+  if (payload.sessions !== undefined) {
+    await db.transaction(async (tx) => {
+      await tx.delete(liveSessions).where(eq(liveSessions.source, payload.source));
+      if (payload.sessions && payload.sessions.length > 0) {
+        await tx.insert(liveSessions).values(
+          payload.sessions.map((s) => ({
+            username: s.username,
+            source: payload.source,
+            level: s.level ?? null,
+            containerId: s.containerId ?? null,
+            startedAt: s.startedAt ? new Date(s.startedAt) : sql`now()`,
+            lastHeartbeatAt: sql`now()`,
+          })),
+        );
+      }
+    });
+  }
 
   return NextResponse.json({ ok: true });
 }
