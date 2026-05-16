@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { kothEvents, kothRounds, kothScores, users } from "@/lib/db/schema";
+import { kothEvents, kothRounds, users } from "@/lib/db/schema";
+import { topNForRound } from "@/lib/koth/scoring";
 
 // Public live state of the KoTH arena. The /battles/koth page polls
 // this. Returns: active round (if any), current king (most recent
@@ -68,18 +69,7 @@ export async function GET() {
         }
       : null;
 
-  const top5Rows = await db
-    .select({
-      username: users.username,
-      points: kothScores.points,
-      dethrones: kothScores.dethrones,
-      patches: kothScores.patches,
-    })
-    .from(kothScores)
-    .innerJoin(users, eq(users.id, kothScores.userId))
-    .where(eq(kothScores.roundId, round.id))
-    .orderBy(desc(kothScores.points))
-    .limit(5);
+  const top5Rows = await topNForRound(round.id, 5);
 
   const feedRows = await db
     .select({
