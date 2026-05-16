@@ -3,6 +3,11 @@ import type { DailyTrendPoint } from "@/lib/admin/helpers";
 export function TrendBars({ points }: { points: DailyTrendPoint[] }) {
   const maxReg = Math.max(1, ...points.map((p) => p.registrations));
   const maxSub = Math.max(1, ...points.map((p) => p.submissions));
+  // Shared scale across both series — when subs dwarfs regs (which it does
+  // by ~7x), the green bars visually shrink against the amber towers
+  // instead of pretending the two metrics have comparable magnitudes via
+  // independent normalization.
+  const sharedMax = Math.max(maxReg, maxSub);
   const firstDay = points[0]?.day ?? "";
   const lastDay = points[points.length - 1]?.day ?? "";
   const totalReg = points.reduce((s, p) => s + p.registrations, 0);
@@ -11,11 +16,11 @@ export function TrendBars({ points }: { points: DailyTrendPoint[] }) {
   return (
     <div className="border border-amber/20 p-3 font-mono text-xs">
       <div className="flex gap-2 mb-2">
-        <div className="flex flex-col justify-between text-[10px] text-green/80 select-none w-7 text-right py-px">
-          <span>{maxReg}</span>
-          <span>{Math.round((maxReg * 3) / 4)}</span>
-          <span>{Math.round(maxReg / 2)}</span>
-          <span>{Math.round(maxReg / 4)}</span>
+        <div className="flex flex-col justify-between text-[10px] text-amber/80 select-none w-9 text-right py-px">
+          <span>{sharedMax}</span>
+          <span>{Math.round((sharedMax * 3) / 4)}</span>
+          <span>{Math.round(sharedMax / 2)}</span>
+          <span>{Math.round(sharedMax / 4)}</span>
           <span>0</span>
         </div>
         <div className="flex items-end gap-px h-72 flex-1 relative border-l border-b border-amber/15">
@@ -31,21 +36,14 @@ export function TrendBars({ points }: { points: DailyTrendPoint[] }) {
             >
               <div
                 className="bg-green/70 group-hover:bg-green flex-1 transition-all"
-                style={{ height: `${(p.registrations / maxReg) * 100}%` }}
+                style={{ height: `${(p.registrations / sharedMax) * 100}%` }}
               />
               <div
                 className="bg-amber/60 group-hover:bg-amber flex-1 transition-all"
-                style={{ height: `${(p.submissions / maxSub) * 100}%` }}
+                style={{ height: `${(p.submissions / sharedMax) * 100}%` }}
               />
             </div>
           ))}
-        </div>
-        <div className="flex flex-col justify-between text-[10px] text-amber/80 select-none w-9 py-px">
-          <span>{maxSub}</span>
-          <span>{Math.round((maxSub * 3) / 4)}</span>
-          <span>{Math.round(maxSub / 2)}</span>
-          <span>{Math.round(maxSub / 4)}</span>
-          <span>0</span>
         </div>
       </div>
       <div className="flex justify-between text-[10px] text-muted">
