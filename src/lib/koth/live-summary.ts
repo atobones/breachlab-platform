@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, users } from "@/lib/db/schema";
 
@@ -59,6 +59,9 @@ export async function getKothLiveSummary(): Promise<KothLiveSummary> {
     ? Math.max(0, ROUND_DURATION - ageSeconds)
     : ROUND_DURATION;
 
+  // Scope to current round — see state/route.ts for the same fix.
+  // A stale king from the previous closed round otherwise leaks into
+  // the standing-by state of the next round.
   const [kingEvent] = await db
     .select({
       occurredAt: kothEvents.occurredAt,
@@ -66,7 +69,12 @@ export async function getKothLiveSummary(): Promise<KothLiveSummary> {
     })
     .from(kothEvents)
     .leftJoin(users, eq(users.id, kothEvents.actorUserId))
-    .where(eq(kothEvents.kind, "crown_taken"))
+    .where(
+      and(
+        eq(kothEvents.kind, "crown_taken"),
+        eq(kothEvents.roundId, round.id),
+      ),
+    )
     .orderBy(desc(kothEvents.occurredAt))
     .limit(1);
 
