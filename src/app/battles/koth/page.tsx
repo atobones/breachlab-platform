@@ -6,6 +6,7 @@ import { kothEvents, kothRounds, users } from "@/lib/db/schema";
 import { findKeyForUser } from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
 import { currentPricesForRound } from "@/lib/koth/paths";
+import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
@@ -163,6 +164,13 @@ export default async function KothPage({
 
   const myKey = user ? await findKeyForUser(user.id) : null;
 
+  // Lifetime totals for the operators on the leaderboard so the row
+  // can flex "× 12 round wins · 47 crowns" next to a current-round
+  // point count. One batched query for all 5 visible names.
+  const lifetimeStats = await getLifetimeStatsForUsers(
+    state.top5.map((r) => r.userId),
+  );
+
   const corePaths = state.paths.filter((p) => p.kind === "core");
   const activeEscalation = state.paths.filter(
     (p) => p.kind === "escalation" && p.activated,
@@ -307,6 +315,11 @@ export default async function KothPage({
             <pre className="text-[12px] leading-relaxed text-text overflow-x-auto">
 {`ssh -i ~/.ssh/your_key -p ${ARENA_PORT} koth${myKey.slot}@${ARENA_HOST}`}
             </pre>
+            <p className="text-[10px] text-muted/80 leading-snug -mt-1">
+              Your key syncs to the arena every ~60s. If the first
+              <code className="mx-1">ssh</code>
+              hits <em>permission denied</em>, give it a minute and retry.
+            </p>
             <p className="text-[11px] text-muted leading-snug">
               Once inside: get root via the SUID paths or Redis, then
               <code className="ml-1">
@@ -518,16 +531,29 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           </p>
         ) : (
           <ol className="space-y-1 text-[12px] font-mono tabular-nums">
-            {state.top5.map((row, i) => (
-              <li key={row.userId} className="flex items-center gap-3">
-                <span className="text-amber w-4">{i + 1}.</span>
-                <span className="text-text flex-1 truncate">{row.username}</span>
-                <span className="text-amber w-12 text-right">{row.points} pt</span>
-                <span className="text-muted text-[10px] w-20 text-right">
-                  {row.dethrones}d / {row.patches}p
-                </span>
-              </li>
-            ))}
+            {state.top5.map((row, i) => {
+              const life = lifetimeStats.get(row.userId);
+              return (
+                <li key={row.userId} className="flex items-center gap-3">
+                  <span className="text-amber w-4">{i + 1}.</span>
+                  <span className="text-text flex-1 truncate flex items-baseline gap-1.5">
+                    {row.username}
+                    {life && life.roundWins > 0 && (
+                      <span
+                        className="text-[9px] text-amber/80 tracking-wider"
+                        title={`${life.roundWins} round wins · ${life.crowns} crowns · ${life.dethrones} dethrones lifetime`}
+                      >
+                        ◆×{life.roundWins}
+                      </span>
+                    )}
+                  </span>
+                  <span className="text-amber w-12 text-right">{row.points} pt</span>
+                  <span className="text-muted text-[10px] w-20 text-right">
+                    {row.dethrones}d / {row.patches}p
+                  </span>
+                </li>
+              );
+            })}
           </ol>
         )}
       </section>

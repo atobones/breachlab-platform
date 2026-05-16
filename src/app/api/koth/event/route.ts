@@ -10,6 +10,7 @@ import {
   resolvePathBySlug,
   snapshotForExploit,
 } from "@/lib/koth/paths";
+import { maybeAwardFirstTime } from "@/lib/koth/honors";
 
 // Crown daemon oracle endpoint. The daemon runs inside the KoTH arena
 // container (Wave B1) and POSTs here every time it detects a crown
@@ -224,6 +225,42 @@ export async function POST(req: Request) {
         );
     } catch {
       // best-effort — tutorial flag is cosmetic
+    }
+
+    // First-time honors — permanent profile records. Each is a single
+    // existence-check + insert; deliberately not awaited as a batch so
+    // a glitch on one doesn't block the others. Wrapped in catch so
+    // the daemon's POST still returns 200 cleanly.
+    maybeAwardFirstTime({
+      userId: actorUserId,
+      kind: "first_crown",
+      roundId: body.round_id,
+      metadata: {
+        path_slug: path?.slug ?? body.exploit_path ?? null,
+        was_dethrone: targetUserId !== null,
+      },
+    }).catch(() => {});
+    if (targetUserId !== null) {
+      maybeAwardFirstTime({
+        userId: actorUserId,
+        kind: "first_dethrone",
+        roundId: body.round_id,
+        metadata: {
+          path_slug: path?.slug ?? body.exploit_path ?? null,
+          target_user_id: targetUserId,
+        },
+      }).catch(() => {});
+    }
+    if (path) {
+      maybeAwardFirstTime({
+        userId: actorUserId,
+        kind: "first_path_kill",
+        roundId: body.round_id,
+        metadata: {
+          path_slug: path.slug,
+          path_kind: path.kind,
+        },
+      }).catch(() => {});
     }
   }
 
