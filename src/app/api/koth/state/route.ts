@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, users } from "@/lib/db/schema";
 import { topNForRound } from "@/lib/koth/scoring";
@@ -58,6 +58,12 @@ export async function GET() {
       )
     : 0;
 
+  // Scope king detection to the CURRENT round. Without this filter,
+  // the last crown_taken from a closed round bleeds into the next
+  // empty round — making state report a stale king with an unbounded
+  // hold_seconds. The escalation daemon trusts that field, so a bad
+  // king lookup triggered orphan "escalation incoming" announcements
+  // after a round closed.
   const [kingEvent] = await db
     .select({
       occurredAt: kothEvents.occurredAt,
@@ -67,7 +73,12 @@ export async function GET() {
     })
     .from(kothEvents)
     .leftJoin(users, eq(users.id, kothEvents.actorUserId))
-    .where(eq(kothEvents.kind, "crown_taken"))
+    .where(
+      and(
+        eq(kothEvents.kind, "crown_taken"),
+        eq(kothEvents.roundId, round.id),
+      ),
+    )
     .orderBy(desc(kothEvents.occurredAt))
     .limit(1);
 

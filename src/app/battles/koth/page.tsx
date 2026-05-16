@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, users } from "@/lib/db/schema";
@@ -66,6 +66,9 @@ async function loadState() {
       )
     : 0;
 
+  // Scope king detection to the current round only — see
+  // api/koth/state/route.ts for the same fix. A global lookup leaks
+  // the last king from a closed round into the next standing-by round.
   const [kingEvent] = await db
     .select({
       occurredAt: kothEvents.occurredAt,
@@ -74,7 +77,12 @@ async function loadState() {
     })
     .from(kothEvents)
     .leftJoin(users, eq(users.id, kothEvents.actorUserId))
-    .where(eq(kothEvents.kind, "crown_taken"))
+    .where(
+      and(
+        eq(kothEvents.kind, "crown_taken"),
+        eq(kothEvents.roundId, round.id),
+      ),
+    )
     .orderBy(desc(kothEvents.occurredAt))
     .limit(1);
 
