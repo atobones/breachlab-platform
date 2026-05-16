@@ -44,6 +44,7 @@ export const users = pgTable("users", {
   siteUrl: text("site_url"),
   authorBio: text("author_bio"),
   isCurator: boolean("is_curator").notNull().default(false),
+  isFeaturedAuthor: boolean("is_featured_author").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -550,6 +551,21 @@ export const writeupStars = pgTable("writeup_stars", {
 }, (t) => ({
   pk: primaryKey({ columns: [t.writeupId, t.userId] }),
   byWriteup: index("writeup_stars_writeup_idx").on(t.writeupId),
+}));
+
+export const authorStars = pgTable("author_stars", {
+  authorId: uuid("author_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.authorId, t.userId] }),
+  byAuthor: index("author_stars_author_idx").on(t.authorId),
 }));
 
 export type User = typeof users.$inferSelect;

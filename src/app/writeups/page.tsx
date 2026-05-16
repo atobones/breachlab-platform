@@ -2,11 +2,13 @@ import Link from "next/link";
 import { getCurrentSession } from "@/lib/auth/session";
 import { listWriteups } from "@/lib/writeups";
 import { listCommunityWriteups } from "@/lib/community-writeups";
+import { listFeaturedAuthors } from "@/lib/featured-authors";
 import {
   getCompletedLevelIdxs,
   isCommunityWriteupReadable,
 } from "@/lib/writeup-access";
 import { WriteupCard } from "@/components/writeups/WriteupCard";
+import { FeaturedAuthorCard } from "@/components/writeups/FeaturedAuthorCard";
 
 export const dynamic = "force-dynamic";
 
@@ -20,6 +22,7 @@ export default async function WriteupsIndexPage() {
   const { user } = await getCurrentSession();
   const curated = await listWriteups();
   const community = await listCommunityWriteups({ userId: user?.id ?? null });
+  const featuredAuthors = await listFeaturedAuthors({ userId: user?.id ?? null });
 
   const tracks = Array.from(
     new Set([
@@ -54,6 +57,25 @@ export default async function WriteupsIndexPage() {
           publish it here with full attribution and a link back to your site.
         </p>
       </header>
+
+      {featuredAuthors.length > 0 ? (
+        <section className="space-y-3">
+          <h2 className="text-amber text-xl uppercase tracking-wider">
+            Featured external knowledge bases
+          </h2>
+          <ul className="space-y-2">
+            {featuredAuthors.map((a) => (
+              <li key={a.id}>
+                <FeaturedAuthorCard
+                  author={a}
+                  canStar={!!user}
+                  starDisabledReason={!user ? "Log in to star" : undefined}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       {curated.length > 0 ? (
         <section className="space-y-3">
