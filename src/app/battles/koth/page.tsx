@@ -136,8 +136,16 @@ export default async function KothPage({
 
       {/* Hero */}
       <header className="space-y-2">
-        <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
-          ▸ predator arena
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
+            ▸ predator arena
+          </div>
+          <Link
+            href="/battles/koth/rules"
+            className="btn-bracket text-amber text-[10px] font-mono tracking-[0.18em]"
+          >
+            Rules
+          </Link>
         </div>
         <h1 className="text-amber text-3xl sm:text-4xl phosphor wordmark font-bold tracking-[0.08em]">
           <span className="glitch" data-text="CROWN WARS">
