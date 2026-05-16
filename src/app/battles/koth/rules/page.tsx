@@ -74,7 +74,7 @@ export default function KothRulesPage() {
         </ol>
       </RuleSection>
 
-      <RuleSection title="Exploit paths">
+      <RuleSection title="Core paths (always open)">
         <KV
           rows={[
             ["L7  phantom-python3 SUID", "argv code injection"],
@@ -88,13 +88,56 @@ export default function KothRulesPage() {
         </p>
       </RuleSection>
 
+      <RuleSection title="Escalation (Phase 2 · live)">
+        <ul className="space-y-1 list-disc list-inside text-[12px]">
+          <li>
+            King holds the crown <strong>5 min</strong> → arena picks a
+            random path from the escalation library, broadcasts a
+            warning.
+          </li>
+          <li>
+            <strong>60s later</strong> the path activates. Fresh attack
+            surface against the current king.
+          </li>
+          <li>
+            Up to <strong>3 escalation paths</strong> per round · 3-min
+            cooldown between them.
+          </li>
+          <li>
+            Path slugs visible in the <em>exploit market</em> HUD on the
+            arena (e.g. <code>writable-passwd</code>,{" "}
+            <code>python-cap-setuid</code>).
+          </li>
+        </ul>
+      </RuleSection>
+
+      <RuleSection title="Diamond pricing">
+        <ul className="space-y-1 list-disc list-inside text-[12px]">
+          <li>
+            Each path starts the round at its <strong>base value</strong>
+            {" "}(usually 12 pt; some escalation paths up to 18 pt).
+          </li>
+          <li>
+            Every crown grab through the path drops its value by{" "}
+            <strong>2 pt</strong>, floored at <strong>2 pt</strong>.
+          </li>
+          <li>
+            A crowded path is a cheap path. Find an underused one.
+          </li>
+          <li>
+            Prices captured at exploit-time on each event. Reset on
+            round close.
+          </li>
+        </ul>
+      </RuleSection>
+
       <RuleSection title="Scoring">
         <KV
           rows={[
-            ["First crown grab (crown vacant)", "+1"],
-            ["Dethrone (crown held by another)", "+5"],
+            ["Crown grab via a path", "+ value at exploit time"],
             ["Per minute of hold", "+1 / min"],
-            ["Path-attributed patch · Phase 2", "+3"],
+            ["Generic patch", "+3"],
+            ["Path-attributed patch (close the path you got hit with)", "+5"],
           ]}
         />
       </RuleSection>
@@ -143,8 +186,9 @@ export default function KothRulesPage() {
       <RuleSection title="Roadmap">
         <KV
           rows={[
-            ["Phase 2", "Escalation · crown >5 min opens new attack path"],
+            ["Phase 2 · live", "Escalation engine + Diamond pricing"],
             ["Phase 3", "AI Defender · LLM-driven sysadmin in the box"],
+            ["Phase 4", "Season mode + spectator stream + session replay"],
           ]}
         />
       </RuleSection>

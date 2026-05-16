@@ -5,26 +5,34 @@ import { kothEvents, kothRounds, kothSshKeys, users } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { resolveSlotToUserId, isValidEventKind } from "@/lib/koth/slots";
 import { postKothEventToDiscord } from "@/lib/koth/discord";
+import {
+  recordPathEvent,
+  resolvePathBySlug,
+  snapshotForExploit,
+} from "@/lib/koth/paths";
 
 // Crown daemon oracle endpoint. The daemon runs inside the KoTH arena
 // container (Wave B1) and POSTs here every time it detects a crown
 // state change in /root/.crown — or one of the synthetic events
-// (patched, escalated). The bearer token is the same KOTH_ORACLE_TOKEN
-// shared between the host's .env and this endpoint's env.
+// (patched, escalation_pending, path_activated, etc). The bearer token
+// is the same KOTH_ORACLE_TOKEN shared between the host's .env and
+// this endpoint's env.
 //
-// points_delta is left at 0 here. The scoring engine (Wave D1) reads
-// the event log periodically and writes computed points into
-// koth_scores. This keeps the daemon dumb and the scoring rules
-// hot-swappable from the platform side.
+// points_delta is left at 0 here. The scoring engine reads the event
+// log periodically and writes computed points. Phase 2 introduces
+// value-snapshot scoring (Diamond commodity pricing) via
+// koth_path_events; see src/lib/koth/scoring.ts and paths.ts.
 //
-// Payload:
+// Payload (all kinds):
 //   {
 //     round_id:     uuid string,
-//     kind:         "crown_taken" | "dethroned" | "patched" | "escalated" | "tutorial",
+//     kind:         "crown_taken" | "dethroned" | "patched" | "escalated" | "tutorial"
+//                   | "escalation_pending" | "path_activated" | "path_exploited"
+//                   | "path_patched_attributed" | "path_closed",
 //     actor_slot:   "koth0".."koth9" | null,
-//     target_slot:  "koth0".."koth9" | null,    // dethrone target, optional
-//     exploit_path: "l7-suid" | "l8-suid" | "l17-redis" | "crontab" | "unknown",
-//     raw_meta:     object | null,             // free-form daemon context
+//     target_slot:  "koth0".."koth9" | null,
+//     exploit_path: <slug> | null,
+//     raw_meta:     object | null,
 //   }
 
 export async function POST(req: Request) {
@@ -84,27 +92,121 @@ export async function POST(req: Request) {
     resolveSlotToUserId(body.target_slot),
   ]);
 
-  // Stash the unresolved slot strings in raw_meta so we can debug
-  // attribution misses (slot was reported but no koth_ssh_keys row
-  // matched yet).
+  // Phase 2: resolve the path slug (if any) to its catalog id. Used
+  // for path_event bookkeeping and value snapshotting. Legacy l7-suid/
+  // l8-suid/l17-redis slugs map cleanly because we seeded them as
+  // core paths in koth_paths.
+  const path = await resolvePathBySlug(body.exploit_path ?? null);
+  const valueSnapshot = path
+    ? await snapshotForExploit(body.round_id, path)
+    : null;
+
+  // Stash the unresolved slot strings + path snapshot in raw_meta so
+  // we can debug attribution misses and so scoring has access to the
+  // snapshot without a JOIN.
   const meta: Record<string, unknown> = {
     ...(body.raw_meta ?? {}),
     actor_slot: body.actor_slot ?? null,
     target_slot: body.target_slot ?? null,
   };
+  if (path && valueSnapshot != null) {
+    meta.path_id = path.id;
+    meta.path_slug = path.slug;
+    meta.path_kind = path.kind;
+    meta.value_snapshot = valueSnapshot;
+  }
 
-  const [inserted] = await db
-    .insert(kothEvents)
-    .values({
-      roundId: body.round_id,
-      kind: body.kind,
-      actorUserId: actorUserId,
-      targetUserId: targetUserId,
-      exploitPath: body.exploit_path ?? null,
-      pointsDelta: 0,
-      rawMeta: meta,
-    })
-    .returning({ id: kothEvents.id, occurredAt: kothEvents.occurredAt });
+  // ─── Phase 2 — Path-event side effects ──────────────────────
+  // Some kinds are pure path bookkeeping (no koth_events row needed):
+  //   path_activated, escalation_pending, path_closed
+  // Others go to both tables (crown_taken with a path slug =
+  // path_exploited bookkeeping + koth_events row for the timeline /
+  // kill feed).
+  if (path) {
+    if (body.kind === "path_activated") {
+      await recordPathEvent({
+        roundId: body.round_id,
+        pathId: path.id,
+        kind: "activated",
+        slot: body.actor_slot ?? null,
+        valueSnapshot: path.baseValue,
+        rawMeta: body.raw_meta ?? null,
+      });
+    } else if (body.kind === "escalation_pending") {
+      await recordPathEvent({
+        roundId: body.round_id,
+        pathId: path.id,
+        kind: "pending",
+        slot: body.actor_slot ?? null,
+        valueSnapshot: path.baseValue,
+        rawMeta: body.raw_meta ?? null,
+      });
+    } else if (body.kind === "path_closed") {
+      await recordPathEvent({
+        roundId: body.round_id,
+        pathId: path.id,
+        kind: "closed",
+        slot: body.actor_slot ?? null,
+        valueSnapshot: null,
+        rawMeta: body.raw_meta ?? null,
+      });
+    } else if (
+      body.kind === "crown_taken" ||
+      body.kind === "path_exploited" ||
+      body.kind === "dethroned"
+    ) {
+      await recordPathEvent({
+        roundId: body.round_id,
+        pathId: path.id,
+        kind: "exploited",
+        slot: body.actor_slot ?? null,
+        valueSnapshot,
+        rawMeta: {
+          ...(body.raw_meta ?? {}),
+          actor_user_id: actorUserId,
+          target_user_id: targetUserId,
+        },
+      });
+    } else if (body.kind === "path_patched_attributed") {
+      await recordPathEvent({
+        roundId: body.round_id,
+        pathId: path.id,
+        kind: "closed",
+        slot: body.actor_slot ?? null,
+        valueSnapshot,
+        rawMeta: {
+          ...(body.raw_meta ?? {}),
+          path_patched_attributed: true,
+          actor_user_id: actorUserId,
+        },
+      });
+    }
+  }
+
+  // ─── koth_events insert ─────────────────────────────────────
+  // Some Phase 2 kinds are purely path bookkeeping and don't belong on
+  // the main timeline (escalation_pending and path_closed are surfaced
+  // separately by the path HUD, not by the kill-feed). Skip their
+  // koth_events insert to keep the timeline clean.
+  const SKIP_TIMELINE = new Set(["escalation_pending", "path_closed"]);
+  let insertedId: number | null = null;
+  let insertedAt = new Date();
+  if (!SKIP_TIMELINE.has(body.kind)) {
+    const [inserted] = await db
+      .insert(kothEvents)
+      .values({
+        roundId: body.round_id,
+        kind: body.kind,
+        actorUserId: actorUserId,
+        targetUserId: targetUserId,
+        exploitPath: body.exploit_path ?? null,
+        pointsDelta: 0,
+        rawMeta: meta,
+      })
+      .returning({ id: kothEvents.id, occurredAt: kothEvents.occurredAt });
+    insertedId = inserted.id;
+    insertedAt = inserted.occurredAt;
+  }
 
   // Tutorial tracking (Wave D2 — minimal): mark the actor's first
   // crown_taken event as their tutorial completion. Cheap UPDATE
@@ -152,8 +254,9 @@ export async function POST(req: Request) {
     actorUsername,
     targetUsername,
     exploitPath: body.exploit_path ?? null,
-    occurredAt: inserted.occurredAt,
+    occurredAt: insertedAt,
+    valueSnapshot,
   });
 
-  return NextResponse.json({ ok: true, event_id: inserted.id });
+  return NextResponse.json({ ok: true, event_id: insertedId });
 }

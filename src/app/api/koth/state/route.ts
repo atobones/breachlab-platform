@@ -3,17 +3,26 @@ import { desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, users } from "@/lib/db/schema";
 import { topNForRound } from "@/lib/koth/scoring";
+import { currentPricesForRound } from "@/lib/koth/paths";
 
 // Public live state of the KoTH arena. The /battles/koth page polls
-// this. Returns: active round (if any), current king (most recent
-// crown_taken actor in the active round + hold duration), top 5
-// scorers, last 10 events as feed lines.
+// this. Returns: active round (if any), current king, top 5 scorers,
+// last 10 events as feed lines, current Diamond prices per path
+// (Phase 2), and the next-escalation hint.
 //
-// No auth — read-only public surface, same posture as the leaderboard.
+// No auth — read-only public surface.
 
 export const dynamic = "force-dynamic";
 
 const ROUND_DURATION_SECONDS = 20 * 60;
+const ESCALATION_THRESHOLD_SECONDS = 300; // mirrors escalation-daemon
+
+type EventMeta = { value_snapshot?: number };
+function snapOf(raw: unknown): number | null {
+  if (!raw || typeof raw !== "object") return null;
+  const v = (raw as EventMeta).value_snapshot;
+  return typeof v === "number" ? v : null;
+}
 
 export async function GET() {
   const [round] = await db
@@ -32,6 +41,8 @@ export async function GET() {
       king: null,
       top5: [],
       feed: [],
+      paths: [],
+      escalation: null,
     });
   }
 
@@ -40,9 +51,6 @@ export async function GET() {
     Math.floor((Date.now() - round.startedAt.getTime()) / 1000),
   );
 
-  // Most recent crown_taken in this round = current king. Join users
-  // for the display name. If actor_user_id is NULL (slot unbound), no
-  // king is attributable — daemon saw a change but we don't know who.
   const [kingEvent] = await db
     .select({
       occurredAt: kothEvents.occurredAt,
@@ -77,7 +85,7 @@ export async function GET() {
       kind: kothEvents.kind,
       exploitPath: kothEvents.exploitPath,
       actorUsername: users.username,
-      targetMeta: kothEvents.rawMeta,
+      rawMeta: kothEvents.rawMeta,
     })
     .from(kothEvents)
     .leftJoin(users, eq(users.id, kothEvents.actorUserId))
@@ -88,7 +96,9 @@ export async function GET() {
   const feed = feedRows.map((r) => {
     const ts = r.occurredAt.toISOString().slice(11, 19);
     const actor = r.actorUsername ?? "unknown";
-    const path = r.exploitPath ? ` via ${r.exploitPath}` : "";
+    const snap = snapOf(r.rawMeta);
+    const v = snap != null ? ` (+${snap} pt)` : "";
+    const path = r.exploitPath ? ` via ${r.exploitPath}${v}` : "";
     let line: string;
     switch (r.kind) {
       case "crown_taken":
@@ -100,8 +110,14 @@ export async function GET() {
       case "patched":
         line = `${actor} patched ${r.exploitPath ?? "an exploit"}`;
         break;
+      case "path_patched_attributed":
+        line = `${actor} closed ${r.exploitPath ?? "an exploit"} (path-attributed +5)`;
+        break;
       case "escalated":
         line = `escalation: new path open${path}`;
+        break;
+      case "path_activated":
+        line = `new path opened: ${r.exploitPath ?? "?"}`;
         break;
       case "tutorial":
         line = `${actor} cleared the tutorial`;
@@ -111,6 +127,13 @@ export async function GET() {
     }
     return { ts, kind: r.kind, line };
   });
+
+  // Phase 2 — Diamond commodity HUD data + escalation countdown.
+  const paths = await currentPricesForRound(round.id);
+  const escalationEtaSeconds =
+    king && king.hold_seconds < ESCALATION_THRESHOLD_SECONDS
+      ? ESCALATION_THRESHOLD_SECONDS - king.hold_seconds
+      : null;
 
   return NextResponse.json({
     round: {
@@ -122,5 +145,10 @@ export async function GET() {
     king,
     top5: top5Rows,
     feed,
+    paths,
+    escalation: {
+      threshold_seconds: ESCALATION_THRESHOLD_SECONDS,
+      eta_seconds: escalationEtaSeconds,
+    },
   });
 }

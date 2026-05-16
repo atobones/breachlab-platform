@@ -32,11 +32,18 @@ export async function resolveSlotToUserId(
 }
 
 const VALID_KINDS = new Set([
+  // Phase 1
   "crown_taken",
   "dethroned",
   "patched",
   "escalated",
   "tutorial",
+  // Phase 2 — Escalation engine + Diamond commodity pricing
+  "escalation_pending",
+  "path_activated",
+  "path_exploited",
+  "path_patched_attributed",
+  "path_closed",
 ]);
 
 export function isValidEventKind(kind: unknown): kind is string {
