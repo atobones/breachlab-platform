@@ -15,12 +15,8 @@ const ARCHETYPES = [
 export function BattlesWidget() {
   return (
     <section className="3xl:hidden">
-      <h2 className="text-muted text-sm uppercase mb-2 flex items-center gap-2 tracking-[0.18em]">
+      <h2 className="text-muted text-sm uppercase mb-2 tracking-[0.18em]">
         ▸ Battles
-        <span className="pulse-dot text-green text-[8px]">●</span>
-        <span className="text-[9px] text-green/80 border border-green/40 px-1 rounded uppercase tracking-wider font-mono">
-          live
-        </span>
       </h2>
 
       <Link
