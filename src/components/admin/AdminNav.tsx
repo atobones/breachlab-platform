@@ -11,6 +11,7 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/review", label: "Review queue" },
   { href: "/admin/ops-broadcast", label: "Ops broadcast" },
   { href: "/admin/audit", label: "Audit" },
+  { href: "/admin/koth", label: "KoTH" },
 ];
 
 export function AdminNav() {
