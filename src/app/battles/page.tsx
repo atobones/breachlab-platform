@@ -260,8 +260,9 @@ export default function BattlesPage() {
             ▸ predator arena · live
           </div>
           <p className="text-[12px] text-text leading-snug max-w-xl">
-            Register your SSH key, get a slot, and ssh into the arena. Three
-            exploit paths to root. 20-min rolling rounds.
+            Register your SSH key, get a slot, and ssh in. Core
+            exploit paths plus escalation paths that open against
+            long-held crowns. 30-min rolling rounds.
           </p>
         </div>
         <Link

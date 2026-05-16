@@ -16,7 +16,6 @@ type Archetype = {
   glyph: string;
   accent: "amber" | "cyan" | "red" | "green";
   status: Status;
-  phase: string;
   tagline: string;
   rhythm: string;
   // Pre-launch telemetry — replace with live values once backend is up.
@@ -30,9 +29,8 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⌖",
     accent: "amber",
     status: "live",
-    phase: "Phase 1",
     tagline: "Take the crown. Hold ground. Watch your back path.",
-    rhythm: "24/7 · 20-min rounds · solo arena",
+    rhythm: "24/7 · 30-min rounds · solo arena",
     liveLine: "", // overridden at render time with live arena state
   },
   {
@@ -41,7 +39,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "◐",
     accent: "cyan",
     status: "staged",
-    phase: "Phase 2",
     tagline: "Go dark. Stay invisible. Score every hour.",
     rhythm: "24-hour asymmetric · 1 vs N analysts",
     liveLine: "staged · post-Specter IV",
@@ -52,7 +49,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⚔",
     accent: "red",
     status: "staged",
-    phase: "Phase 3",
     tagline: "Rival crews. Asymmetric infra. AI co-defender.",
     rhythm: "Pickup · 30-45 min · 2v2 / 3v3",
     liveLine: "staged · team PvP arena",
@@ -63,7 +59,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "▲▴▴",
     accent: "green",
     status: "staged",
-    phase: "Phase 4",
     tagline: "Pick a role. Run the kill chain. Don't trip the AI SOC.",
     rhythm: "Bi-weekly scheduled · 90-min flagship",
     liveLine: "staged · flagship event tier",
@@ -175,7 +170,7 @@ export async function BattlesRail() {
                   <span className="text-muted truncate">dossier</span>
                 </div>
                 <span className={`px-1 py-0 border ${c.tag} shrink-0`}>
-                  {isLive ? "live" : "staged"} · {a.phase}
+                  {isLive ? "live" : "incoming"}
                 </span>
               </div>
 
