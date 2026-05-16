@@ -135,51 +135,58 @@ export default async function GhostTrackPage() {
         </pre>
       </section>
 
-      <section>
-        <h2 className="text-amber text-lg mb-2">Note for beginners</h2>
-        <p className="text-sm mb-2">
-          This game, like most other games, is organised in levels. You start
-          at Level 0 and try to beat each level in order. Finishing a level
-          gives you the password (and a flag) for the next level. On the
-          platform, the page for each level tells you its points and whether
-          you or anyone has solved it yet.
-        </p>
-        <p className="text-sm mb-2">
-          There are several things you can try when you are unsure how to
-          continue:
-        </p>
-        <ul className="list-disc list-outside pl-5 text-sm space-y-1">
-          <li>
-            First, if you know a command, but don't know how to use it, try the
-            manual ({" "}
-            <code className="text-amber">man &lt;command&gt;</code>
-            ) by entering{" "}
-            <code className="text-amber">man command</code>. For example,{" "}
-            <code className="text-amber">man ls</code> to learn about the{" "}
-            <code className="text-amber">ls</code> command.
-          </li>
-          <li>
-            Second, if there is no manual, the command might be a shell
-            built-in. In that case use the{" "}
-            <code className="text-amber">help</code> command (e.g.{" "}
-            <code className="text-amber">help cd</code>).
-          </li>
-          <li>
-            Also, your favorite search engine is your friend. Learn how to use
-            it. Pick a query that teaches you something rather than one that
-            hands you the answer.
-          </li>
-          <li>
-            Lastly, if you are still stuck, you can join{" "}
-            <a href="/rules">the community</a> — but{" "}
-            <strong>do not spoil levels</strong> (see rules).
-          </li>
-        </ul>
-        <p className="text-sm mt-3">
-          You're ready to start! Begin with Level 0 using the SSH Information
-          above. Good luck!
-        </p>
-      </section>
+      <details className="group">
+        <summary className="text-amber text-lg mb-2 cursor-pointer select-none list-none flex items-center gap-2 hover:text-amber/80">
+          <span className="text-xs inline-block transition-transform group-open:rotate-90">
+            ▸
+          </span>
+          Note for beginners
+        </summary>
+        <div className="mt-2 space-y-2">
+          <p className="text-sm">
+            This game, like most other games, is organised in levels. You start
+            at Level 0 and try to beat each level in order. Finishing a level
+            gives you the password (and a flag) for the next level. On the
+            platform, the page for each level tells you its points and whether
+            you or anyone has solved it yet.
+          </p>
+          <p className="text-sm">
+            There are several things you can try when you are unsure how to
+            continue:
+          </p>
+          <ul className="list-disc list-outside pl-5 text-sm space-y-1">
+            <li>
+              First, if you know a command, but don't know how to use it, try the
+              manual ({" "}
+              <code className="text-amber">man &lt;command&gt;</code>
+              ) by entering{" "}
+              <code className="text-amber">man command</code>. For example,{" "}
+              <code className="text-amber">man ls</code> to learn about the{" "}
+              <code className="text-amber">ls</code> command.
+            </li>
+            <li>
+              Second, if there is no manual, the command might be a shell
+              built-in. In that case use the{" "}
+              <code className="text-amber">help</code> command (e.g.{" "}
+              <code className="text-amber">help cd</code>).
+            </li>
+            <li>
+              Also, your favorite search engine is your friend. Learn how to use
+              it. Pick a query that teaches you something rather than one that
+              hands you the answer.
+            </li>
+            <li>
+              Lastly, if you are still stuck, you can join{" "}
+              <a href="/rules">the community</a> — but{" "}
+              <strong>do not spoil levels</strong> (see rules).
+            </li>
+          </ul>
+          <p className="text-sm mt-3">
+            You're ready to start! Begin with Level 0 using the SSH Information
+            above. Good luck!
+          </p>
+        </div>
+      </details>
 
       <section>
         <h2 className="text-amber text-lg mb-2">Levels</h2>
