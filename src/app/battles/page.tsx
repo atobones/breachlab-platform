@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { DISCORD_INVITE_URL } from "@/lib/links";
+import { getKothLiveSummary } from "@/lib/koth/live-summary";
 
 export const metadata = {
   title: "Battles — BreachLab",
@@ -7,7 +7,7 @@ export const metadata = {
     "Operational theater for the field-ready operator. Four archetypes — Predator, Ghost, Clash, Crew — across four arenas of real-time tradecraft against thinking adversaries.",
 };
 
-type Status = "incoming" | "staged";
+type Status = "live" | "staged";
 
 type Archetype = {
   code: string;
@@ -19,6 +19,8 @@ type Archetype = {
   pitch: string;
   doctrine: string;
   tradecraft: string[];
+  // For 'live' archetypes — where ENGAGE clicks through.
+  arenaHref?: string;
 };
 
 const ARCHETYPES: Archetype[] = [
@@ -27,8 +29,9 @@ const ARCHETYPES: Archetype[] = [
     codename: "PREDATOR",
     glyph: "⌖",
     accent: "amber",
-    status: "incoming",
+    status: "live",
     phase: "Phase 1",
+    arenaHref: "/battles/koth",
     pitch: "Solo arena · drop-in · 24/7 crown wars",
     doctrine:
       "Take the crown. Hold it. The box mutates in real time — playbooks die against thinking opponents.",
@@ -129,29 +132,43 @@ function ClassifiedBar() {
   );
 }
 
-function StatusBanner() {
+async function StatusBanner() {
+  let oneLiner = "first wave · cohort registration open";
+  let hasRound = true;
+  try {
+    const summary = await getKothLiveSummary();
+    oneLiner = summary.oneLiner;
+    hasRound = summary.hasRound;
+  } catch {
+    // fallback message above
+  }
+
   return (
     <div className="border border-amber/30 bg-amber/[0.02] px-3 py-2 flex items-center gap-4 flex-wrap text-[11px] font-mono tabular-nums">
       <span className="flex items-center gap-2">
-        <span className="pulse-dot text-green">●</span>
+        {hasRound ? (
+          <span className="pulse-dot text-green">●</span>
+        ) : (
+          <span className="text-muted/60">○</span>
+        )}
         <span className="text-muted uppercase tracking-widest">
           theater status
         </span>
       </span>
       <span className="text-amber">ARENA-01 // PREDATOR</span>
       <span className="text-muted">·</span>
-      <span className="text-green">FIRST-WAVE INCOMING</span>
+      <span className="text-text">{oneLiner}</span>
       <span className="text-muted">·</span>
-      <span className="text-text/80">
-        operator briefing imminent · join Discord for cohort access
-      </span>
+      <Link href="/battles/koth" className="text-amber hover:underline">
+        enter →
+      </Link>
     </div>
   );
 }
 
 function DossierCard({ a }: { a: Archetype }) {
   const c = ACCENT[a.accent];
-  const isLive = a.status === "incoming";
+  const isLive = a.status === "live";
 
   return (
     <article
@@ -166,7 +183,7 @@ function DossierCard({ a }: { a: Archetype }) {
         <div className="flex items-center gap-1.5">
           {isLive && <span className="pulse-dot text-green">●</span>}
           <span className={`px-1.5 py-0.5 border ${c.tag}`}>
-            {isLive ? "incoming" : "staged"} · {a.phase}
+            {isLive ? "live" : "staged"} · {a.phase}
           </span>
         </div>
       </div>
@@ -212,10 +229,9 @@ function DossierCard({ a }: { a: Archetype }) {
 
           {/* Authorization footer */}
           <div className="pt-2 flex items-center justify-end">
-            {isLive ? (
-              <a
-                href={DISCORD_INVITE_URL}
-                rel="noreferrer"
+            {isLive && a.arenaHref ? (
+              <Link
+                href={a.arenaHref}
                 className="btn-bracket text-[11px]"
                 style={{
                   color:
@@ -229,7 +245,7 @@ function DossierCard({ a }: { a: Archetype }) {
                 }}
               >
                 Engage Arena →
-              </a>
+              </Link>
             ) : (
               <span className="text-[10px] text-muted/80 font-mono uppercase tracking-[0.18em]">
                 Clearance pending · {a.phase}
@@ -298,20 +314,19 @@ export default function BattlesPage() {
       <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
         <div className="space-y-0.5">
           <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-            ▸ first wave
+            ▸ predator arena · live
           </div>
           <p className="text-[12px] text-text leading-snug max-w-xl">
-            Predator deploys first. Cohort access announced in Discord — join
-            for the first arena rotation.
+            Register your SSH key, get a slot, and ssh into the arena. Three
+            exploit paths to root. 20-min rolling rounds.
           </p>
         </div>
-        <a
-          href={DISCORD_INVITE_URL}
-          rel="noreferrer"
+        <Link
+          href="/battles/koth"
           className="btn-bracket text-amber text-[12px] font-mono whitespace-nowrap"
         >
-          Join First Cohort
-        </a>
+          Enter Crown Wars
+        </Link>
       </section>
 
       <footer className="pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono">
