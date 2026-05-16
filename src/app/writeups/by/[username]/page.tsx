@@ -106,7 +106,7 @@ export default async function AuthorPage({
               rel="noopener noreferrer nofollow"
               className="text-xs text-amber hover:underline"
             >
-              Visit site →
+              Read writeups →
             </a>
           </article>
         </section>
