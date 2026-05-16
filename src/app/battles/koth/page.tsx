@@ -412,7 +412,7 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         )}
       </section>
 
-      {/* Commodity HUD — Phase 2 Diamond pricing */}
+      {/* Exploit market — Diamond commodity pricing */}
       <section className="border border-amber/30 px-4 py-3 space-y-3">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
@@ -565,7 +565,7 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
             rules →
           </Link>
         </div>
-        <span className="tracking-[0.18em] uppercase">predator · phase 2</span>
+        <span className="tracking-[0.18em] uppercase">predator</span>
       </footer>
     </article>
   );

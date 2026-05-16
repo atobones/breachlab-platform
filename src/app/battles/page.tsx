@@ -14,7 +14,6 @@ type Archetype = {
   glyph: string;
   accent: "amber" | "cyan" | "red" | "green";
   status: Status;
-  phase: string;
   pitch: string;
   doctrine: string;
   tradecraft: string[];
@@ -29,14 +28,13 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⌖",
     accent: "amber",
     status: "live",
-    phase: "Phase 1",
     arenaHref: "/battles/koth",
     pitch: "Solo arena · drop-in · 24/7 crown wars",
     doctrine:
       "Take the crown. Hold it. The box mutates in real time — playbooks die against thinking opponents.",
     tradecraft: [
-      "Live mutation patch — defender closes your entry path",
-      "AI Defender (Phase 3) — LLM-driven sysadmin NPC",
+      "Live mutation — defender closes your entry path",
+      "AI Defender incoming — an LLM sysadmin inside the box",
     ],
   },
   {
@@ -45,7 +43,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "◐",
     accent: "cyan",
     status: "staged",
-    phase: "Phase 2",
     pitch: "1 target vs N analysts · OSINT war · 24h windows",
     doctrine:
       "One operator goes dark. Everyone else hunts them. Score every hour invisible — or every accurate attribution.",
@@ -60,7 +57,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⚔",
     accent: "red",
     status: "staged",
-    phase: "Phase 3",
     pitch: "Team PvP · 2v2 or 3v3 · 30-45 min pickup",
     doctrine:
       "Two crews. Asymmetric infrastructure. Patch faster than they break, break faster than they patch.",
@@ -75,7 +71,6 @@ const ARCHETYPES: Archetype[] = [
     glyph: "▲▴▴",
     accent: "green",
     status: "staged",
-    phase: "Phase 4",
     pitch: "Coop APT raid · 3-5 specialists · bi-weekly flagship",
     doctrine:
       "Pick a role. Move as a crew through layered defense — WAF, EDR, SIEM, LLM-driven SOC analyst. Detection bleeds the team.",
@@ -148,7 +143,7 @@ function DossierCard({ a }: { a: Archetype }) {
         <div className="flex items-center gap-1.5">
           {isLive && <span className="pulse-dot text-green">●</span>}
           <span className={`px-1.5 py-0.5 border ${c.tag}`}>
-            {isLive ? "live" : "staged"} · {a.phase}
+            {isLive ? "live" : "incoming"}
           </span>
         </div>
       </div>
@@ -213,7 +208,7 @@ function DossierCard({ a }: { a: Archetype }) {
               </Link>
             ) : (
               <span className="text-[10px] text-muted/80 font-mono uppercase tracking-[0.18em]">
-                Clearance pending · {a.phase}
+                Clearance pending
               </span>
             )}
           </div>
