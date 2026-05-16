@@ -32,8 +32,10 @@ export default async function AdminOpsBroadcastPage() {
           </li>
           <li>
             The on-site banner is separate — set{" "}
-            <code>OPS_ALERT_TITLE</code> + <code>OPS_ALERT_MESSAGE</code> env
-            vars in Vercel and redeploy. Empty values = no banner.
+            <code>OPS_ALERT_TITLE</code> + <code>OPS_ALERT_MESSAGE</code> in{" "}
+            <code>.env</code> on the host and{" "}
+            <code>docker-compose up -d --force-recreate web</code>. Empty
+            values = no banner.
           </li>
         </ul>
       </div>
