@@ -134,8 +134,17 @@ export default function KothRulesPage() {
 
       <RuleSection title="Round cycle">
         <p className="text-[13px]">
-          30 minutes. Auto-reset on cron <code>*/30 UTC</code>. Container
-          force-recreated · everything resets. SSH keys persist.
+          The 30-minute clock starts when the <strong>first crown</strong>
+          {" "}is grabbed in the round — not when the arena opens. While
+          no one has taken the crown, the arena is <em>standing by</em>{" "}
+          and you can ssh in, look around, prep, all without burning
+          round time. The first crown grab kicks the timer off.
+        </p>
+        <p className="text-[13px] pt-1">
+          Thirty minutes after that grab, the round closes: container
+          force-recreated, every path resets, escalations deactivate,
+          prices back to base. SSH keys persist across rounds — you
+          don&apos;t re-register.
         </p>
       </RuleSection>
 

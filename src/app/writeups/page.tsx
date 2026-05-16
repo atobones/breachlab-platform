@@ -44,18 +44,10 @@ export default async function WriteupsIndexPage() {
           <span className="glitch" data-text="Writeups">Writeups</span>
         </h1>
         <p className="text-sm text-muted leading-relaxed">
-          Three surfaces: featured external knowledge bases (full sites
-          maintained by community authors we trust), curated walkthroughs
-          from BreachLab for known chokepoints, and one-off community
-          writeups. Phantom-tier community writeups are visible only after
-          you&apos;ve cleared that specific level — zero spoiler risk,
-          retrospective learning only. Ghost is open for everyone.
-        </p>
-        <p className="text-sm text-muted leading-relaxed">
-          Got a writeup of your own? Post in{" "}
-          <code className="text-amber">#writeups</code> on Discord or DM{" "}
-          <code className="text-amber">@ato</code> — we&apos;ll review and
-          publish it here with full attribution and a link back to your site.
+          Walkthroughs from BreachLab and trusted community sites.
+          Phantom-tier writeups unlock after you clear that level. Got
+          one of your own? Ping{" "}
+          <code className="text-amber">#writeups</code> on Discord.
         </p>
       </header>
 

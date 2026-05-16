@@ -103,7 +103,10 @@ export async function listCommunityWriteups(
         userHasStarred: Boolean(r.userHasStarred),
       };
     })
-    .sort((a, b) => b.weightedScore - a.weightedScore);
+    .sort((a, b) => {
+      if (a.trackSlug !== b.trackSlug) return a.trackSlug.localeCompare(b.trackSlug);
+      return a.levelIdx - b.levelIdx;
+    });
 }
 
 export async function getCommunityWriteupById(

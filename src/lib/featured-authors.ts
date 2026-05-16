@@ -82,7 +82,7 @@ export async function listFeaturedAuthors(
         userHasStarred: myStarred.has(a.id),
       };
     })
-    .sort((a, b) => b.weightedScore - a.weightedScore);
+    .sort((a, b) => a.username.localeCompare(b.username));
 }
 
 export async function getFeaturedAuthorByUsername(

@@ -30,7 +30,11 @@ function fmt(seconds: number): string {
 
 export async function getKothLiveSummary(): Promise<KothLiveSummary> {
   const [round] = await db
-    .select({ id: kothRounds.id, startedAt: kothRounds.startedAt })
+    .select({
+      id: kothRounds.id,
+      startedAt: kothRounds.startedAt,
+      engagedAt: kothRounds.engagedAt,
+    })
     .from(kothRounds)
     .where(eq(kothRounds.status, "active"))
     .orderBy(desc(kothRounds.startedAt))
@@ -47,8 +51,13 @@ export async function getKothLiveSummary(): Promise<KothLiveSummary> {
     };
   }
 
-  const ageSeconds = Math.floor((Date.now() - round.startedAt.getTime()) / 1000);
-  const remainingSeconds = Math.max(0, ROUND_DURATION - ageSeconds);
+  const engaged = round.engagedAt !== null;
+  const ageSeconds = engaged
+    ? Math.floor((Date.now() - round.engagedAt!.getTime()) / 1000)
+    : 0;
+  const remainingSeconds = engaged
+    ? Math.max(0, ROUND_DURATION - ageSeconds)
+    : ROUND_DURATION;
 
   const [kingEvent] = await db
     .select({
@@ -67,9 +76,11 @@ export async function getKothLiveSummary(): Promise<KothLiveSummary> {
       ? Math.floor((Date.now() - kingEvent.occurredAt.getTime()) / 1000)
       : 0;
 
-  const oneLiner = kingUsername
-    ? `round live · ${fmt(remainingSeconds)} left · king ${kingUsername} ${fmt(kingHoldSeconds)}`
-    : `round live · ${fmt(remainingSeconds)} left · crown vacant`;
+  const oneLiner = !engaged
+    ? "arena standing by · clock starts on first crown grab"
+    : kingUsername
+      ? `round live · ${fmt(remainingSeconds)} left · king ${kingUsername} ${fmt(kingHoldSeconds)}`
+      : `round live · ${fmt(remainingSeconds)} left · crown vacant`;
 
   return {
     hasRound: true,

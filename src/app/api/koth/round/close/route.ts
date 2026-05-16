@@ -7,17 +7,25 @@ import { awardRoundWinner } from "@/lib/koth/honors";
 import { postKothRoundCloseToDiscord } from "@/lib/koth/discord";
 import { rotateCrownChampionRole } from "@/lib/koth/crown-role";
 
-// Close an active KoTH round. Called by reset-arena.sh before opening
-// a new round (defensive — open also force-resets any active rounds,
-// but explicit close is cheaper than relying on the implicit path).
+// Close an active KoTH round — but only if it's actually due.
 //
-// On successful close we ALSO award the round_winner honor (top
-// scorer, idempotent via unique partial index) and broadcast a
-// summary line to Discord. Both are fire-and-forget so the cron's
-// curl returns fast regardless of DB/Discord state.
+// Engaged-on-first-crown model: a round's 30-minute clock doesn't
+// start until the first crown_taken in that round sets engaged_at.
+// This endpoint is called every minute by reset-arena.sh; it no-ops
+// unless engaged_at is set AND we're past engaged_at + 30min. The
+// arena container therefore stays warm between players, and a fresh
+// recreate only happens when an actually-played round wraps up.
+//
+// On successful close: award round_winner honor (idempotent), post
+// the Discord summary, and rotate the Crown Champion role. All side
+// effects are fire-and-forget so the endpoint returns fast.
 //
 // Payload:
 //   { round_id: string, reason?: string }
+// Response:
+//   { ok: true, closed: boolean, reason?: string }
+
+const ROUND_DURATION_MS = 30 * 60 * 1000;
 
 export async function POST(req: Request) {
   const expected = process.env.KOTH_ORACLE_TOKEN;
@@ -41,13 +49,58 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "round_id required" }, { status: 400 });
   }
 
+  // Fetch the round first so we can check engagement state before
+  // anything irreversible. If it's not eligible we just return
+  // { closed: false } and the caller (reset-arena.sh) skips the
+  // container recreate.
+  const [round] = await db
+    .select({
+      id: kothRounds.id,
+      status: kothRounds.status,
+      engagedAt: kothRounds.engagedAt,
+    })
+    .from(kothRounds)
+    .where(eq(kothRounds.id, body.round_id))
+    .limit(1);
+
+  if (!round) {
+    return NextResponse.json(
+      { ok: false, error: "unknown round" },
+      { status: 404 },
+    );
+  }
+  if (round.status !== "active") {
+    return NextResponse.json({
+      ok: true,
+      closed: false,
+      reason: `round is ${round.status}`,
+    });
+  }
+  if (!round.engagedAt) {
+    return NextResponse.json({
+      ok: true,
+      closed: false,
+      reason: "not engaged — arena standing by",
+    });
+  }
+  const ageMs = Date.now() - round.engagedAt.getTime();
+  if (ageMs < ROUND_DURATION_MS) {
+    return NextResponse.json({
+      ok: true,
+      closed: false,
+      reason: "engaged but not yet past 30-minute window",
+      seconds_remaining: Math.ceil((ROUND_DURATION_MS - ageMs) / 1000),
+    });
+  }
+
+  // Eligible — close the round.
   const closedAt = new Date();
   const result = await db
     .update(kothRounds)
     .set({
       status: "completed",
       endedAt: closedAt,
-      resetReason: body.reason ?? "explicit-close",
+      resetReason: body.reason ?? "engaged-window-expired",
     })
     .where(
       and(eq(kothRounds.id, body.round_id), eq(kothRounds.status, "active")),
@@ -55,15 +108,12 @@ export async function POST(req: Request) {
     .returning({ id: kothRounds.id });
 
   if (result.length === 0) {
-    return NextResponse.json(
-      { error: "no active round with that id" },
-      { status: 404 },
-    );
+    // Race with another close — treat as no-op success.
+    return NextResponse.json({ ok: true, closed: false, reason: "race lost" });
   }
 
-  // Award round winner — idempotent. Don't await — keep this endpoint
-  // fast for cron timing predictability. Side effects: Discord summary
-  // post + Crown Champion role rotation (one-holder-at-a-time).
+  // Award round winner — idempotent via the unique partial index.
+  // Fire-and-forget so the cron's curl returns fast.
   awardRoundWinner(body.round_id)
     .then((winner) => {
       if (!winner) return;
@@ -74,14 +124,11 @@ export async function POST(req: Request) {
         crownDurationSeconds: winner.crownDurationSeconds,
         closedAt,
       });
-      // Move the 👑 Crown Champion Discord role to the new winner.
-      // Silently no-ops if the winner hasn't linked Discord or the
-      // role env isn't configured.
       rotateCrownChampionRole(winner.userId).catch(() => {});
     })
     .catch(() => {
       // best-effort
     });
 
-  return NextResponse.json({ ok: true });
+  return NextResponse.json({ ok: true, closed: true });
 }

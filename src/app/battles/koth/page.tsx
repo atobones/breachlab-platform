@@ -35,7 +35,11 @@ function fmtDuration(seconds: number): string {
 
 async function loadState() {
   const [round] = await db
-    .select({ id: kothRounds.id, startedAt: kothRounds.startedAt })
+    .select({
+      id: kothRounds.id,
+      startedAt: kothRounds.startedAt,
+      engagedAt: kothRounds.engagedAt,
+    })
     .from(kothRounds)
     .where(eq(kothRounds.status, "active"))
     .orderBy(desc(kothRounds.startedAt))
@@ -52,10 +56,15 @@ async function loadState() {
     };
   }
 
-  const ageSeconds = Math.max(
-    0,
-    Math.floor((Date.now() - round.startedAt.getTime()) / 1000),
-  );
+  // engaged_at IS NULL = arena standing by. Clock doesn't tick until
+  // the first crown_taken.
+  const engaged = round.engagedAt !== null;
+  const ageSeconds = engaged
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - round.engagedAt!.getTime()) / 1000),
+      )
+    : 0;
 
   const [kingEvent] = await db
     .select({
@@ -139,8 +148,11 @@ async function loadState() {
   return {
     round: {
       id: round.id,
+      engaged,
       ageSeconds,
-      remainingSeconds: Math.max(0, ROUND_DURATION_SECONDS - ageSeconds),
+      remainingSeconds: engaged
+        ? Math.max(0, ROUND_DURATION_SECONDS - ageSeconds)
+        : ROUND_DURATION_SECONDS,
     },
     king,
     top5,
@@ -229,6 +241,7 @@ export default async function KothPage({
           } px-4 py-2.5 flex items-center gap-3 flex-wrap text-[11px] font-mono tabular-nums`}
         >
           {state.round ? (
+            state.round.engaged ? (
             <>
               <span className="flex items-center gap-2">
                 <span className="pulse-dot text-green">●</span>
@@ -269,6 +282,22 @@ export default async function KothPage({
                 </>
               )}
             </>
+            ) : (
+              <>
+                <span className="flex items-center gap-2">
+                  <span className="text-amber/70">○</span>
+                  <span className="text-muted uppercase tracking-widest">
+                    arena standing by
+                  </span>
+                </span>
+                <span className="text-muted">·</span>
+                <span className="text-text">
+                  clock starts on the first crown grab
+                </span>
+                <span className="text-muted">·</span>
+                <span className="text-amber/80">round: 30:00 fresh</span>
+              </>
+            )
           ) : (
             <span className="text-muted">
               arena resetting · no active round

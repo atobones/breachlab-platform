@@ -343,6 +343,10 @@ export const kothRounds = pgTable("koth_rounds", {
   startedAt: timestamp("started_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  // Set on the first crown_taken in this round. NULL = arena standing
+  // by; the 30-min clock doesn't count down until someone actually
+  // plays so first-arriver isn't punished with a residual window.
+  engagedAt: timestamp("engaged_at", { withTimezone: true }),
   endedAt: timestamp("ended_at", { withTimezone: true }),
   // active | completed | reset
   status: text("status").notNull().default("active"),
