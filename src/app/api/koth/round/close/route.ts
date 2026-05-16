@@ -5,6 +5,7 @@ import { kothRounds } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { awardRoundWinner } from "@/lib/koth/honors";
 import { postKothRoundCloseToDiscord } from "@/lib/koth/discord";
+import { rotateCrownChampionRole } from "@/lib/koth/crown-role";
 
 // Close an active KoTH round. Called by reset-arena.sh before opening
 // a new round (defensive — open also force-resets any active rounds,
@@ -61,7 +62,8 @@ export async function POST(req: Request) {
   }
 
   // Award round winner — idempotent. Don't await — keep this endpoint
-  // fast for cron timing predictability.
+  // fast for cron timing predictability. Side effects: Discord summary
+  // post + Crown Champion role rotation (one-holder-at-a-time).
   awardRoundWinner(body.round_id)
     .then((winner) => {
       if (!winner) return;
@@ -72,6 +74,10 @@ export async function POST(req: Request) {
         crownDurationSeconds: winner.crownDurationSeconds,
         closedAt,
       });
+      // Move the 👑 Crown Champion Discord role to the new winner.
+      // Silently no-ops if the winner hasn't linked Discord or the
+      // role env isn't configured.
+      rotateCrownChampionRole(winner.userId).catch(() => {});
     })
     .catch(() => {
       // best-effort

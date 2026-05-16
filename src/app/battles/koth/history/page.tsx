@@ -163,12 +163,20 @@ export default async function KothHistoryPage() {
         >
           ← arena
         </Link>
-        <Link
-          href="/battles/koth/rules"
-          className="hover:text-amber tracking-[0.18em] uppercase"
-        >
-          rules →
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/battles/koth/champions"
+            className="hover:text-amber tracking-[0.18em] uppercase"
+          >
+            champions
+          </Link>
+          <Link
+            href="/battles/koth/rules"
+            className="hover:text-amber tracking-[0.18em] uppercase"
+          >
+            rules →
+          </Link>
+        </div>
       </footer>
     </article>
   );

@@ -14,7 +14,7 @@ import { currentPricesForRound } from "@/lib/koth/paths";
 
 export const dynamic = "force-dynamic";
 
-const ROUND_DURATION_SECONDS = 20 * 60;
+const ROUND_DURATION_SECONDS = 30 * 60;
 const ESCALATION_THRESHOLD_SECONDS = 300; // mirrors escalation-daemon
 
 type EventMeta = { value_snapshot?: number };
