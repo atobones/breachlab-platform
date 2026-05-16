@@ -8,14 +8,6 @@ import { AuthorStarButton } from "@/components/writeups/AuthorStarButton";
 
 export const dynamic = "force-dynamic";
 
-function hostnameOf(url: string): string {
-  try {
-    return new URL(url).hostname.replace(/^www\./, "");
-  } catch {
-    return url;
-  }
-}
-
 type Params = { username: string };
 
 export default async function AuthorPage({
@@ -34,9 +26,6 @@ export default async function AuthorPage({
   const all = await listCommunityWriteups({ userId: user?.id ?? null });
   const mine = all.filter((w) => w.author.id === author.id);
 
-  const writeupStars = mine.reduce((acc, w) => acc + w.weightedScore, 0);
-  const totalStars = writeupStars + (featured?.weightedScore ?? 0);
-
   return (
     <article className="space-y-6 max-w-3xl">
       <header className="space-y-2">
@@ -47,7 +36,7 @@ export default async function AuthorPage({
         {author.bio ? (
           <p className="text-sm text-muted leading-relaxed">{author.bio}</p>
         ) : null}
-        {author.siteUrl ? (
+        {!featured && author.siteUrl ? (
           <a
             href={author.siteUrl}
             target="_blank"
@@ -57,10 +46,6 @@ export default async function AuthorPage({
             {author.siteUrl} →
           </a>
         ) : null}
-        <p className="text-xs text-muted">
-          {mine.length} writeup{mine.length === 1 ? "" : "s"} on BreachLab ·{" "}
-          {totalStars} {totalStars === 1 ? "star" : "stars"}
-        </p>
       </header>
 
       {featured ? (
@@ -69,29 +54,20 @@ export default async function AuthorPage({
             External knowledge base
           </h2>
           <article
-            className="border border-border px-4 py-3 flex flex-col gap-2"
+            className="border border-border px-4 py-3 flex flex-col gap-3"
             data-testid="featured-author-card"
           >
             <header className="flex items-baseline justify-between gap-3 flex-wrap">
-              <div className="text-sm">
-                <span className="text-muted">Full writeup site at </span>
-                <a
-                  href={featured.siteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer nofollow"
-                  className="text-amber font-medium hover:underline"
+              {featured.isFeatured ? (
+                <span
+                  className="inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
+                  title="Recommended by BreachLab"
                 >
-                  {hostnameOf(featured.siteUrl)}
-                </a>
-                {featured.isFeatured ? (
-                  <span
-                    className="ml-2 inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
-                    title="Recommended by BreachLab"
-                  >
-                    Recommended by BreachLab
-                  </span>
-                ) : null}
-              </div>
+                  Recommended by BreachLab
+                </span>
+              ) : (
+                <span />
+              )}
               <AuthorStarButton
                 authorId={featured.id}
                 initialStarred={featured.userHasStarred}
@@ -104,7 +80,7 @@ export default async function AuthorPage({
               href={featured.siteUrl}
               target="_blank"
               rel="noopener noreferrer nofollow"
-              className="text-xs text-amber hover:underline"
+              className="text-sm text-amber hover:underline"
             >
               Read writeups →
             </a>
@@ -134,7 +110,7 @@ export default async function AuthorPage({
       ) : null}
 
       {!featured && mine.length === 0 ? (
-        <p className="text-sm text-muted">No approved writeups yet.</p>
+        <p className="text-sm text-muted">No writeups yet.</p>
       ) : null}
     </article>
   );
