@@ -19,7 +19,7 @@ export function BattlesWidget() {
         ▸ Battles
         <span className="pulse-dot text-green text-[8px]">●</span>
         <span className="text-[9px] text-green/80 border border-green/40 px-1 rounded uppercase tracking-wider font-mono">
-          first wave
+          live
         </span>
       </h2>
 
@@ -45,8 +45,9 @@ export function BattlesWidget() {
           </div>
 
           <div className="flex items-center justify-between pt-0.5">
-            <span className="text-[9px] text-muted tracking-wider uppercase font-mono">
-              04 · 01 incoming
+            <span className="text-[9px] text-muted tracking-wider uppercase font-mono flex items-center gap-1.5">
+              <span className="pulse-dot text-green text-[8px]">●</span>
+              04 · 01 LIVE
             </span>
             <span className="text-[10px] text-amber/80 group-hover:text-amber tracking-[0.18em] uppercase font-mono">
               enter →

