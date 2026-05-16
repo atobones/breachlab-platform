@@ -154,6 +154,21 @@ export default async function KothPage({
         </h1>
       </header>
 
+      {/* Help-bar — prominent Rules CTA. Right under the hero, before
+          the round status banner, so eyes hit it on the way down. */}
+      <div className="border border-amber/30 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="text-[13px] font-mono">
+          <span className="text-muted">new here? </span>
+          <span className="text-text">read the rules first.</span>
+        </div>
+        <Link
+          href="/battles/koth/rules"
+          className="btn-bracket text-amber text-[13px] font-mono tracking-[0.18em]"
+        >
+          Read the Rules →
+        </Link>
+      </div>
+
       {/* Round status banner */}
       <section className="border border-amber/30 bg-amber/[0.02] px-4 py-3 flex items-center gap-4 flex-wrap text-[11px] font-mono tabular-nums">
         {state.round ? (
