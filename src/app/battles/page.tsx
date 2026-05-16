@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { getKothLiveSummary } from "@/lib/koth/live-summary";
 
 export const metadata = {
   title: "Battles — BreachLab",
@@ -52,7 +51,7 @@ const ARCHETYPES: Archetype[] = [
       "One operator goes dark. Everyone else hunts them. Score every hour invisible — or every accurate attribution.",
     tradecraft: [
       "Evidence graded A1-F6 — bad intel costs you points",
-      "AI noise generator weaves decoy footprints around the target",
+      "Target plants false flags before going dark — pure human deception",
     ],
   },
   {
@@ -64,9 +63,9 @@ const ARCHETYPES: Archetype[] = [
     phase: "Phase 3",
     pitch: "Team PvP · 2v2 or 3v3 · 30-45 min pickup",
     doctrine:
-      "Two crews. Asymmetric infrastructure. Your AI partner defends alongside you — hostile crew has the same.",
+      "Two crews. Asymmetric infrastructure. Patch faster than they break, break faster than they patch.",
     tradecraft: [
-      "AI defender as ally — not enemy",
+      "Asymmetric service pairs — each round you defend a stack you've never seen",
       "Path-attributed patch scoring · close what they took",
     ],
   },
@@ -128,40 +127,6 @@ function ClassifiedBar() {
       className="font-mono text-[10px] tracking-[0.3em] text-amber/40 select-none overflow-hidden whitespace-nowrap"
     >
       ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ CLASSIFIED // OPERATOR-EYES-ONLY // BL-OPS-DOSSIER-2026Q2 ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓
-    </div>
-  );
-}
-
-async function StatusBanner() {
-  let oneLiner = "first wave · cohort registration open";
-  let hasRound = true;
-  try {
-    const summary = await getKothLiveSummary();
-    oneLiner = summary.oneLiner;
-    hasRound = summary.hasRound;
-  } catch {
-    // fallback message above
-  }
-
-  return (
-    <div className="border border-amber/30 bg-amber/[0.02] px-3 py-2 flex items-center gap-4 flex-wrap text-[11px] font-mono tabular-nums">
-      <span className="flex items-center gap-2">
-        {hasRound ? (
-          <span className="pulse-dot text-green">●</span>
-        ) : (
-          <span className="text-muted/60">○</span>
-        )}
-        <span className="text-muted uppercase tracking-widest">
-          theater status
-        </span>
-      </span>
-      <span className="text-amber">ARENA-01 // PREDATOR</span>
-      <span className="text-muted">·</span>
-      <span className="text-text">{oneLiner}</span>
-      <span className="text-muted">·</span>
-      <Link href="/battles/koth" className="text-amber hover:underline">
-        enter →
-      </Link>
     </div>
   );
 }
@@ -275,8 +240,6 @@ export default function BattlesPage() {
             </span>
           </h1>
         </div>
-
-        <StatusBanner />
       </header>
 
       {/* Doctrine — short, sharp */}
@@ -289,8 +252,12 @@ export default function BattlesPage() {
           <span className="text-[#34d8ff]">Ghost</span> works the intel cold
           war. <span className="text-red-400">Clash</span> fights rival crews.{" "}
           <span className="text-green">Crew</span> runs the full-kill-chain
-          raid. Every arena: real-time combat, mutation layer, AI adversaries.
-          Not puzzle boxes — thinking opponents.
+          raid. Two arenas pit you against thinking AI (
+          <span className="text-amber">Predator</span>,{" "}
+          <span className="text-green">Crew</span>). Two against thinking
+          humans (<span className="text-[#34d8ff]">Ghost</span>,{" "}
+          <span className="text-red-400">Clash</span>). Both skills, both
+          essential.
         </p>
       </section>
 
