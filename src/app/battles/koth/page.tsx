@@ -6,6 +6,7 @@ import { kothEvents, kothRounds, kothSshKeys, users } from "@/lib/db/schema";
 import { findKeyForUser } from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
 import { submitKothKey } from "./actions";
+import { RealtimeRefresh } from "./RealtimeRefresh";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -131,6 +132,8 @@ export default async function KothPage({
 
   return (
     <article className="space-y-5 max-w-3xl" data-testid="koth-page">
+      <RealtimeRefresh intervalMs={3000} />
+
       {/* Hero */}
       <header className="space-y-2">
         <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
@@ -351,10 +354,18 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         )}
       </section>
 
-      <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono">
+      <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono gap-3 flex-wrap">
         <Link href="/battles" className="hover:text-amber tracking-[0.18em] uppercase">
           ← battles
         </Link>
+        <div className="flex items-center gap-3">
+          <Link href="/battles/koth/history" className="hover:text-amber tracking-[0.18em] uppercase">
+            history
+          </Link>
+          <Link href="/battles/koth/rules" className="hover:text-amber tracking-[0.18em] uppercase">
+            rules →
+          </Link>
+        </div>
         <span className="tracking-[0.18em] uppercase">predator · phase 1</span>
       </footer>
     </article>
