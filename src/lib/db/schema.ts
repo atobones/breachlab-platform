@@ -9,6 +9,7 @@ import {
   bigserial,
   jsonb,
   index,
+  primaryKey,
 } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
@@ -321,6 +322,105 @@ export const specterPlayerTokens = pgTable("specter_player_tokens", {
 });
 
 export type SpecterPlayerToken = typeof specterPlayerTokens.$inferSelect;
+
+// ─────────────────────────────────────────────────────────
+// KoTH (Crown Wars) — Predator archetype, Phase 1
+// ─────────────────────────────────────────────────────────
+//
+// One persistent arena container running 20-min rolling rounds. A crown
+// daemon inside the container polls /root/.crown owner every 60s and
+// tails auth.log, POSTing events to /api/koth/event with KOTH_ORACLE_TOKEN.
+// Per-player SSH keys are injected into koth0..kothN unix slots; the
+// (user_id, slot) binding lives in koth_ssh_keys.
+
+export const kothRounds = pgTable("koth_rounds", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  startedAt: timestamp("started_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  endedAt: timestamp("ended_at", { withTimezone: true }),
+  // active | completed | reset
+  status: text("status").notNull().default("active"),
+  containerId: text("container_id"),
+  resetReason: text("reset_reason"),
+});
+
+export const kothEvents = pgTable(
+  "koth_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    // crown_taken | dethroned | patched | escalated | tutorial
+    kind: text("kind").notNull(),
+    actorUserId: uuid("actor_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    targetUserId: uuid("target_user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    // l7-suid | l8-suid | l17-redis | crontab | unknown
+    exploitPath: text("exploit_path"),
+    pointsDelta: integer("points_delta").notNull().default(0),
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    rawMeta: jsonb("raw_meta"),
+  },
+  (t) => [
+    index("koth_events_round_time").on(t.roundId, t.occurredAt),
+    index("koth_events_actor_time").on(t.actorUserId, t.occurredAt),
+  ],
+);
+
+export const kothScores = pgTable(
+  "koth_scores",
+  {
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    points: integer("points").notNull().default(0),
+    crownHolds: integer("crown_holds").notNull().default(0),
+    dethrones: integer("dethrones").notNull().default(0),
+    patches: integer("patches").notNull().default(0),
+    crownDurationSeconds: integer("crown_duration_seconds")
+      .notNull()
+      .default(0),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.roundId, t.userId] })],
+);
+
+export const kothSshKeys = pgTable("koth_ssh_keys", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .unique()
+    .references(() => users.id, { onDelete: "cascade" }),
+  pubkey: text("pubkey").notNull(),
+  fingerprint: text("fingerprint").notNull().unique(),
+  // 0..N — maps to kothN unix account inside the container. Permanent.
+  slot: integer("slot").notNull().unique(),
+  // First successful tutorial dethrone — unlocks ranked rotation.
+  tutorialCompletedAt: timestamp("tutorial_completed_at", {
+    withTimezone: true,
+  }),
+  addedAt: timestamp("added_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+});
+
+export type KothRound = typeof kothRounds.$inferSelect;
+export type KothEvent = typeof kothEvents.$inferSelect;
+export type KothScore = typeof kothScores.$inferSelect;
+export type KothSshKey = typeof kothSshKeys.$inferSelect;
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
