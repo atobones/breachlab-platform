@@ -133,7 +133,7 @@ export function BattlesRail() {
       </header>
 
       {/* Archetype list */}
-      <div className="flex-1 min-h-0 overflow-y-auto p-3 flex flex-col gap-2.5">
+      <div className="flex-1 min-h-0 overflow-y-auto p-2.5 flex flex-col gap-1.5">
         {ARCHETYPES.map((a) => {
           const c = ACCENT[a.accent];
           const isLive = a.status === "incoming";
@@ -145,47 +145,45 @@ export function BattlesRail() {
             >
               {/* Card head */}
               <div
-                className={`flex items-center justify-between gap-3 border-b ${c.border} px-3 py-1.5 text-[10px] font-mono tracking-[0.18em] uppercase`}
+                className={`flex items-center justify-between gap-2 border-b ${c.border} px-2.5 py-1 text-[9px] font-mono tracking-[0.18em] uppercase`}
               >
-                <div className="flex items-center gap-2 min-w-0">
+                <div className="flex items-center gap-1.5 min-w-0">
                   <span className={`${c.line} font-bold`}>{a.code}</span>
                   <span className="text-muted">·</span>
                   <span className="text-muted truncate">dossier</span>
                 </div>
-                <span className={`px-1.5 py-0.5 border ${c.tag} shrink-0`}>
+                <span className={`px-1 py-0 border ${c.tag} shrink-0`}>
                   {isLive ? "incoming" : "staged"} · {a.phase}
                 </span>
               </div>
 
               {/* Card body */}
-              <div className="flex gap-3 px-3 py-3">
+              <div className="flex gap-2.5 px-2.5 py-2">
                 <div
-                  className={`${c.line} text-[28px] leading-none shrink-0 w-9 text-center phosphor select-none`}
+                  className={`${c.line} text-2xl leading-none shrink-0 w-7 text-center phosphor select-none pt-0.5`}
                   aria-hidden
                 >
                   {a.glyph}
                 </div>
-                <div className="flex-1 min-w-0 flex flex-col gap-1.5">
-                  <div className="flex items-baseline gap-2 flex-wrap">
-                    <span
-                      className={`${c.line} text-sm wordmark tracking-[0.08em] font-bold`}
-                    >
-                      {a.name}
-                    </span>
-                  </div>
-                  <p className="text-[11px] text-text/85 leading-snug">
+                <div className="flex-1 min-w-0 flex flex-col gap-0.5">
+                  <span
+                    className={`${c.line} text-xs wordmark tracking-[0.08em] font-bold`}
+                  >
+                    {a.name}
+                  </span>
+                  <p className="text-[10px] text-text/85 leading-snug">
                     {a.tagline}
                   </p>
-                  <div className={`text-[10px] ${c.soft} font-mono`}>
+                  <div className={`text-[9px] ${c.soft} font-mono leading-snug`}>
                     {a.rhythm}
                   </div>
-                  <div className="flex items-center gap-2 text-[10px] pt-0.5">
+                  <div className="flex items-center gap-1.5 text-[9px] pt-0.5">
                     {isLive ? (
                       <span className="pulse-dot text-green">●</span>
                     ) : (
                       <span className="text-muted/50">○</span>
                     )}
-                    <span className="text-muted tracking-wider">
+                    <span className="text-muted tracking-wider truncate">
                       {a.liveLine}
                     </span>
                   </div>
@@ -196,13 +194,13 @@ export function BattlesRail() {
         })}
 
         {/* Footer CTA */}
-        <div className="border-t border-amber/10 pt-3 mt-1 flex items-center justify-between text-[11px] font-mono">
+        <div className="border-t border-amber/10 pt-2 mt-1 flex items-center justify-between text-[10px] font-mono">
           <span className="text-muted leading-snug">
-            first wave gets free entry to all four arenas
+            first wave · free entry to all four arenas
           </span>
           <Link
             href="/battles"
-            className="btn-bracket text-amber text-[11px] tracking-[0.18em]"
+            className="btn-bracket text-amber text-[10px] tracking-[0.18em]"
           >
             Open Theater
           </Link>

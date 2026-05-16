@@ -208,102 +208,80 @@ function DossierCard({ a }: { a: Archetype }) {
       </div>
 
       {/* Body */}
-      <div className="px-5 sm:px-7 py-6 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-7 gap-y-4">
+      <div className="px-4 sm:px-5 py-3.5 grid grid-cols-1 sm:grid-cols-[auto_1fr] gap-x-5 gap-y-3">
         {/* Glyph column */}
-        <div className="hidden sm:flex flex-col items-center justify-start pt-1 gap-2">
+        <div className="hidden sm:flex flex-col items-center justify-start pt-0.5 gap-1">
           <div
-            className={`${c.line} text-5xl leading-none phosphor`}
+            className={`${c.line} text-3xl leading-none phosphor`}
             aria-hidden
           >
             {a.glyph}
           </div>
-          <div className={`text-[9px] ${c.soft} tracking-widest`}>
-            {a.codename}
-          </div>
         </div>
 
         {/* Info column */}
-        <div className="space-y-4 min-w-0">
+        <div className="space-y-2.5 min-w-0">
           {/* Codename row — display face */}
-          <div className="space-y-1">
-            <div className="text-[10px] text-muted tracking-[0.3em] uppercase">
-              codename
-            </div>
-            <div className="flex items-baseline gap-3 flex-wrap">
-              <h2 className={`${c.line} wordmark text-2xl sm:text-3xl font-bold tracking-[0.06em]`}>
-                {a.codename}
-              </h2>
-              <span className={`${c.soft} text-[11px] sm:text-xs italic`}>
-                {a.archetype}
-              </span>
-            </div>
+          <div className="flex items-baseline gap-2.5 flex-wrap">
+            <h2 className={`${c.line} wordmark text-lg sm:text-xl font-bold tracking-[0.06em]`}>
+              {a.codename}
+            </h2>
+            <span className={`${c.soft} text-[11px] italic`}>
+              {a.archetype}
+            </span>
           </div>
 
           {/* Meta grid — theater / rhythm / scale */}
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-4 gap-y-2 text-[11px] font-mono border-y border-border/60 py-3">
-            <div className="space-y-0.5">
+          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[11px] font-mono border-y border-border/60 py-1.5">
+            <div>
               <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
                 theater
               </dt>
-              <dd className="text-text">{a.theater}</dd>
+              <dd className="text-text leading-snug">{a.theater}</dd>
             </div>
-            <div className="space-y-0.5">
+            <div>
               <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
                 rhythm
               </dt>
-              <dd className="text-text">{a.rhythm}</dd>
+              <dd className="text-text leading-snug">{a.rhythm}</dd>
             </div>
-            <div className="space-y-0.5">
+            <div>
               <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
                 scale
               </dt>
-              <dd className="text-text">{a.scale}</dd>
+              <dd className="text-text leading-snug">{a.scale}</dd>
             </div>
           </dl>
 
           {/* Doctrine */}
-          <div className="space-y-1.5">
-            <div className={`text-[10px] ${c.soft} tracking-[0.3em] uppercase`}>
-              ─ doctrine
-            </div>
-            <p className="text-sm leading-relaxed text-text">{a.doctrine}</p>
-          </div>
+          <p className="text-[13px] leading-relaxed text-text">
+            <span className={`${c.soft} mr-1.5`}>▸</span>
+            {a.doctrine}
+          </p>
 
           {/* Tradecraft */}
-          <div className="space-y-1.5">
-            <div className={`text-[10px] ${c.soft} tracking-[0.3em] uppercase`}>
-              ─ tradecraft
-            </div>
-            <ul className="text-[13px] leading-relaxed text-text space-y-1 font-mono">
-              {a.tradecraft.map((t, i) => (
-                <li key={i} className="flex gap-2">
-                  <span className={`${c.line} shrink-0`}>›</span>
-                  <span>{t}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          <ul className="text-[12px] leading-snug text-text/90 space-y-0.5 font-mono pl-0.5">
+            {a.tradecraft.map((t, i) => (
+              <li key={i} className="flex gap-1.5">
+                <span className={`${c.line} shrink-0`}>›</span>
+                <span>{t}</span>
+              </li>
+            ))}
+          </ul>
 
-          {/* Domain */}
-          <div className="space-y-1.5">
-            <div className={`text-[10px] ${c.soft} tracking-[0.3em] uppercase`}>
-              ─ skill domain
-            </div>
-            <p className="text-[12px] text-muted font-mono leading-relaxed">
-              {a.domain}
-            </p>
+          {/* Domain — single-line, mono */}
+          <div className="text-[11px] text-muted font-mono leading-snug pt-0.5">
+            <span className={`${c.soft}`}>domain // </span>
+            {a.domain}
           </div>
 
           {/* Authorization footer */}
-          <div className="pt-2 mt-2 border-t border-border/60 flex items-center justify-between gap-4 flex-wrap">
-            <div className="text-[10px] text-muted tracking-[0.3em] uppercase">
-              ─ authorization
-            </div>
+          <div className="pt-1.5 border-t border-border/60 flex items-center justify-end">
             {isLive ? (
               <a
                 href={DISCORD_INVITE_URL}
                 rel="noreferrer"
-                className={`btn-bracket text-[12px] ${c.line}`}
+                className="btn-bracket text-[11px]"
                 style={{
                   color:
                     a.accent === "cyan"
@@ -318,7 +296,7 @@ function DossierCard({ a }: { a: Archetype }) {
                 Engage Arena →
               </a>
             ) : (
-              <span className="text-[11px] text-muted/80 font-mono uppercase tracking-[0.18em]">
+              <span className="text-[10px] text-muted/80 font-mono uppercase tracking-[0.18em]">
                 Clearance pending · {a.phase}
               </span>
             )}
@@ -331,24 +309,24 @@ function DossierCard({ a }: { a: Archetype }) {
 
 export default function BattlesPage() {
   return (
-    <article className="space-y-8 max-w-4xl" data-testid="battles-page">
+    <article className="space-y-5 max-w-3xl" data-testid="battles-page">
       {/* Hero */}
-      <header className="space-y-4">
+      <header className="space-y-3">
         <ClassifiedBar />
 
         <div className="space-y-2">
           <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
             ▸ operational theater
           </div>
-          <h1 className="text-amber text-5xl sm:text-6xl phosphor wordmark font-bold tracking-[0.08em]">
+          <h1 className="text-amber text-3xl sm:text-4xl phosphor wordmark font-bold tracking-[0.08em]">
             <span className="glitch" data-text="BATTLES">
               BATTLES
             </span>
           </h1>
-          <p className="text-muted text-sm leading-relaxed max-w-2xl">
+          <p className="text-muted text-[13px] leading-relaxed max-w-2xl">
             Four operator archetypes. Four arenas. Real-time tradecraft against
-            thinking adversaries — not puzzle boxes. This is where the
-            campaign-trained operator becomes field-ready.
+            thinking adversaries — not puzzle boxes. Where the campaign-trained
+            operator becomes field-ready.
           </p>
         </div>
 
@@ -356,30 +334,29 @@ export default function BattlesPage() {
       </header>
 
       {/* Doctrine — short, sharp */}
-      <section className="border-l-2 border-amber/40 pl-4 py-2 space-y-2">
+      <section className="border-l-2 border-amber/40 pl-3 py-1 space-y-1.5">
         <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
           ▸ doctrine
         </div>
-        <p className="text-sm leading-relaxed text-text max-w-2xl">
-          Most CTFs train one shape of operator. We train four — because real
-          campaigns demand them. <span className="text-amber">Predator</span>{" "}
-          hunts solo. <span className="text-[#34d8ff]">Ghost</span> works the
-          intel cold war. <span className="text-red-400">Clash</span> fights
-          rival crews. <span className="text-green">Crew</span> runs the
-          full-kill-chain raid. Each arena, the same currency: tradecraft
-          earned in Phantom and Specter, spent against thinking adversaries
-          under real-time pressure.
+        <p className="text-[13px] leading-relaxed text-text max-w-2xl">
+          Most CTFs train one shape of operator. We train four.{" "}
+          <span className="text-amber">Predator</span> hunts solo.{" "}
+          <span className="text-[#34d8ff]">Ghost</span> works the intel cold
+          war. <span className="text-red-400">Clash</span> fights rival crews.{" "}
+          <span className="text-green">Crew</span> runs the full-kill-chain
+          raid. Same currency: tradecraft from Phantom and Specter, spent
+          against thinking adversaries under real-time pressure.
         </p>
       </section>
 
       {/* Dossier stack */}
-      <section className="space-y-6">
+      <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <h2 className="text-amber text-lg font-mono tracking-[0.18em] uppercase">
+          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
             ▸ operative dossiers
           </h2>
           <span className="text-[10px] text-muted font-mono tracking-[0.18em] uppercase">
-            04 of 04 archetypes // 01 incoming
+            04 archetypes // 01 incoming
           </span>
         </div>
 
@@ -389,19 +366,18 @@ export default function BattlesPage() {
       </section>
 
       {/* Skill coverage — honest about what we cover */}
-      <section className="space-y-3 border border-border/60 px-5 py-4 bg-amber/[0.01]">
-        <h2 className="text-amber text-base font-mono tracking-[0.18em] uppercase">
-          ▸ skill coverage
-        </h2>
-        <p className="text-[13px] leading-relaxed text-text">
-          Battles are the PvP application layer — not the curriculum. Deep
-          skills are forged in the campaign tracks (Phantom, Specter, future
-          tracks). The arenas test what you already carry, under live
-          adversarial pressure.
-        </p>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-6 gap-y-1.5 text-[11px] font-mono pt-2">
+      <section className="space-y-2 border border-border/60 px-4 py-3 bg-amber/[0.01]">
+        <div className="flex items-baseline justify-between gap-3 flex-wrap">
+          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
+            ▸ skill coverage
+          </h2>
+          <span className="text-[10px] text-muted font-mono">
+            battles = PvP application · curriculum lives in tracks
+          </span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-1 text-[11px] font-mono">
           <div className="text-text">
-            <span className="text-green">✓</span> Linux post-ex / privesc
+            <span className="text-green">✓</span> Linux post-ex
           </div>
           <div className="text-text">
             <span className="text-green">✓</span> OSINT / counterintel
@@ -419,7 +395,7 @@ export default function BattlesPage() {
             <span className="text-green">✓</span> Kill-chain ops
           </div>
           <div className="text-muted">
-            <span className="text-muted">○</span> Binary exploitation
+            <span className="text-muted">○</span> Binary / RE
           </div>
           <div className="text-muted">
             <span className="text-muted">○</span> Cryptanalysis
@@ -428,27 +404,27 @@ export default function BattlesPage() {
             <span className="text-muted">○</span> AD / cloud lateral
           </div>
         </div>
-        <p className="text-[11px] text-muted leading-relaxed pt-1">
+        <p className="text-[10px] text-muted leading-snug">
           Open slots ship as track-gated mode variants — Web-Wars, AD Heist,
           RE Race, Crypto Vault — when their parent tracks deploy.
         </p>
       </section>
 
       {/* Engage block — final CTA */}
-      <section className="border border-amber/40 bg-amber/[0.03] px-5 py-5 flex items-center justify-between gap-4 flex-wrap">
-        <div className="space-y-1">
+      <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
+        <div className="space-y-0.5">
           <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
             ▸ first wave
           </div>
-          <p className="text-sm text-text leading-relaxed max-w-xl">
+          <p className="text-[12px] text-text leading-snug max-w-xl">
             Predator deploys first. Cohort access announced in Discord — join
-            to be in the first arena rotation when the gate opens.
+            for the first arena rotation.
           </p>
         </div>
         <a
           href={DISCORD_INVITE_URL}
           rel="noreferrer"
-          className="btn-bracket text-amber text-sm font-mono whitespace-nowrap"
+          className="btn-bracket text-amber text-[12px] font-mono whitespace-nowrap"
         >
           Join First Cohort
         </a>
