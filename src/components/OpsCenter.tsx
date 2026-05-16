@@ -1,13 +1,10 @@
 import Link from "next/link";
-import { getGlobalTop, getLiveStats } from "@/lib/leaderboard/queries";
+import { getGlobalTop } from "@/lib/leaderboard/queries";
 import { RecentHallOfFame } from "./RecentHallOfFame";
 import { OperativeName } from "./operatives/OperativeName";
 
 export async function OpsCenter() {
-  const [top, stats] = await Promise.all([
-    getGlobalTop(5),
-    getLiveStats(),
-  ]);
+  const top = await getGlobalTop(5);
 
   const topPoints = top[0]?.points ?? 1;
 
@@ -17,13 +14,6 @@ export async function OpsCenter() {
         <span className="ops-tag">[ OPS ]</span>
         <span className="ops-title">live operations center</span>
         <span className="ops-pulse" aria-hidden>●</span>
-      </div>
-
-      <div className="ops-stats">
-        <Stat label="operatives online" value={stats.operatives} accent />
-        <Stat label="completions / 24h" value={stats.completionsToday} />
-        <Stat label="ranked" value={top.length === 0 ? "—" : `top ${top.length}`} />
-        <Stat label="uplink" value="●  ok" mono />
       </div>
 
       <div className="ops-grid">
@@ -75,23 +65,3 @@ export async function OpsCenter() {
   );
 }
 
-function Stat({
-  label,
-  value,
-  accent,
-  mono,
-}: {
-  label: string;
-  value: number | string;
-  accent?: boolean;
-  mono?: boolean;
-}) {
-  return (
-    <div className="ops-stat">
-      <div className={`ops-stat-value ${accent ? "ops-stat-accent" : ""} ${mono ? "ops-stat-mono" : ""}`}>
-        {value}
-      </div>
-      <div className="ops-stat-label">{label}</div>
-    </div>
-  );
-}
