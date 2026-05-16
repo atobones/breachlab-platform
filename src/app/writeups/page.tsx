@@ -48,17 +48,10 @@ export default async function WriteupsIndexPage() {
           risk, retrospective learning only. Ghost is open for everyone.
         </p>
         <p className="text-sm text-muted leading-relaxed">
-          Have a writeup of your own?{" "}
-          {user ? (
-            <Link href="/writeups/submit" className="text-amber hover:underline">
-              Submit it
-            </Link>
-          ) : (
-            <Link href="/login" className="text-amber hover:underline">
-              Log in
-            </Link>
-          )}
-          .
+          Got a writeup of your own? Post in{" "}
+          <code className="text-amber">#writeups</code> on Discord or DM{" "}
+          <code className="text-amber">@ato</code> — we&apos;ll review and
+          publish it here with full attribution and a link back to your site.
         </p>
       </header>
 
