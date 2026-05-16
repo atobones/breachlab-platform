@@ -1,4 +1,4 @@
-import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothHonors, users } from "@/lib/db/schema";
 import { topNForRound } from "./scoring";
@@ -72,7 +72,7 @@ export async function getLifetimeStatsForUsers(
     .where(
       and(
         eq(kothEvents.kind, "crown_taken"),
-        sql`${kothEvents.actorUserId} = ANY(${userIds})`,
+        inArray(kothEvents.actorUserId, userIds),
       ),
     )
     .groupBy(kothEvents.actorUserId);
@@ -92,7 +92,7 @@ export async function getLifetimeStatsForUsers(
       and(
         eq(kothEvents.kind, "crown_taken"),
         isNotNull(kothEvents.targetUserId),
-        sql`${kothEvents.actorUserId} = ANY(${userIds})`,
+        inArray(kothEvents.actorUserId, userIds),
       ),
     )
     .groupBy(kothEvents.actorUserId);
@@ -111,7 +111,7 @@ export async function getLifetimeStatsForUsers(
     .where(
       and(
         eq(kothHonors.kind, "round_winner"),
-        sql`${kothHonors.userId} = ANY(${userIds})`,
+        inArray(kothHonors.userId, userIds),
       ),
     )
     .groupBy(kothHonors.userId);
