@@ -43,3 +43,23 @@ export async function userCompletedAllLevels(
   const have = new Set(rows.map((r) => r.idx));
   return requiredIdxs.every((i) => have.has(i));
 }
+
+const OPEN_TRACKS = new Set(["ghost"]);
+
+export function isTrackOpenForAnyone(trackSlug: string): boolean {
+  return OPEN_TRACKS.has(trackSlug);
+}
+
+export type ReadabilityCtx = {
+  trackSlug: string;
+  levelIdx: number;
+  user: { id: string; isAdmin: boolean; isCurator: boolean } | null;
+  completedLevels: Set<number>; // for the same trackSlug
+};
+
+export function isCommunityWriteupReadable(ctx: ReadabilityCtx): boolean {
+  if (ctx.user?.isAdmin || ctx.user?.isCurator) return true;
+  if (isTrackOpenForAnyone(ctx.trackSlug)) return true;
+  if (!ctx.user) return false;
+  return ctx.completedLevels.has(ctx.levelIdx);
+}
