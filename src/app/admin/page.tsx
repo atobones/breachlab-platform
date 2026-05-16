@@ -3,7 +3,6 @@ import {
   getOverviewStats,
   getTrackBreakdown,
   getDailyTrend,
-  TIER_ORDER,
 } from "@/lib/admin/queries";
 import { TrendBars } from "@/components/admin/TrendBars";
 
@@ -11,11 +10,6 @@ export const dynamic = "force-dynamic";
 
 function fmt(n: number): string {
   return n.toLocaleString("en-US");
-}
-
-function fmtMoney(cents: number): string {
-  if (cents === 0) return "$0";
-  return `$${(cents / 100).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 }
 
 export default async function AdminOverviewPage() {
@@ -112,54 +106,6 @@ export default async function AdminOverviewPage() {
             hint="bonus points awarded"
           />
         </StatGrid>
-      </section>
-
-      <section className="space-y-3">
-        <h2 className="text-sm uppercase tracking-wider text-muted">
-          ▸ Sponsors
-        </h2>
-        <StatGrid>
-          <StatCard
-            label="Active sponsors"
-            value={fmt(stats.sponsors.activeCount)}
-            tone="amber"
-          />
-          <StatCard
-            label="MRR"
-            value={fmtMoney(stats.sponsors.mrrCents)}
-            hint="monthly recurring"
-            tone="amber"
-          />
-          <StatCard
-            label="ARR"
-            value={fmtMoney(stats.sponsors.mrrCents * 12)}
-            hint="annualised"
-          />
-          <StatCard
-            label="Sources"
-            value={
-              Object.keys(stats.sponsors.bySource).length === 0
-                ? "—"
-                : Object.entries(stats.sponsors.bySource)
-                    .map(
-                      ([src, count]) =>
-                        `${count} ${src.replace("github_sponsors", "gh").replace("liberapay", "lp").replace("crypto", "btc")}`
-                    )
-                    .join(" · ")
-            }
-            hint="gh · lp · btc"
-          />
-        </StatGrid>
-        <div className="flex gap-3 text-xs font-mono text-muted pt-1">
-          {TIER_ORDER.map((tier) => (
-            <span key={tier}>
-              {tier}: {" "}
-              <span className="text-amber">
-                {stats.sponsors.byTier[tier] ?? 0}
-              </span>
-            </span>
-          ))}
-        </div>
       </section>
 
       <section className="space-y-3">
