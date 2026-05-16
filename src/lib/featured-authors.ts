@@ -26,17 +26,26 @@ export async function listFeaturedAuthors(
       siteUrl: users.siteUrl,
       bio: users.authorBio,
       isCurator: users.isCurator,
+      // Note: the subquery's `inner join users` would shadow the outer
+      // `users` table, so correlation via `users.id` would silently break.
+      // We avoid the shadow by joining via the curator flag with EXISTS.
       regularStars: sql<number>`
         coalesce((
           select count(*) from ${authorStars} s
-          inner join ${users} u2 on u2.id = s.user_id
-          where s.author_id = ${users.id} and u2.is_curator = false
+          where s.author_id = ${users.id}
+            and exists(
+              select 1 from ${users} uu
+               where uu.id = s.user_id and uu.is_curator = false
+            )
         ), 0)`.as("regular_stars"),
       curatorStars: sql<number>`
         coalesce((
           select count(*) from ${authorStars} s
-          inner join ${users} u2 on u2.id = s.user_id
-          where s.author_id = ${users.id} and u2.is_curator = true
+          where s.author_id = ${users.id}
+            and exists(
+              select 1 from ${users} uu
+               where uu.id = s.user_id and uu.is_curator = true
+            )
         ), 0)`.as("curator_stars"),
       userHasStarred: opts.userId
         ? sql<boolean>`
