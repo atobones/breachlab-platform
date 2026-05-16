@@ -421,10 +421,61 @@ export const kothSshKeys = pgTable("koth_ssh_keys", {
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
 });
 
+// ─────────────────────────────────────────────────────────
+// KoTH Phase 2 — Escalation engine + Diamond commodity pricing
+// ─────────────────────────────────────────────────────────
+//
+// koth_paths is the static catalog (core paths always-on every round;
+// escalation paths activated by the daemon when crown_hold > 5 min).
+// koth_path_events is the per-round log: activated / exploited / closed
+// / pending. Each row carries value_snapshot so scoring is deterministic.
+
+export const kothPaths = pgTable("koth_paths", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  // core | escalation
+  kind: text("kind").notNull(),
+  baseValue: integer("base_value").notNull().default(12),
+  description: text("description"),
+  hint: text("hint"),
+  levelRef: text("level_ref"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const kothPathEvents = pgTable(
+  "koth_path_events",
+  {
+    id: bigserial("id", { mode: "number" }).primaryKey(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    pathId: uuid("path_id")
+      .notNull()
+      .references(() => kothPaths.id, { onDelete: "restrict" }),
+    // pending | activated | exploited | closed
+    kind: text("kind").notNull(),
+    slot: text("slot"),
+    valueSnapshot: integer("value_snapshot"),
+    occurredAt: timestamp("occurred_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    rawMeta: jsonb("raw_meta"),
+  },
+  (t) => [
+    index("koth_path_events_round_time").on(t.roundId, t.occurredAt),
+    index("koth_path_events_path_time").on(t.pathId, t.occurredAt),
+  ],
+);
+
 export type KothRound = typeof kothRounds.$inferSelect;
 export type KothEvent = typeof kothEvents.$inferSelect;
 export type KothScore = typeof kothScores.$inferSelect;
 export type KothSshKey = typeof kothSshKeys.$inferSelect;
+export type KothPath = typeof kothPaths.$inferSelect;
+export type KothPathEvent = typeof kothPathEvents.$inferSelect;
 
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),

@@ -2,9 +2,10 @@ import Link from "next/link";
 import { desc, eq } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
-import { kothEvents, kothRounds, kothSshKeys, users } from "@/lib/db/schema";
+import { kothEvents, kothRounds, users } from "@/lib/db/schema";
 import { findKeyForUser } from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
+import { currentPricesForRound } from "@/lib/koth/paths";
 import { submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
@@ -14,6 +15,14 @@ export const revalidate = 0;
 const ROUND_DURATION_SECONDS = 20 * 60;
 const ARENA_HOST = "204.168.229.209";
 const ARENA_PORT = 2300;
+const ESCALATION_THRESHOLD_SECONDS = 300;
+
+type EventMeta = { value_snapshot?: number };
+function snapOf(raw: unknown): number | null {
+  if (!raw || typeof raw !== "object") return null;
+  const v = (raw as EventMeta).value_snapshot;
+  return typeof v === "number" ? v : null;
+}
 
 function fmtDuration(seconds: number): string {
   const s = Math.max(0, seconds);
@@ -31,7 +40,14 @@ async function loadState() {
     .limit(1);
 
   if (!round) {
-    return { round: null, king: null, top5: [], feed: [] };
+    return {
+      round: null,
+      king: null,
+      top5: [],
+      feed: [],
+      paths: [] as Awaited<ReturnType<typeof currentPricesForRound>>,
+      escalationEtaSec: null as number | null,
+    };
   }
 
   const ageSeconds = Math.max(
@@ -72,6 +88,7 @@ async function loadState() {
       kind: kothEvents.kind,
       exploitPath: kothEvents.exploitPath,
       actorUsername: users.username,
+      rawMeta: kothEvents.rawMeta,
     })
     .from(kothEvents)
     .leftJoin(users, eq(users.id, kothEvents.actorUserId))
@@ -82,7 +99,9 @@ async function loadState() {
   const feed = feedRows.map((r) => {
     const ts = r.occurredAt.toISOString().slice(11, 19);
     const actor = r.actorUsername ?? "unknown";
-    const path = r.exploitPath ? ` via ${r.exploitPath}` : "";
+    const snap = snapOf(r.rawMeta);
+    const v = snap != null ? ` (+${snap} pt)` : "";
+    const path = r.exploitPath ? ` via ${r.exploitPath}${v}` : "";
     let line: string;
     switch (r.kind) {
       case "crown_taken":
@@ -91,8 +110,14 @@ async function loadState() {
       case "patched":
         line = `${actor} patched ${r.exploitPath ?? "an exploit"}`;
         break;
+      case "path_patched_attributed":
+        line = `${actor} closed ${r.exploitPath} (path-attributed +5)`;
+        break;
       case "escalated":
         line = `escalation: new path open${path}`;
+        break;
+      case "path_activated":
+        line = `new path opened: ${r.exploitPath ?? "?"}`;
         break;
       case "tutorial":
         line = `${actor} cleared the tutorial`;
@@ -103,6 +128,12 @@ async function loadState() {
     return { ts, line, kind: r.kind };
   });
 
+  const paths = await currentPricesForRound(round.id);
+  const escalationEtaSec =
+    king && king.holdSeconds < ESCALATION_THRESHOLD_SECONDS
+      ? ESCALATION_THRESHOLD_SECONDS - king.holdSeconds
+      : null;
+
   return {
     round: {
       id: round.id,
@@ -112,6 +143,8 @@ async function loadState() {
     king,
     top5,
     feed,
+    paths,
+    escalationEtaSec,
   };
 }
 
@@ -129,6 +162,14 @@ export default async function KothPage({
   const state = await loadState();
 
   const myKey = user ? await findKeyForUser(user.id) : null;
+
+  const corePaths = state.paths.filter((p) => p.kind === "core");
+  const activeEscalation = state.paths.filter(
+    (p) => p.kind === "escalation" && p.activated,
+  );
+  const pendingEscalation = state.paths.filter(
+    (p) => p.kind === "escalation" && !p.activated && p.pendingUntil !== null,
+  );
 
   return (
     <article className="space-y-5 max-w-3xl" data-testid="koth-page">
@@ -201,6 +242,22 @@ export default async function KothPage({
                 </span>
               ) : (
                 <span className="text-muted">crown vacant</span>
+              )}
+              {state.escalationEtaSec !== null && state.king && (
+                <>
+                  <span className="text-muted">·</span>
+                  <span className="text-red-400">
+                    escalation in {fmtDuration(state.escalationEtaSec)}
+                  </span>
+                </>
+              )}
+              {pendingEscalation.length > 0 && (
+                <>
+                  <span className="text-muted">·</span>
+                  <span className="text-red-400 animate-pulse">
+                    ⚠ incoming: {pendingEscalation.map((p) => p.slug).join(", ")}
+                  </span>
+                </>
               )}
             </>
           ) : (
@@ -355,6 +412,101 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         )}
       </section>
 
+      {/* Commodity HUD — Phase 2 Diamond pricing */}
+      <section className="border border-amber/30 px-4 py-3 space-y-3">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
+            ▸ exploit market
+          </h2>
+          <span className="text-[10px] text-muted font-mono uppercase tracking-widest">
+            diamond pricing · –2 pt / exploit · floor 2
+          </span>
+        </div>
+
+        {/* Core paths — always live */}
+        {corePaths.length > 0 && (
+          <div className="space-y-1.5">
+            <div className="text-[10px] text-green/70 font-mono uppercase tracking-widest">
+              ▾ core · always open
+            </div>
+            <ul className="space-y-1 text-[12px] font-mono">
+              {corePaths.map((p) => {
+                const discounted = p.currentValue < p.baseValue;
+                return (
+                  <li key={p.slug} className="flex items-center gap-3">
+                    <span className="text-amber tabular-nums w-6 text-right">
+                      {p.currentValue}
+                    </span>
+                    <span className="text-muted text-[10px] w-6">pt</span>
+                    <span className="text-text flex-1 truncate">
+                      {p.name} <span className="text-muted">· {p.slug}</span>
+                    </span>
+                    {discounted ? (
+                      <span className="text-muted text-[10px] tabular-nums">
+                        ↓ from {p.baseValue} · {p.exploitsThisRound}×
+                      </span>
+                    ) : (
+                      <span className="text-green/60 text-[10px] tabular-nums">
+                        base
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* Active escalation paths */}
+        {activeEscalation.length > 0 ? (
+          <div className="space-y-1.5 pt-2 border-t border-amber/15">
+            <div className="text-[10px] text-amber/80 font-mono uppercase tracking-widest">
+              ▾ escalation · live in this round
+            </div>
+            <ul className="space-y-1 text-[12px] font-mono">
+              {activeEscalation.map((p) => {
+                const discounted = p.currentValue < p.baseValue;
+                return (
+                  <li key={p.slug} className="flex items-center gap-3">
+                    <span className="text-amber tabular-nums w-6 text-right">
+                      {p.currentValue}
+                    </span>
+                    <span className="text-muted text-[10px] w-6">pt</span>
+                    <span className="text-text flex-1 truncate">
+                      {p.name} <span className="text-muted">· {p.slug}</span>
+                    </span>
+                    {discounted ? (
+                      <span className="text-muted text-[10px] tabular-nums">
+                        ↓ from {p.baseValue} · {p.exploitsThisRound}×
+                      </span>
+                    ) : (
+                      <span className="text-amber/60 text-[10px] tabular-nums">
+                        new
+                      </span>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+            {myKey && (
+              <p className="text-[10px] text-muted leading-snug pt-1">
+                Hints for each path live in the rules · exploit inside
+                your kothN shell, then
+                <code className="mx-1">
+                  crown-claim koth{myKey.slot} &lt;slug&gt;
+                </code>
+                to claim via that path.
+              </p>
+            )}
+          </div>
+        ) : (
+          <p className="text-[11px] text-muted leading-snug pt-1">
+            no escalation paths live yet · the arena opens a new path
+            when the crown is held past 5 minutes
+          </p>
+        )}
+      </section>
+
       {/* Top-5 leaderboard */}
       <section className="border border-border/60 px-4 py-3 space-y-2">
         <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
@@ -413,7 +565,7 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
             rules →
           </Link>
         </div>
-        <span className="tracking-[0.18em] uppercase">predator · phase 1</span>
+        <span className="tracking-[0.18em] uppercase">predator · phase 2</span>
       </footer>
     </article>
   );
