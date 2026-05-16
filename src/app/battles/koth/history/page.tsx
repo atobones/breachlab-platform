@@ -76,7 +76,7 @@ export default async function KothHistoryPage() {
           PAST ROUNDS
         </h1>
         <p className="text-[12px] text-muted leading-snug max-w-2xl">
-          Last {HISTORY_LIMIT} closed rounds. Each round is a 20-minute
+          Last {HISTORY_LIMIT} closed rounds. Each round is a 30-minute
           window; the arena resets on a cron schedule and everything
           starts fresh.
         </p>
