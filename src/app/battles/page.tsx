@@ -48,8 +48,8 @@ const ARCHETYPES: Archetype[] = [
     doctrine:
       "One operator goes dark. Everyone else hunts them. Score every hour invisible — or every accurate attribution.",
     tradecraft: [
-      "NATO Admiralty A1-F6 source grading from Specter L4",
-      "AI noise generator weaves decoy footprints",
+      "Evidence graded A1-F6 — bad intel costs you points",
+      "AI noise generator weaves decoy footprints around the target",
     ],
   },
   {
@@ -79,7 +79,7 @@ const ARCHETYPES: Archetype[] = [
       "Pick a role. Move as a crew through layered defense — WAF, EDR, SIEM, LLM-driven SOC analyst. Detection bleeds the team.",
     tradecraft: [
       "Role-bound toolkits — each operative sees their slice",
-      "Full AI SOC analyst on defense (Specter IV harness)",
+      "Live AI SOC analyst on defense — reads logs, fires alerts, rotates keys",
     ],
   },
 ];
@@ -269,13 +269,12 @@ export default function BattlesPage() {
           ▸ doctrine
         </div>
         <p className="text-[13px] leading-relaxed text-text max-w-2xl">
-          Most CTFs train one shape of operator. We train four.{" "}
-          <span className="text-amber">Predator</span> hunts solo.{" "}
+          Four arenas. <span className="text-amber">Predator</span> hunts solo.{" "}
           <span className="text-[#34d8ff]">Ghost</span> works the intel cold
           war. <span className="text-red-400">Clash</span> fights rival crews.{" "}
           <span className="text-green">Crew</span> runs the full-kill-chain
-          raid. Same currency: tradecraft from Phantom and Specter, spent
-          against thinking adversaries under real-time pressure.
+          raid. Every arena: real-time combat, mutation layer, AI adversaries.
+          Not puzzle boxes — thinking opponents.
         </p>
       </section>
 
@@ -293,51 +292,6 @@ export default function BattlesPage() {
         {ARCHETYPES.map((a) => (
           <DossierCard key={a.code} a={a} />
         ))}
-      </section>
-
-      {/* Skill coverage — honest about what we cover */}
-      <section className="space-y-2 border border-border/60 px-4 py-3 bg-amber/[0.01]">
-        <div className="flex items-baseline justify-between gap-3 flex-wrap">
-          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
-            ▸ skill coverage
-          </h2>
-          <span className="text-[10px] text-muted font-mono">
-            battles = PvP application · curriculum lives in tracks
-          </span>
-        </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-x-5 gap-y-1 text-[11px] font-mono">
-          <div className="text-text">
-            <span className="text-green">✓</span> Linux post-ex
-          </div>
-          <div className="text-text">
-            <span className="text-green">✓</span> OSINT / counterintel
-          </div>
-          <div className="text-text">
-            <span className="text-green">✓</span> Team coordination
-          </div>
-          <div className="text-text">
-            <span className="text-green">✓</span> AI-aware tradecraft
-          </div>
-          <div className="text-text">
-            <span className="text-green">✓</span> Real-time defense
-          </div>
-          <div className="text-text">
-            <span className="text-green">✓</span> Kill-chain ops
-          </div>
-          <div className="text-muted">
-            <span className="text-muted">○</span> Binary / RE
-          </div>
-          <div className="text-muted">
-            <span className="text-muted">○</span> Cryptanalysis
-          </div>
-          <div className="text-muted">
-            <span className="text-muted">○</span> AD / cloud lateral
-          </div>
-        </div>
-        <p className="text-[10px] text-muted leading-snug">
-          Open slots ship as track-gated mode variants — Web-Wars, AD Heist,
-          RE Race, Crypto Vault — when their parent tracks deploy.
-        </p>
       </section>
 
       {/* Engage block — final CTA */}
