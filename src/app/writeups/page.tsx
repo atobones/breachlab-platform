@@ -44,11 +44,12 @@ export default async function WriteupsIndexPage() {
           <span className="glitch" data-text="Writeups">Writeups</span>
         </h1>
         <p className="text-sm text-muted leading-relaxed">
-          Two surfaces: curated walkthroughs from Ato for known chokepoints,
-          and community-contributed writeups linking out to authors&apos;
-          own knowledge bases. Phantom-tier community writeups are visible
-          only after you&apos;ve cleared that specific level — zero spoiler
-          risk, retrospective learning only. Ghost is open for everyone.
+          Three surfaces: featured external knowledge bases (full sites
+          maintained by community authors we trust), curated walkthroughs
+          from BreachLab for known chokepoints, and one-off community
+          writeups. Phantom-tier community writeups are visible only after
+          you&apos;ve cleared that specific level — zero spoiler risk,
+          retrospective learning only. Ghost is open for everyone.
         </p>
         <p className="text-sm text-muted leading-relaxed">
           Got a writeup of your own? Post in{" "}
@@ -80,7 +81,7 @@ export default async function WriteupsIndexPage() {
       {curated.length > 0 ? (
         <section className="space-y-3">
           <h2 className="text-amber text-xl uppercase tracking-wider">
-            Curated by Ato
+            Curated by BreachLab
           </h2>
           <ul className="space-y-2">
             {curated.map((w) => {
@@ -92,33 +93,46 @@ export default async function WriteupsIndexPage() {
               return (
                 <li
                   key={w.slug}
-                  className="border border-border px-4 py-3 flex flex-col gap-1"
+                  className="border border-border px-4 py-3 flex flex-col gap-2"
                 >
-                  <div className="flex items-baseline justify-between gap-3 flex-wrap">
+                  <header className="flex items-baseline justify-between gap-3 flex-wrap">
                     <div className="text-sm">
-                      <span className="text-muted">{w.track} L{w.level}</span>{" "}
+                      <span className="text-muted">{w.track} L{w.level} — </span>
                       {unlocked ? (
                         <Link
                           href={`/writeups/${w.track}/${w.level}`}
-                          className="text-amber hover:underline"
+                          className="text-amber font-medium hover:underline"
                         >
                           {w.title}
                         </Link>
                       ) : (
                         <span className="text-text">{w.title}</span>
                       )}
+                      <span
+                        className="ml-2 inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
+                        title="BreachLab official walkthrough"
+                      >
+                        BreachLab official
+                      </span>
                     </div>
                     <span className="text-xs uppercase tracking-wider text-muted">
                       {w.difficulty} · {w.estimatedTime}
                     </span>
-                  </div>
-                  {!unlocked ? (
+                  </header>
+                  {unlocked ? (
+                    <Link
+                      href={`/writeups/${w.track}/${w.level}`}
+                      className="text-xs text-amber hover:underline"
+                    >
+                      Read walkthrough →
+                    </Link>
+                  ) : (
                     <p className="text-xs text-muted">
                       {user
                         ? `Locked — clear ${w.track} L${w.prereqLevels.join(", L")} to unlock.`
                         : "Locked — log in + clear prerequisites to unlock."}
                     </p>
-                  ) : null}
+                  )}
                 </li>
               );
             })}

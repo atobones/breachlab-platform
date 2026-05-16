@@ -50,7 +50,7 @@ export default async function WriteupLevelPage({
       {curated ? (
         <section className="space-y-3">
           <h2 className="text-amber text-lg uppercase tracking-wider">
-            Curated by Ato
+            Curated by BreachLab
           </h2>
           <div
             className="prose prose-invert max-w-none text-sm"

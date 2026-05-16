@@ -26,9 +26,9 @@ export function WriteupCard({
           {writeup.isFeatured ? (
             <span
               className="ml-2 inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
-              title="Curator pick"
+              title="Recommended by BreachLab"
             >
-              Featured by Ato
+              Recommended by BreachLab
             </span>
           ) : null}
         </div>

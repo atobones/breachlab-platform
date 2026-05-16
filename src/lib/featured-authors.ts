@@ -1,4 +1,4 @@
-import { and, eq, isNotNull, sql } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { authorStars, users } from "@/lib/db/schema";
 import { computeWeightedScore } from "@/lib/community-writeups";
@@ -16,64 +16,79 @@ export type FeaturedAuthorView = {
   userHasStarred: boolean;
 };
 
+// Aggregates via 3 independent queries + JS merge. We avoided the
+// natural correlated-subquery pattern because the outer FROM aliases
+// `users` and any inner `JOIN users` shadows the outer correlation —
+// PostgreSQL silently returns zero counts instead of failing loudly.
 export async function listFeaturedAuthors(
   opts: { userId?: string | null } = {},
 ): Promise<FeaturedAuthorView[]> {
-  const rows = await db
+  const authors = await db
     .select({
       id: users.id,
       username: users.username,
       siteUrl: users.siteUrl,
       bio: users.authorBio,
       isCurator: users.isCurator,
-      // Note: the subquery's `inner join users` would shadow the outer
-      // `users` table, so correlation via `users.id` would silently break.
-      // We avoid the shadow by joining via the curator flag with EXISTS.
-      regularStars: sql<number>`
-        coalesce((
-          select count(*) from ${authorStars} s
-          where s.author_id = ${users.id}
-            and exists(
-              select 1 from ${users} uu
-               where uu.id = s.user_id and uu.is_curator = false
-            )
-        ), 0)`.as("regular_stars"),
-      curatorStars: sql<number>`
-        coalesce((
-          select count(*) from ${authorStars} s
-          where s.author_id = ${users.id}
-            and exists(
-              select 1 from ${users} uu
-               where uu.id = s.user_id and uu.is_curator = true
-            )
-        ), 0)`.as("curator_stars"),
-      userHasStarred: opts.userId
-        ? sql<boolean>`
-            exists(
-              select 1 from ${authorStars} s
-              where s.author_id = ${users.id} and s.user_id = ${opts.userId}
-            )`.as("user_has_starred")
-        : sql<boolean>`false`.as("user_has_starred"),
     })
     .from(users)
     .where(and(eq(users.isFeaturedAuthor, true), isNotNull(users.siteUrl)));
 
-  return rows
-    .map((r) => {
-      const regular = Number(r.regularStars);
-      const curator = Number(r.curatorStars);
+  if (authors.length === 0) return [];
+  const authorIds = authors.map((a) => a.id);
+
+  const starRows = await db
+    .select({
+      authorId: authorStars.authorId,
+      isCurator: users.isCurator,
+      cnt: sql<number>`count(*)::int`.as("cnt"),
+    })
+    .from(authorStars)
+    .innerJoin(users, eq(users.id, authorStars.userId))
+    .where(inArray(authorStars.authorId, authorIds))
+    .groupBy(authorStars.authorId, users.isCurator);
+
+  const myStarred = opts.userId
+    ? new Set(
+        (
+          await db
+            .select({ authorId: authorStars.authorId })
+            .from(authorStars)
+            .where(
+              and(
+                eq(authorStars.userId, opts.userId),
+                inArray(authorStars.authorId, authorIds),
+              ),
+            )
+        ).map((r) => r.authorId),
+      )
+    : new Set<string>();
+
+  return authors
+    .map((a) => {
+      const mine = starRows.filter((r) => r.authorId === a.id);
+      const regular = Number(mine.find((r) => !r.isCurator)?.cnt ?? 0);
+      const curator = Number(mine.find((r) => r.isCurator)?.cnt ?? 0);
       return {
-        id: r.id,
-        username: r.username,
-        siteUrl: r.siteUrl as string,
-        bio: r.bio,
-        isCurator: r.isCurator,
+        id: a.id,
+        username: a.username,
+        siteUrl: a.siteUrl as string,
+        bio: a.bio,
+        isCurator: a.isCurator,
         regularStars: regular,
         curatorStars: curator,
         weightedScore: computeWeightedScore(regular, curator),
         isFeatured: curator > 0,
-        userHasStarred: Boolean(r.userHasStarred),
+        userHasStarred: myStarred.has(a.id),
       };
     })
     .sort((a, b) => b.weightedScore - a.weightedScore);
+}
+
+export async function getFeaturedAuthorByUsername(
+  username: string,
+  opts: { userId?: string | null } = {},
+): Promise<FeaturedAuthorView | null> {
+  const all = await listFeaturedAuthors(opts);
+  return all.find((a) => a.username === username) ?? null;
 }
