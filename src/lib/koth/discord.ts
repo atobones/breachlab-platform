@@ -71,3 +71,35 @@ export function postKothEventToDiscord(ev: EventArgs): void {
     // best-effort; Discord outage shouldn't surface anywhere
   });
 }
+
+// Fire-and-forget summary post when a round closes. Used by the
+// round/close endpoint. Two-line format so the moment lands cleanly
+// in the channel:
+//
+//   ━━ round closed · 21:40 UTC ━━
+//   🏆 **alice** takes the round — 47 pt · 3 dethrones · 12m hold
+export function postKothRoundCloseToDiscord(opts: {
+  winnerUsername: string;
+  points: number;
+  dethrones: number;
+  crownDurationSeconds: number;
+  closedAt: Date;
+}): void {
+  const webhook = process.env.KOTH_DISCORD_WEBHOOK;
+  if (!webhook) return;
+  const ts = opts.closedAt.toISOString().slice(11, 16);
+  const holdM = Math.floor(opts.crownDurationSeconds / 60);
+  const holdS = opts.crownDurationSeconds % 60;
+  const hold = holdM > 0 ? `${holdM}m ${holdS}s` : `${holdS}s`;
+  const content =
+    `━━ round closed · ${ts} UTC ━━\n` +
+    `🏆 **${opts.winnerUsername}** takes the round — ` +
+    `${opts.points} pt · ${opts.dethrones} dethrones · ${hold} on the throne`;
+  fetch(webhook, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ content }),
+  }).catch(() => {
+    // best-effort
+  });
+}

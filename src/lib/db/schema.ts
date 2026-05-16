@@ -470,12 +470,46 @@ export const kothPathEvents = pgTable(
   ],
 );
 
+// ─────────────────────────────────────────────────────────
+// KoTH Honors — permanent records that survive round resets
+// ─────────────────────────────────────────────────────────
+//
+// Round scores wipe every 20 min. Honors capture the achievements
+// worth remembering: who won the round (one per round), first-ever
+// milestones (first crown, first dethrone, first kill via a specific
+// path). Lifetime counters (total crowns / total dethrones) are
+// derived on the fly from koth_events — no separate column needed.
+
+export const kothHonors = pgTable(
+  "koth_honors",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    roundId: uuid("round_id").references(() => kothRounds.id, {
+      onDelete: "set null",
+    }),
+    // round_winner | first_crown | first_dethrone | first_path_kill
+    kind: text("kind").notNull(),
+    awardedAt: timestamp("awarded_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    metadata: jsonb("metadata"),
+  },
+  (t) => [
+    index("koth_honors_user_time").on(t.userId, t.awardedAt.desc()),
+    index("koth_honors_round").on(t.roundId),
+  ],
+);
+
 export type KothRound = typeof kothRounds.$inferSelect;
 export type KothEvent = typeof kothEvents.$inferSelect;
 export type KothScore = typeof kothScores.$inferSelect;
 export type KothSshKey = typeof kothSshKeys.$inferSelect;
 export type KothPath = typeof kothPaths.$inferSelect;
 export type KothPathEvent = typeof kothPathEvents.$inferSelect;
+export type KothHonor = typeof kothHonors.$inferSelect;
 
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),

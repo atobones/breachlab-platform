@@ -130,8 +130,16 @@ export default async function KothHistoryPage() {
                   {r.top3.map((row, i) => (
                     <li key={row.userId} className="flex items-center gap-3">
                       <span className="text-amber w-4">{i + 1}.</span>
-                      <span className="text-text flex-1 truncate">
+                      <span className="text-text flex-1 truncate flex items-baseline gap-1.5">
                         {row.username}
+                        {i === 0 && (
+                          <span
+                            className="text-[9px] text-amber tracking-wider"
+                            title="round winner"
+                          >
+                            ◆ winner
+                          </span>
+                        )}
                       </span>
                       <span className="text-amber w-12 text-right">
                         {row.points} pt
