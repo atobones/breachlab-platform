@@ -39,14 +39,20 @@ export function StarButton({
       onClick={toggle}
       disabled={disabled || isPending}
       title={disabled ? disabledReason ?? "Locked" : starred ? "Unstar" : "Star"}
-      className={`inline-flex items-center gap-1 text-xs ${
-        disabled ? "text-muted/50 cursor-not-allowed" : "text-amber hover:underline"
+      className={`inline-flex items-center gap-1.5 px-2 py-1 border border-border ${
+        disabled
+          ? "text-muted/50 cursor-not-allowed"
+          : starred
+            ? "border-amber/60 text-amber hover:bg-amber/10"
+            : "text-amber hover:border-amber/60 hover:bg-amber/10"
       }`}
       data-testid="star-button"
       aria-pressed={starred}
     >
-      <span aria-hidden>{starred ? "★" : "☆"}</span>
-      <span>{score}</span>
+      <span aria-hidden className="text-base leading-none">
+        {starred ? "★" : "☆"}
+      </span>
+      <span className="text-sm font-medium tabular-nums">{score}</span>
     </button>
   );
 }
