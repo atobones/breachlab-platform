@@ -88,47 +88,37 @@ export default function KothRulesPage() {
         </p>
       </RuleSection>
 
-      <RuleSection title="Escalation (Phase 2 · live)">
-        <ul className="space-y-1 list-disc list-inside text-[12px]">
-          <li>
-            King holds the crown <strong>5 min</strong> → arena picks a
-            random path from the escalation library, broadcasts a
-            warning.
-          </li>
-          <li>
-            <strong>60s later</strong> the path activates. Fresh attack
-            surface against the current king.
-          </li>
-          <li>
-            Up to <strong>3 escalation paths</strong> per round · 3-min
-            cooldown between them.
-          </li>
-          <li>
-            Path slugs visible in the <em>exploit market</em> HUD on the
-            arena (e.g. <code>writable-passwd</code>,{" "}
-            <code>python-cap-setuid</code>).
-          </li>
-        </ul>
+      <RuleSection title="Escalation">
+        <p className="text-[13px] leading-relaxed">
+          Hold the crown long enough and the box mutates against you.
+          After <strong>five minutes on the throne</strong>, the arena
+          picks a fresh attack path from its library and gives you a
+          sixty-second warning before it opens. Up to three new paths
+          can land in a single round, spaced about three minutes apart.
+        </p>
+        <p className="text-[13px] leading-relaxed pt-1">
+          Other operators get a clean shot at dethroning you through an
+          exploit you&apos;ve never seen before. Watch the{" "}
+          <em>exploit market</em> on the arena — when a new slug appears
+          (<code>writable-passwd</code>, <code>python-cap-setuid</code>,
+          and friends), the clock on your reign just got shorter.
+        </p>
       </RuleSection>
 
-      <RuleSection title="Diamond pricing">
-        <ul className="space-y-1 list-disc list-inside text-[12px]">
-          <li>
-            Each path starts the round at its <strong>base value</strong>
-            {" "}(usually 12 pt; some escalation paths up to 18 pt).
-          </li>
-          <li>
-            Every crown grab through the path drops its value by{" "}
-            <strong>2 pt</strong>, floored at <strong>2 pt</strong>.
-          </li>
-          <li>
-            A crowded path is a cheap path. Find an underused one.
-          </li>
-          <li>
-            Prices captured at exploit-time on each event. Reset on
-            round close.
-          </li>
-        </ul>
+      <RuleSection title="The exploit market">
+        <p className="text-[13px] leading-relaxed">
+          Every path is priced. It starts the round at its base value —
+          usually twelve points for the always-open core, up to eighteen
+          for the bigger escalations. Every time someone grabs the crown
+          through a path, that path&apos;s price drops by two, floored at
+          two. A crowded path is a cheap path; the operator who finds
+          the underused one cashes in the bigger ticket.
+        </p>
+        <p className="text-[13px] leading-relaxed pt-1">
+          The price is captured at the moment of the grab, so your
+          payout is locked in even if the market shifts a second later.
+          Prices reset when the round closes.
+        </p>
       </RuleSection>
 
       <RuleSection title="Scoring">
@@ -183,14 +173,19 @@ export default function KothRulesPage() {
         />
       </RuleSection>
 
-      <RuleSection title="Roadmap">
-        <KV
-          rows={[
-            ["Phase 2 · live", "Escalation engine + Diamond pricing"],
-            ["Phase 3", "AI Defender · LLM-driven sysadmin in the box"],
-            ["Phase 4", "Season mode + spectator stream + session replay"],
-          ]}
-        />
+      <RuleSection title="What&apos;s coming">
+        <p className="text-[13px] leading-relaxed">
+          Next: a live AI defender — an LLM running as the box&apos;s
+          sysadmin. It reads syslog in real time, patches the path you
+          came through while you&apos;re still inside, and rotates keys
+          on the fly. No other arena ships this.
+        </p>
+        <p className="text-[13px] leading-relaxed pt-1">
+          After that: a four-week season ladder with a top-eight finals
+          bracket, side-by-side spectator streams for the bracket, and
+          shell-history replay on every dethrone so you can read the
+          attacker&apos;s exact keystrokes and patch them out next time.
+        </p>
       </RuleSection>
 
       <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted font-mono">
