@@ -1,14 +1,14 @@
 import Link from "next/link";
+import { getKothLiveSummary } from "@/lib/koth/live-summary";
 
-// Ops Wall right-rail (≥2200px). Pre-launch Battles surface — four
-// archetypes (Predator / Ghost / Clash / Crew). Predator (KoTH) ships
-// first as Phase 1; the rest are STAGED with phase markers.
+// Ops Wall right-rail (≥2200px). Four archetypes: Predator (LIVE) +
+// Ghost / Clash / Crew (STAGED). Predator card pulls live arena state
+// from the DB on every render — round age, king + hold, vacant marker.
 //
-// No JS, no client state. Live counters here are pre-launch placeholders;
-// once Phase 1 backend is wired (`/api/koth/state`), swap in real numbers
-// and keep the same visual contract.
+// Server component; no client JS. Page-level revalidation re-renders
+// the rail.
 
-type Status = "incoming" | "staged";
+type Status = "live" | "staged";
 
 type Archetype = {
   code: string;
@@ -29,11 +29,11 @@ const ARCHETYPES: Archetype[] = [
     name: "PREDATOR",
     glyph: "⌖",
     accent: "amber",
-    status: "incoming",
+    status: "live",
     phase: "Phase 1",
     tagline: "Take the crown. Hold ground. Watch your back path.",
     rhythm: "24/7 · 20-min rounds · solo arena",
-    liveLine: "first-wave incoming · cohort registration open",
+    liveLine: "", // overridden at render time with live arena state
   },
   {
     code: "OPS-02",
@@ -104,7 +104,27 @@ const ACCENT: Record<
   },
 };
 
-export function BattlesRail() {
+export async function BattlesRail() {
+  // Pull live arena state for the Predator card. Tolerant of failure
+  // (e.g. DB unreachable during deploy) — falls back to a generic
+  // "first-wave" message so the rail keeps rendering.
+  let predatorLine = "first wave · cohort registration open";
+  let predatorLive = true;
+  try {
+    const summary = await getKothLiveSummary();
+    predatorLine = summary.oneLiner;
+    predatorLive = summary.hasRound;
+  } catch {
+    // keep fallback
+  }
+
+  // Inject live state into the Predator card; others stay STAGED.
+  const archetypes = ARCHETYPES.map((a) =>
+    a.code === "OPS-01"
+      ? { ...a, liveLine: predatorLine, status: predatorLive ? "live" : "staged" as Status }
+      : a,
+  );
+
   return (
     <section className="border border-amber/30 flex flex-col flex-1 min-w-0 min-h-0">
       {/* Header — classified tape feel */}
@@ -134,13 +154,15 @@ export function BattlesRail() {
 
       {/* Archetype list */}
       <div className="flex-1 min-h-0 overflow-y-auto p-2.5 flex flex-col gap-1.5">
-        {ARCHETYPES.map((a) => {
+        {archetypes.map((a) => {
           const c = ACCENT[a.accent];
-          const isLive = a.status === "incoming";
+          const isLive = a.status === "live";
+          // Predator gets the live amber/red treatment; others stay
+          // muted with the staged tag.
           return (
             <Link
               key={a.code}
-              href="/battles"
+              href={a.code === "OPS-01" ? "/battles/koth" : "/battles"}
               className={`block border ${c.border} ${c.bg} transition-colors group`}
             >
               {/* Card head */}
@@ -153,7 +175,7 @@ export function BattlesRail() {
                   <span className="text-muted truncate">dossier</span>
                 </div>
                 <span className={`px-1 py-0 border ${c.tag} shrink-0`}>
-                  {isLive ? "incoming" : "staged"} · {a.phase}
+                  {isLive ? "live" : "staged"} · {a.phase}
                 </span>
               </div>
 

@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { kothEvents, kothRounds } from "@/lib/db/schema";
+import { kothEvents, kothRounds, kothSshKeys, users } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { resolveSlotToUserId, isValidEventKind } from "@/lib/koth/slots";
+import { postKothEventToDiscord } from "@/lib/koth/discord";
 
 // Crown daemon oracle endpoint. The daemon runs inside the KoTH arena
 // container (Wave B1) and POSTs here every time it detects a crown
@@ -103,7 +104,56 @@ export async function POST(req: Request) {
       pointsDelta: 0,
       rawMeta: meta,
     })
-    .returning({ id: kothEvents.id });
+    .returning({ id: kothEvents.id, occurredAt: kothEvents.occurredAt });
+
+  // Tutorial tracking (Wave D2 — minimal): mark the actor's first
+  // crown_taken event as their tutorial completion. Cheap UPDATE
+  // guarded on tutorial_completed_at IS NULL so it only fires once.
+  if (body.kind === "crown_taken" && actorUserId) {
+    try {
+      await db
+        .update(kothSshKeys)
+        .set({ tutorialCompletedAt: sql`now()` })
+        .where(
+          and(
+            eq(kothSshKeys.userId, actorUserId),
+            isNull(kothSshKeys.tutorialCompletedAt),
+          ),
+        );
+    } catch {
+      // best-effort — tutorial flag is cosmetic
+    }
+  }
+
+  // Look up display names for the Discord post. Two lookups; both
+  // fire-and-forget so the daemon still gets its 200 fast even if
+  // Discord/DB hiccups.
+  let actorUsername: string | null = null;
+  let targetUsername: string | null = null;
+  if (actorUserId) {
+    const [u] = await db
+      .select({ username: users.username })
+      .from(users)
+      .where(eq(users.id, actorUserId))
+      .limit(1);
+    actorUsername = u?.username ?? null;
+  }
+  if (targetUserId) {
+    const [u] = await db
+      .select({ username: users.username })
+      .from(users)
+      .where(eq(users.id, targetUserId))
+      .limit(1);
+    targetUsername = u?.username ?? null;
+  }
+
+  postKothEventToDiscord({
+    kind: body.kind,
+    actorUsername,
+    targetUsername,
+    exploitPath: body.exploit_path ?? null,
+    occurredAt: inserted.occurredAt,
+  });
 
   return NextResponse.json({ ok: true, event_id: inserted.id });
 }
