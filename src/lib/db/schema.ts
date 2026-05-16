@@ -9,6 +9,7 @@ import {
   bigserial,
   jsonb,
   index,
+  uniqueIndex,
   primaryKey,
 } from "drizzle-orm/pg-core";
 
@@ -40,6 +41,9 @@ export const users = pgTable("users", {
     "specter_sovereign_last_attempt_at",
     { withTimezone: true },
   ),
+  siteUrl: text("site_url"),
+  authorBio: text("author_bio"),
+  isCurator: boolean("is_curator").notNull().default(false),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -421,6 +425,47 @@ export type KothRound = typeof kothRounds.$inferSelect;
 export type KothEvent = typeof kothEvents.$inferSelect;
 export type KothScore = typeof kothScores.$inferSelect;
 export type KothSshKey = typeof kothSshKeys.$inferSelect;
+
+export const writeups = pgTable("writeups", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  authorId: uuid("author_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  trackSlug: text("track_slug").notNull(),
+  levelIdx: integer("level_idx").notNull(),
+  title: text("title").notNull(),
+  brief: text("brief").notNull(),
+  externalUrl: text("external_url").notNull(),
+  status: text("status", { enum: ["pending", "approved", "rejected"] })
+    .notNull()
+    .default("pending"),
+  submittedAt: timestamp("submitted_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  reviewedAt: timestamp("reviewed_at", { withTimezone: true }),
+  reviewedBy: uuid("reviewed_by").references(() => users.id),
+  rejectionReason: text("rejection_reason"),
+}, (t) => ({
+  uniqAuthorLevel: uniqueIndex("writeups_author_track_level_uniq")
+    .on(t.authorId, t.trackSlug, t.levelIdx),
+  byTrackLevel: index("writeups_track_level_idx")
+    .on(t.trackSlug, t.levelIdx, t.status),
+}));
+
+export const writeupStars = pgTable("writeup_stars", {
+  writeupId: uuid("writeup_id")
+    .notNull()
+    .references(() => writeups.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+}, (t) => ({
+  pk: primaryKey({ columns: [t.writeupId, t.userId] }),
+  byWriteup: index("writeup_stars_writeup_idx").on(t.writeupId),
+}));
 
 export type User = typeof users.$inferSelect;
 export type NewUser = typeof users.$inferInsert;
