@@ -1,9 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { sql, eq } from "drizzle-orm";
+import { sql, eq, inArray } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { liveOpsCounts, liveSessions } from "@/lib/db/schema";
+import { liveOpsCounts, liveSessions, users } from "@/lib/db/schema";
 import { parseHeartbeatPayload } from "@/lib/live-ops/heartbeat";
 import { safeBearerMatch } from "@/lib/auth/tokens";
+
+// Loose UUID v1–v5 sniff. Filters out garbage values before they hit
+// the DB — Postgres rejects malformed UUIDs with a type error which
+// would surface as a 500 to the heartbeat client and look like an
+// outage. Cheaper to reject the entry here and log nothing.
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export const runtime = "nodejs";
 
@@ -59,19 +66,47 @@ export async function POST(req: NextRequest) {
   // snapshot transactionally. Sources that never send `sessions` keep
   // working as before (the aggregate count above is enough for them).
   if (payload.sessions !== undefined) {
+    // Resolve any playerId-only entries to usernames via a single
+    // bulk lookup. Entries that arrive with username already set bypass
+    // the lookup. Player IDs that don't resolve to a known user are
+    // dropped silently — better to under-report than poison the roster
+    // with garbage rows.
+    const playerIdsToResolve = Array.from(
+      new Set(
+        payload.sessions
+          .filter((s) => !s.username && s.playerId && UUID_RE.test(s.playerId))
+          .map((s) => s.playerId as string),
+      ),
+    );
+    const idToUsername = new Map<string, string>();
+    if (playerIdsToResolve.length > 0) {
+      const rows = await db
+        .select({ id: users.id, username: users.username })
+        .from(users)
+        .where(inArray(users.id, playerIdsToResolve));
+      for (const r of rows) idToUsername.set(r.id, r.username);
+    }
+    const resolved = payload.sessions
+      .map((s) => {
+        const username =
+          s.username ??
+          (s.playerId ? idToUsername.get(s.playerId) : undefined);
+        if (!username) return null;
+        return {
+          username,
+          source: payload.source,
+          level: s.level ?? null,
+          containerId: s.containerId ?? null,
+          startedAt: s.startedAt ? new Date(s.startedAt) : sql`now()`,
+          lastHeartbeatAt: sql`now()`,
+        };
+      })
+      .filter((r): r is NonNullable<typeof r> => r !== null);
+
     await db.transaction(async (tx) => {
       await tx.delete(liveSessions).where(eq(liveSessions.source, payload.source));
-      if (payload.sessions && payload.sessions.length > 0) {
-        await tx.insert(liveSessions).values(
-          payload.sessions.map((s) => ({
-            username: s.username,
-            source: payload.source,
-            level: s.level ?? null,
-            containerId: s.containerId ?? null,
-            startedAt: s.startedAt ? new Date(s.startedAt) : sql`now()`,
-            lastHeartbeatAt: sql`now()`,
-          })),
-        );
+      if (resolved.length > 0) {
+        await tx.insert(liveSessions).values(resolved);
       }
     });
   }
