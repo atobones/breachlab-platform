@@ -3,8 +3,10 @@ import {
   getOverviewStats,
   getTrackBreakdown,
   getDailyTrend,
+  getLiveSessions,
 } from "@/lib/admin/queries";
 import { TrendBars } from "@/components/admin/TrendBars";
+import { LiveSessionsRoster } from "@/components/admin/LiveSessionsRoster";
 
 export const dynamic = "force-dynamic";
 
@@ -13,10 +15,11 @@ function fmt(n: number): string {
 }
 
 export default async function AdminOverviewPage() {
-  const [stats, tracks, trend] = await Promise.all([
+  const [stats, tracks, trend, liveSessions] = await Promise.all([
     getOverviewStats(),
     getTrackBreakdown(),
     getDailyTrend(30),
+    getLiveSessions(),
   ]);
 
   return (
@@ -48,6 +51,13 @@ export default async function AdminOverviewPage() {
             value={fmt(stats.submissions.today)}
           />
         </StatGrid>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-sm uppercase tracking-wider text-muted">
+          ▸ Operatives online right now
+        </h2>
+        <LiveSessionsRoster rows={liveSessions} />
       </section>
 
       <section className="space-y-3">

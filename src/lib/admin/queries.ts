@@ -3,6 +3,7 @@ import { db } from "@/lib/db/client";
 import {
   levels,
   liveOpsCounts,
+  liveSessions,
   submissions,
   tracks,
   users,
@@ -405,3 +406,31 @@ export async function getDailyTrend(days: number = 30): Promise<DailyTrendPoint[
   return mergeDailyTrend(regRows, subRows, days);
 }
 
+
+
+// ─── Live operatives roster (per-session, < 5 min heartbeat) ─────────────
+
+export type LiveSessionRow = {
+  username: string;
+  source: string;
+  level: string | null;
+  containerId: string | null;
+  startedAt: Date;
+  lastHeartbeatAt: Date;
+};
+
+export async function getLiveSessions(): Promise<LiveSessionRow[]> {
+  const rows = await db
+    .select({
+      username: liveSessions.username,
+      source: liveSessions.source,
+      level: liveSessions.level,
+      containerId: liveSessions.containerId,
+      startedAt: liveSessions.startedAt,
+      lastHeartbeatAt: liveSessions.lastHeartbeatAt,
+    })
+    .from(liveSessions)
+    .where(sql`${liveSessions.lastHeartbeatAt} > now() - interval '5 minutes'`)
+    .orderBy(asc(liveSessions.source), asc(liveSessions.startedAt));
+  return rows;
+}
