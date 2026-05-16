@@ -72,6 +72,21 @@ const GROUPS: Array<{
   },
 ];
 
+// Global per-IP cap on /api/* — applies to BOTH GET and POST (different
+// from the POST-only groups above). Blocks generic API flooding that
+// would saturate the web container under the same kind of vector
+// mustafa demonstrated against ssh (just at HTTP layer instead).
+//
+// /api/live/events is SSE (one long-lived connection per page) — exempt
+// from this cap; abusing SSE looks like concurrent-connections, not
+// requests/min, and is bounded by Cloudflare/Caddy connection limits.
+const API_GLOBAL_LIMIT = 60;
+const API_GLOBAL_WINDOW_MS = 60_000;
+const API_EXEMPT_PREFIXES = [
+  "/api/live/events",  // SSE stream
+  "/api/health",       // monitoring probe
+];
+
 function clientIp(request: NextRequest): string {
   // Caddy always sets x-real-ip for external traffic (Cloudflare → Caddy →
   // web container). A legitimate request can never lack it. We
@@ -113,10 +128,26 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // ── Rate limits (POST only) ──
+  const ip = clientIp(request);
+
+  // ── Global /api/* cap (all methods) — generic flood defense ──
+  if (
+    pathname.startsWith("/api/") &&
+    !API_EXEMPT_PREFIXES.some((p) => pathname.startsWith(p))
+  ) {
+    if (
+      isRateLimited(`api:${ip}`, API_GLOBAL_LIMIT, API_GLOBAL_WINDOW_MS)
+    ) {
+      return NextResponse.json(
+        { error: "Too many requests. Try again later." },
+        { status: 429 },
+      );
+    }
+  }
+
+  // ── POST-only group caps (auth/admin/submit) ──
   if (request.method !== "POST") return NextResponse.next();
 
-  const ip = clientIp(request);
   for (const g of GROUPS) {
     if (!g.paths.some((p) => pathname.startsWith(p))) continue;
     if (isRateLimited(`${g.name}:${ip}`, g.limit, g.windowMs)) {
@@ -137,9 +168,11 @@ export const config = {
     "/register/:path*",
     "/forgot-password/:path*",
     "/reset-password/:path*",
-    "/api/sponsors/claim",
-    "/api/auth/resend-verification",
     "/admin/:path*",
     "/submit/:path*",
+    // /api/* — broad match for the global cap. Specific POST-only
+    // groups above (sponsors/claim, resend-verification) still match
+    // these patterns but are gated by the method check.
+    "/api/:path*",
   ],
 };
