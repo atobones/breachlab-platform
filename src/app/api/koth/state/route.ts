@@ -29,6 +29,7 @@ export async function GET() {
     .select({
       id: kothRounds.id,
       startedAt: kothRounds.startedAt,
+      engagedAt: kothRounds.engagedAt,
     })
     .from(kothRounds)
     .where(eq(kothRounds.status, "active"))
@@ -46,10 +47,16 @@ export async function GET() {
     });
   }
 
-  const ageSeconds = Math.max(
-    0,
-    Math.floor((Date.now() - round.startedAt.getTime()) / 1000),
-  );
+  // engaged_at IS NULL while the arena is standing by — the clock
+  // hasn't started. Once the first crown_taken lands, the 30-min
+  // countdown begins from engaged_at, not from started_at.
+  const engaged = round.engagedAt !== null;
+  const ageSeconds = engaged
+    ? Math.max(
+        0,
+        Math.floor((Date.now() - round.engagedAt!.getTime()) / 1000),
+      )
+    : 0;
 
   const [kingEvent] = await db
     .select({
@@ -139,8 +146,12 @@ export async function GET() {
     round: {
       id: round.id,
       started_at: round.startedAt,
+      engaged_at: round.engagedAt,
+      engaged,
       age_seconds: ageSeconds,
-      ends_at_estimate_seconds: Math.max(0, ROUND_DURATION_SECONDS - ageSeconds),
+      ends_at_estimate_seconds: engaged
+        ? Math.max(0, ROUND_DURATION_SECONDS - ageSeconds)
+        : ROUND_DURATION_SECONDS,
     },
     king,
     top5: top5Rows,

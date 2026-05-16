@@ -209,6 +209,23 @@ export async function POST(req: Request) {
     insertedAt = inserted.occurredAt;
   }
 
+  // Engage the round timer on the FIRST crown_taken in this round.
+  // engaged_at IS NULL until someone actually plays — keeps the
+  // 30-min clock from ticking into an empty arena. The IS NULL guard
+  // makes this idempotent on every subsequent crown change.
+  if (body.kind === "crown_taken") {
+    try {
+      await db
+        .update(kothRounds)
+        .set({ engagedAt: sql`now()` })
+        .where(
+          and(eq(kothRounds.id, body.round_id), isNull(kothRounds.engagedAt)),
+        );
+    } catch {
+      // best-effort — engagement timer is recoverable from event log
+    }
+  }
+
   // Tutorial tracking (Wave D2 — minimal): mark the actor's first
   // crown_taken event as their tutorial completion. Cheap UPDATE
   // guarded on tutorial_completed_at IS NULL so it only fires once.
