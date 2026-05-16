@@ -27,19 +27,11 @@ export function BattlesWidget() {
         href="/battles"
         className="block border border-amber/30 bg-amber/[0.02] hover:bg-amber/[0.06] hover:border-amber/70 transition-colors group"
       >
-        {/* Classified tape header */}
-        <div
-          aria-hidden
-          className="font-mono text-[8px] tracking-[0.3em] text-amber/30 select-none overflow-hidden whitespace-nowrap border-b border-amber/20 px-2 py-1"
-        >
-          ▓▓ classified · ops-doctrine ▓▓
-        </div>
-
-        <div className="p-2.5 space-y-2">
+        <div className="p-2 space-y-1.5">
           {/* Archetype roster — flashes the four codes */}
-          <div className="flex items-center gap-1.5 font-mono text-[10px] font-bold tracking-[0.1em] flex-wrap">
+          <div className="flex items-center gap-1 font-mono text-[10px] font-bold tracking-[0.08em] flex-wrap">
             {ARCHETYPES.map((a, i) => (
-              <span key={a.code} className="flex items-center gap-1.5">
+              <span key={a.code} className="flex items-center gap-1">
                 <span className={a.color}>{a.short}</span>
                 {i < ARCHETYPES.length - 1 && (
                   <span className="text-muted/50">·</span>
@@ -48,14 +40,13 @@ export function BattlesWidget() {
             ))}
           </div>
 
-          <div className="text-muted text-xs leading-snug">
-            Four operator archetypes. Real-time tradecraft against thinking
-            adversaries.
+          <div className="text-muted text-[11px] leading-snug">
+            Four archetypes. Real-time tradecraft.
           </div>
 
-          <div className="flex items-center justify-between pt-1">
-            <span className="text-[10px] text-muted tracking-wider uppercase font-mono">
-              04 archetypes · 01 incoming
+          <div className="flex items-center justify-between pt-0.5">
+            <span className="text-[9px] text-muted tracking-wider uppercase font-mono">
+              04 · 01 incoming
             </span>
             <span className="text-[10px] text-amber/80 group-hover:text-amber tracking-[0.18em] uppercase font-mono">
               enter →
