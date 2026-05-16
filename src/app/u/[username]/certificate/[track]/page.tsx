@@ -25,6 +25,14 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { username, track } = await params;
   const trackLabel = track.charAt(0).toUpperCase() + track.slice(1);
+  // Specter ships per-subtrack specialties (only Specter I — OSINT is live).
+  // Surface that in the metadata so social cards and tab titles match the cert.
+  if (track === "specter") {
+    return {
+      title: `${username} · Specter I — OSINT Analyst Certificate · BreachLab`,
+      description: `Verified BreachLab Specter Analyst — OSINT specialty. Operative @${username}.`,
+    };
+  }
   return {
     title: `${username} · ${trackLabel} Operative Certificate · BreachLab`,
     description: `Verified BreachLab ${trackLabel} track graduate. Operative @${username}.`,

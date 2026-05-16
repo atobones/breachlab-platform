@@ -56,11 +56,11 @@ export async function SpecterCertificate({ cert }: { cert: TrackCertificate }) {
  \\___ \\|  ___/|  __|| |       | |  |  __| |  _  /
  ____) | |    | |___| |____   | |  | |____| | \\ \\
 |_____/|_|    |______\\_____|  |_|  |______|_|  \\_\\
-                       ANALYST`}
+              I  ·  O S I N T  A N A L Y S T`}
           </pre>
         </div>
         <p className="text-[11px] tracking-[0.4em] text-muted">
-          OPEN-SOURCE INVESTIGATIVE CERTIFICATION — SPECTER TRACK
+          OPEN-SOURCE INVESTIGATIVE CERTIFICATION — SPECTER I · OSINT
         </p>
       </div>
 
@@ -75,19 +75,23 @@ export async function SpecterCertificate({ cert }: { cert: TrackCertificate }) {
             @{cert.username}
           </h1>
           <p className="text-sm leading-relaxed max-w-prose">
-            has completed the <span className="text-green">Specter</span> track
-            in full — fourteen public levels closing with a Berkeley
-            Protocol-aligned court-admissible investigative report — and is
-            hereby recognized as a{" "}
+            has completed the{" "}
+            <span className="text-green">Specter I — OSINT</span> sub-track in
+            full (Recon Operatives, fourteen public levels closing with a
+            Berkeley Protocol-aligned court-admissible investigative report)
+            and is hereby recognized as a{" "}
             <span className="text-green font-bold">
-              BreachLab Specter Analyst
+              BreachLab Specter Analyst — OSINT Specialty
             </span>
             . The holder has demonstrated end-to-end open-source intelligence
             tradecraft to a standard that survives Daubert challenge,
             FRE 901 authentication, journalist editorial review, GC sign-off,
             and ICC OTP intake — and is field-ready for OSINT engagements
             on behalf of journalism, prosecution, and human-rights
-            accountability.
+            accountability. This designation is scoped to OSINT; the wider
+            Specter track ships additional sub-tracks (Network &amp; Wireless,
+            Defence Evasion, Social Engineering), each with their own
+            specialty certification.
           </p>
         </div>
         <CertificateSeal
@@ -116,6 +120,12 @@ export async function SpecterCertificate({ cert }: { cert: TrackCertificate }) {
             Track
           </div>
           <div>{cert.trackName}</div>
+        </div>
+        <div>
+          <div className="text-xs text-muted uppercase tracking-wider">
+            Specialty
+          </div>
+          <div className="text-green">Specter I — OSINT</div>
         </div>
         <div>
           <div className="text-xs text-muted uppercase tracking-wider">
