@@ -16,13 +16,9 @@ type Archetype = {
   accent: "amber" | "cyan" | "red" | "green";
   status: Status;
   phase: string;
-  archetype: string;
-  theater: string;
+  pitch: string;
   doctrine: string;
   tradecraft: string[];
-  domain: string;
-  rhythm: string;
-  scale: string;
 };
 
 const ARCHETYPES: Archetype[] = [
@@ -32,19 +28,13 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⌖",
     accent: "amber",
     status: "incoming",
-    phase: "Phase 1 deployment",
-    archetype: "Solo combat operator · drop-in / drop-out",
-    theater: "Crown Wars · 24/7 persistent arena",
-    rhythm: "24/7 rolling 20-min rounds",
-    scale: "1 vs all",
-    domain: "Linux post-ex · real-time defensive thinking · anti-forensics",
+    phase: "Phase 1",
+    pitch: "Solo arena · drop-in · 24/7 crown wars",
     doctrine:
-      "Take the crown. Hold it. Watch every path you came through before someone closes it on you. The box mutates in real time — playbooks die against thinking opponents.",
+      "Take the crown. Hold it. The box mutates in real time — playbooks die against thinking opponents.",
     tradecraft: [
-      "Phantom L7-L9 SUID · L17 Redis privesc",
-      "Live mutation patch (defender closes your entry)",
+      "Live mutation patch — defender closes your entry path",
       "AI Defender (Phase 3) — LLM-driven sysadmin NPC",
-      "Escalation ladder — crown >5 min opens new attack surface",
     ],
   },
   {
@@ -53,19 +43,13 @@ const ARCHETYPES: Archetype[] = [
     glyph: "◐",
     accent: "cyan",
     status: "staged",
-    phase: "Phase 2 · post-Specter IV",
-    archetype: "Counterintelligence operative · 1 target vs N analysts",
-    theater: "Manhunt · 24-hour asymmetric intel war",
-    rhythm: "24-hour async windows",
-    scale: "1 target · N analysts",
-    domain: "OSINT · counterintel · identity warfare · deception",
+    phase: "Phase 2",
+    pitch: "1 target vs N analysts · OSINT war · 24h windows",
     doctrine:
-      "One operator goes dark. Everyone else hunts them. Plant false flags, fake identities, OPSEC traps — score every hour you stay invisible. Analysts score on attribution: name, location, real face, complete dossier.",
+      "One operator goes dark. Everyone else hunts them. Score every hour invisible — or every accurate attribution.",
     tradecraft: [
-      "Specter I-IV OSINT toolkit",
-      "NATO Admiralty A1-F6 source grading (from Specter L4)",
+      "NATO Admiralty A1-F6 source grading from Specter L4",
       "AI noise generator weaves decoy footprints",
-      "Asymmetric scoring — every hour matters",
     ],
   },
   {
@@ -74,40 +58,28 @@ const ARCHETYPES: Archetype[] = [
     glyph: "⚔",
     accent: "red",
     status: "staged",
-    phase: "Phase 3 · team PvP",
-    archetype: "Rival-team operative · 2v2 / 3v3",
-    theater: "Clash · pickup team attack-defense with AI allies",
-    rhythm: "Drop-in pickup · 30-45 min matches",
-    scale: "2v2 or 3v3 with AI co-defender",
-    domain: "Full-stack offense + defense · team coordination · AI partnership",
+    phase: "Phase 3",
+    pitch: "Team PvP · 2v2 or 3v3 · 30-45 min pickup",
     doctrine:
-      "Two crews. Asymmetric infrastructure. Each side defends a different stack while breaking the other. Your AI partner reads logs and patches alongside you — hostile crew has the same. The mind-fight that real ops actually look like.",
+      "Two crews. Asymmetric infrastructure. Your AI partner defends alongside you — hostile crew has the same.",
     tradecraft: [
-      "Asymmetric service pairs (web/redis vs ssh/cron infra)",
       "AI defender as ally — not enemy",
-      "Path-attributed patch scoring (close what they took)",
-      "Flag rotation every 3-5 min — rewards persistent C2",
+      "Path-attributed patch scoring · close what they took",
     ],
   },
   {
     code: "OPS-04",
     codename: "CREW",
-    glyph: "▲▴▴▴",
+    glyph: "▲▴▴",
     accent: "green",
     status: "staged",
-    phase: "Phase 4 · flagship event tier",
-    archetype: "APT-style cooperative crew · 3-5 ops with role specialization",
-    theater: "Heist · scheduled bi-weekly raid on fortified AI-defended target",
-    rhythm: "Scheduled · 90-min flagship events",
-    scale: "3-5 specialists vs AI SOC + layered defense",
-    domain: "Real-world APT tradecraft · role specialization · kill-chain ops",
+    phase: "Phase 4",
+    pitch: "Coop APT raid · 3-5 specialists · bi-weekly flagship",
     doctrine:
-      "Pick a role: Recon, Exploit Dev, Post-Ex, Persistence, Exfil. Move as a crew through layered defense — WAF, EDR, SIEM, LLM-driven SOC analyst. Score per phase: initial access, pivot, privesc, lateral, objective, exfil. Detection at any phase bleeds the team.",
+      "Pick a role. Move as a crew through layered defense — WAF, EDR, SIEM, LLM-driven SOC analyst. Detection bleeds the team.",
     tradecraft: [
       "Role-bound toolkits — each operative sees their slice",
       "Full AI SOC analyst on defense (Specter IV harness)",
-      "Real APT campaign archetypes — banks, SaaS, gov targets",
-      "Long-form clip-worthy 90-min ops",
     ],
   },
 ];
@@ -186,23 +158,15 @@ function DossierCard({ a }: { a: Archetype }) {
       className={`relative border ${c.border} ${c.bg} terminal-frame`}
       data-testid={`dossier-${a.codename.toLowerCase()}`}
     >
-      {/* Header bar — file tab + status */}
+      {/* Header bar — code + status */}
       <div
         className={`flex items-center justify-between gap-3 border-b ${c.border} px-3 py-1.5 text-[10px] font-mono tracking-[0.18em] uppercase`}
       >
-        <div className="flex items-center gap-3">
-          <span className={`${c.line} font-bold`}>{a.code}</span>
-          <span className="text-muted">·</span>
-          <span className="text-muted">dossier // {a.codename.toLowerCase()}</span>
-        </div>
-        <div className="flex items-center gap-2">
-          {isLive ? (
-            <span className="pulse-dot text-green">●</span>
-          ) : (
-            <span className="text-muted/60">○</span>
-          )}
+        <span className={`${c.line} font-bold`}>{a.code}</span>
+        <div className="flex items-center gap-1.5">
+          {isLive && <span className="pulse-dot text-green">●</span>}
           <span className={`px-1.5 py-0.5 border ${c.tag}`}>
-            {isLive ? "INCOMING" : "STAGED"} · {a.phase}
+            {isLive ? "incoming" : "staged"} · {a.phase}
           </span>
         </div>
       </div>
@@ -221,62 +185,33 @@ function DossierCard({ a }: { a: Archetype }) {
 
         {/* Info column */}
         <div className="space-y-2.5 min-w-0">
-          {/* Codename row — display face */}
-          <div className="flex items-baseline gap-2.5 flex-wrap">
-            <h2 className={`${c.line} wordmark text-lg sm:text-xl font-bold tracking-[0.06em]`}>
+          {/* Codename + pitch */}
+          <div className="space-y-0.5">
+            <h2 className={`${c.line} wordmark text-lg sm:text-xl font-bold tracking-[0.06em] leading-none`}>
               {a.codename}
             </h2>
-            <span className={`${c.soft} text-[11px] italic`}>
-              {a.archetype}
-            </span>
+            <div className={`${c.soft} text-[11px] font-mono`}>
+              {a.pitch}
+            </div>
           </div>
 
-          {/* Meta grid — theater / rhythm / scale */}
-          <dl className="grid grid-cols-1 sm:grid-cols-3 gap-x-3 gap-y-1 text-[11px] font-mono border-y border-border/60 py-1.5">
-            <div>
-              <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
-                theater
-              </dt>
-              <dd className="text-text leading-snug">{a.theater}</dd>
-            </div>
-            <div>
-              <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
-                rhythm
-              </dt>
-              <dd className="text-text leading-snug">{a.rhythm}</dd>
-            </div>
-            <div>
-              <dt className="text-muted/80 tracking-[0.18em] uppercase text-[9px]">
-                scale
-              </dt>
-              <dd className="text-text leading-snug">{a.scale}</dd>
-            </div>
-          </dl>
-
-          {/* Doctrine */}
+          {/* Doctrine — one short sentence */}
           <p className="text-[13px] leading-relaxed text-text">
-            <span className={`${c.soft} mr-1.5`}>▸</span>
             {a.doctrine}
           </p>
 
-          {/* Tradecraft */}
-          <ul className="text-[12px] leading-snug text-text/90 space-y-0.5 font-mono pl-0.5">
+          {/* Tradecraft — 2 signature lines */}
+          <ul className="text-[11px] leading-snug text-muted space-y-0.5 font-mono">
             {a.tradecraft.map((t, i) => (
               <li key={i} className="flex gap-1.5">
-                <span className={`${c.line} shrink-0`}>›</span>
+                <span className={`${c.line} shrink-0 opacity-70`}>›</span>
                 <span>{t}</span>
               </li>
             ))}
           </ul>
 
-          {/* Domain — single-line, mono */}
-          <div className="text-[11px] text-muted font-mono leading-snug pt-0.5">
-            <span className={`${c.soft}`}>domain // </span>
-            {a.domain}
-          </div>
-
           {/* Authorization footer */}
-          <div className="pt-1.5 border-t border-border/60 flex items-center justify-end">
+          <div className="pt-2 flex items-center justify-end">
             {isLive ? (
               <a
                 href={DISCORD_INVITE_URL}
