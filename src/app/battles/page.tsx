@@ -242,25 +242,6 @@ export default function BattlesPage() {
         </div>
       </header>
 
-      {/* Doctrine — short, sharp */}
-      <section className="border-l-2 border-amber/40 pl-3 py-1 space-y-1.5">
-        <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-          ▸ doctrine
-        </div>
-        <p className="text-[13px] leading-relaxed text-text max-w-2xl">
-          Four arenas. <span className="text-amber">Predator</span> hunts solo.{" "}
-          <span className="text-[#34d8ff]">Ghost</span> works the intel cold
-          war. <span className="text-red-400">Clash</span> fights rival crews.{" "}
-          <span className="text-green">Crew</span> runs the full-kill-chain
-          raid. Two arenas pit you against thinking AI (
-          <span className="text-amber">Predator</span>,{" "}
-          <span className="text-green">Crew</span>). Two against thinking
-          humans (<span className="text-[#34d8ff]">Ghost</span>,{" "}
-          <span className="text-red-400">Clash</span>). Both skills, both
-          essential.
-        </p>
-      </section>
-
       {/* Dossier stack */}
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
