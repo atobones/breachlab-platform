@@ -190,8 +190,13 @@ export default async function KothPage({
       ) : myKey ? (
         <section className="border border-green/40 bg-green/[0.03] px-4 py-3 space-y-2">
           <div className="flex items-center justify-between gap-3 flex-wrap">
-            <div className="text-[10px] text-green/80 tracking-[0.3em] uppercase font-mono">
-              ▸ enlisted · slot koth{myKey.slot}
+            <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-mono">
+              <span className="text-green/80">▸ enlisted · slot koth{myKey.slot}</span>
+              {myKey.tutorialCompletedAt ? (
+                <span className="border border-amber/60 text-amber bg-amber/5 px-1 py-0">veteran</span>
+              ) : (
+                <span className="border border-muted/60 text-muted bg-bg px-1 py-0">rookie · first crown unlocks</span>
+              )}
             </div>
             <span className="text-[10px] text-muted font-mono tabular-nums">
               {myKey.fingerprint.slice(0, 22)}…
