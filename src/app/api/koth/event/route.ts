@@ -7,13 +7,18 @@ import { resolveSlotToUserId, isValidEventKind } from "@/lib/koth/slots";
 import {
   postKothEventToDiscord,
   postKothDosViolationToDiscord,
+  postKothFirstDiscoveryToDiscord,
 } from "@/lib/koth/discord";
 import {
   recordPathEvent,
   resolvePathBySlug,
   snapshotForExploit,
 } from "@/lib/koth/paths";
-import { maybeAwardFirstTime } from "@/lib/koth/honors";
+import {
+  DISCOVERY_BONUS,
+  maybeAwardFirstDiscovery,
+  maybeAwardFirstTime,
+} from "@/lib/koth/honors";
 
 // Crown daemon oracle endpoint. The daemon runs inside the KoTH arena
 // container (Wave B1) and POSTs here every time it detects a crown
@@ -118,6 +123,31 @@ export async function POST(req: Request) {
     meta.path_slug = path.slug;
     meta.path_kind = path.kind;
     meta.value_snapshot = valueSnapshot;
+  }
+
+  // Discoverer bonus — first crown via a slug not in the catalog
+  // gets a one-time +50. Awarded ONCE per slug (globally, not per
+  // user). The bonus lands as a value_snapshot on the koth_events
+  // row so the existing scoring path picks it up. Skipped on
+  // path_activated/escalation_pending etc. (we want the bonus on
+  // the crown grab itself).
+  let discoveryBonus = 0;
+  if (
+    body.kind === "crown_taken" &&
+    !path &&
+    body.exploit_path &&
+    actorUserId
+  ) {
+    discoveryBonus = await maybeAwardFirstDiscovery({
+      userId: actorUserId,
+      roundId: body.round_id,
+      slug: body.exploit_path,
+    });
+    if (discoveryBonus > 0) {
+      meta.value_snapshot = discoveryBonus;
+      meta.first_discovery = true;
+      meta.path_slug = body.exploit_path;
+    }
   }
 
   // ─── Phase 2 — Path-event side effects ──────────────────────
@@ -362,8 +392,21 @@ export async function POST(req: Request) {
     exploitPath: body.exploit_path ?? null,
     pathName: path?.name ?? null,
     occurredAt: insertedAt,
-    valueSnapshot,
+    // When discoveryBonus fired, value_snapshot is already 50 in meta;
+    // pass it through so the crown embed renders "+50 pt".
+    valueSnapshot: discoveryBonus > 0 ? discoveryBonus : valueSnapshot,
   });
+
+  // Second embed for the discoverer — a star card making the moment
+  // legible to everyone in the channel.
+  if (discoveryBonus > 0 && body.exploit_path) {
+    postKothFirstDiscoveryToDiscord({
+      actorUsername,
+      slug: body.exploit_path,
+      bonus: discoveryBonus,
+      occurredAt: insertedAt,
+    });
+  }
 
   return NextResponse.json({ ok: true, event_id: insertedId });
 }

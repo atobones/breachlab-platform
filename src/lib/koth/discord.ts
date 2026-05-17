@@ -172,6 +172,26 @@ export function postKothDosViolationToDiscord(opts: {
   });
 }
 
+// First-discovery card — fires when a player takes crown via an
+// exploit slug not in the catalog. Gold bar so it stands out from
+// the regular crown grab embed; one-liner naming the discoverer and
+// the bonus.
+export function postKothFirstDiscoveryToDiscord(opts: {
+  actorUsername: string | null;
+  slug: string;
+  bonus: number;
+  occurredAt: Date;
+}): void {
+  const actor = opts.actorUsername ?? "an operator";
+  postEmbed({
+    color: COLOR.victory,
+    title: `🌟 First discovery — ${actor} opened a new path`,
+    description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.`,
+    timestamp: opts.occurredAt.toISOString(),
+    footer: { text: "Crown Wars · discoverer bonus" },
+  });
+}
+
 // Round summary card. Single embed, gold bar, winner stats in three
 // inline fields so they line up neatly on desktop and mobile.
 export function postKothRoundCloseToDiscord(opts: {

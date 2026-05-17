@@ -213,6 +213,66 @@ export async function maybeAwardFirstTime(opts: {
   }
 }
 
+// First-discovery bonus: when a player takes crown via a path slug
+// that's NOT in the koth_paths catalog, they're the first operator
+// to land that technique on the arena. Award once per slug (globally
+// — not per-user) at the moment of the crown grab.
+//
+// Returns the awarded bonus amount (50) on first discovery, or 0 if
+// this slug already has a first_discovery row. Caller pipes the
+// bonus into raw_meta.value_snapshot so scoring picks it up
+// naturally.
+//
+// Note: anti-farming is intentionally light here — players invent
+// arbitrary slug strings, so a determined farmer can run many
+// distinct slugs through the bonus. Mitigation lives socially: Boss
+// reviews the koth_honors table and removes obvious garbage. Tighter
+// gating (admin approval before award) is a follow-up if abuse appears.
+export const DISCOVERY_BONUS = 50;
+
+export async function maybeAwardFirstDiscovery(opts: {
+  userId: string;
+  roundId: string;
+  slug: string;
+}): Promise<number> {
+  // Basic slug sanity — kebab-case, length 3-50. Rejects empty,
+  // single-letter, or absurdly long strings without rejecting any
+  // plausible real path name.
+  if (
+    !opts.slug ||
+    opts.slug.length < 3 ||
+    opts.slug.length > 50 ||
+    !/^[a-z0-9][a-z0-9-]*[a-z0-9]$/i.test(opts.slug)
+  ) {
+    return 0;
+  }
+  // Has anyone (ever, any user) already claimed this slug as a
+  // first_discovery? If yes, no bonus.
+  const [hit] = await db
+    .select({ id: kothHonors.id })
+    .from(kothHonors)
+    .where(
+      and(
+        eq(kothHonors.kind, "first_discovery"),
+        sql`${kothHonors.metadata} ->> 'slug' = ${opts.slug}`,
+      ),
+    )
+    .limit(1);
+  if (hit) return 0;
+  try {
+    await db.insert(kothHonors).values({
+      userId: opts.userId,
+      roundId: opts.roundId,
+      kind: "first_discovery",
+      metadata: { slug: opts.slug, points: DISCOVERY_BONUS },
+    });
+    return DISCOVERY_BONUS;
+  } catch {
+    // Race with another concurrent first-claim; treat as already-awarded.
+    return 0;
+  }
+}
+
 // Top-N operators by lifetime round wins. Powers the public Crown
 // Champions panel. Uses a single grouped query and joins users for
 // the display name.
