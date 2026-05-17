@@ -80,9 +80,14 @@ export default async function GhostTrackPage() {
         built — not taught.
       </p>
 
-      <section>
-        <h2 className="text-amber text-lg mb-2">Who this is for</h2>
-        <p className="text-sm">
+      <details className="group">
+        <summary className="text-amber text-lg mb-2 cursor-pointer select-none list-none flex items-center gap-2 hover:text-amber/80">
+          <span className="text-xs inline-block transition-transform group-open:rotate-90">
+            ▸
+          </span>
+          Who this is for
+        </summary>
+        <p className="text-sm mt-2">
           Anyone serious about real security work. It does not matter whether
           you have never opened a terminal before or whether you have been
           writing code for years — if you cannot move through a Linux system
@@ -91,13 +96,16 @@ export default async function GhostTrackPage() {
           cloud, AI security, every single discipline demands the same basic
           fluency. Ghost gives it to you.
         </p>
-      </section>
+      </details>
 
-      <section>
-        <h2 className="text-amber text-lg mb-2">
+      <details className="group">
+        <summary className="text-amber text-lg mb-2 cursor-pointer select-none list-none flex items-center gap-2 hover:text-amber/80">
+          <span className="text-xs inline-block transition-transform group-open:rotate-90">
+            ▸
+          </span>
           Who we are preparing
-        </h2>
-        <p className="text-sm">
+        </summary>
+        <p className="text-sm mt-2">
           BreachLab trains the kind of security specialist that Fortune 500
           companies, cloud providers, and national cyber units all compete for
           and cannot find. Anonymous-level in the literal sense: people who
@@ -108,7 +116,7 @@ export default async function GhostTrackPage() {
           defensive, and everything modern attackers are already using. This is not a
           certificate mill. It is a forge.
         </p>
-      </section>
+      </details>
 
       <section className="border border-border p-4">
         <h2 className="text-amber text-sm uppercase mb-2">SSH Information</h2>
