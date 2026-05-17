@@ -225,13 +225,17 @@ export async function topChampionsByRoundWins(limit: number): Promise<
     lastWinAt: Date | null;
   }>
 > {
+  // Raw sql<Date> aggregates bypass drizzle's column type mapper —
+  // the pg driver hands back ISO strings for min/max over timestamp
+  // columns. Coerce here so callers can trust the declared shape and
+  // safely call .toISOString() on the result.
   const rows = await db
     .select({
       userId: kothHonors.userId,
       username: users.username,
       roundWins: sql<number>`count(*)::int`,
-      firstWinAt: sql<Date>`min(${kothHonors.awardedAt})`,
-      lastWinAt: sql<Date>`max(${kothHonors.awardedAt})`,
+      firstWinAt: sql<string | Date | null>`min(${kothHonors.awardedAt})`,
+      lastWinAt: sql<string | Date | null>`max(${kothHonors.awardedAt})`,
     })
     .from(kothHonors)
     .innerJoin(users, eq(users.id, kothHonors.userId))
@@ -239,7 +243,13 @@ export async function topChampionsByRoundWins(limit: number): Promise<
     .groupBy(kothHonors.userId, users.username)
     .orderBy(desc(sql`count(*)`), desc(sql`max(${kothHonors.awardedAt})`))
     .limit(limit);
-  return rows;
+  return rows.map((r) => ({
+    userId: r.userId,
+    username: r.username,
+    roundWins: r.roundWins,
+    firstWinAt: r.firstWinAt ? new Date(r.firstWinAt) : null,
+    lastWinAt: r.lastWinAt ? new Date(r.lastWinAt) : null,
+  }));
 }
 
 // Most recent N round wins for a user, used on profile / hover cards.
