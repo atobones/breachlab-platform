@@ -124,12 +124,19 @@ export default function KothRulesPage() {
       <RuleSection title="Scoring">
         <KV
           rows={[
-            ["Crown grab via a path", "+ value at exploit time"],
+            ["Crown grab via a known path", "+ value at exploit time"],
             ["Per minute of hold", "+1 / min"],
             ["Generic patch", "+3"],
             ["Path-attributed patch (close the path you got hit with)", "+5"],
+            ["First crown via an unknown path (not yet in the catalog)", "+50, once per slug"],
           ]}
         />
+        <p className="text-[12px] text-muted pt-2 leading-snug">
+          Unintended privesc paths are part of the game. If you find one
+          not in the path catalog, <code>crown-claim &lt;slot&gt; &lt;any-name&gt;</code>
+          {" "}still works — the +50 first-discoverer bonus lands when the
+          path gets added. DM the technique to @ato to seed the catalog.
+        </p>
       </RuleSection>
 
       <RuleSection title="Round cycle">
@@ -150,31 +157,39 @@ export default function KothRulesPage() {
 
       <RuleSection title="Fair play">
         <p className="text-[13px] leading-relaxed">
-          The whole point is that operators compete on the same box.
-          That means every new login deserves a fair shot at the
-          crown. Defending is core gameplay — patch the path, kill the
-          attacker&apos;s exploit process mid-run, harden the SUIDs,
-          set traps. Denying everyone else any chance to play is
-          where the line sits.
+          The line is simple: do anything to the box, do nothing to
+          deny the box. Hardening it, patching it, killing attackers
+          mid-exploit, trapping it — that&apos;s the game. Locking
+          everyone else out so you alone can sit on the throne is not.
         </p>
-        <p className="text-[13px] leading-relaxed pt-1">
-          The arena runs a watchdog that detects anti-game patterns.
-          When it flags one, the round is force-closed (offender
-          loses the hold) and the offender&apos;s SSH key is locked
-          for 24 hours.
+
+        <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-2 text-emerald-400/80">
+          ✓ Allowed — these are how you defend
         </p>
-        <p className="text-[12px] leading-snug pt-1 text-muted">
-          Anti-game patterns the watchdog catches:
-        </p>
-        <ul className="space-y-0.5 list-disc list-inside text-[12px] text-muted">
-          <li>Killing other operators&apos; login shells on sight (kill-on-login)</li>
-          <li>Fork bombs / OOM bombs / disk fill</li>
-          <li>Killing sshd or blocking SSH via iptables</li>
-          <li>Bricking critical files (chmod 000 /bin/bash, /etc/passwd)</li>
-          <li>Killing the crown or escalation daemon</li>
+        <ul className="space-y-0.5 list-disc list-inside text-[12px] text-text">
+          <li>Patch the path you got hit with (chmod -s SUIDs, edit configs, kill services)</li>
+          <li>Kill another operator&apos;s exploit process mid-run (specific PIDs)</li>
+          <li>Booby-trap files attackers might run (decoys in /tmp, tampered wrappers)</li>
+          <li>Modify your own home, run anything as root that doesn&apos;t brick the box</li>
+          <li>Read auth.log, ps, w — track competitors</li>
         </ul>
-        <p className="text-[12px] leading-snug pt-1 text-muted">
-          Other rules:
+
+        <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-3 text-red-400/80">
+          ✗ Not allowed — anti-game patterns
+        </p>
+        <p className="text-[12px] leading-snug text-muted pb-1">
+          A watchdog catches these. First hit = round forfeit + SSH key
+          locked for 24 hours.
+        </p>
+        <ul className="space-y-0.5 list-disc list-inside text-[12px] text-text">
+          <li>Killing other operators&apos; login shells on sight (kill-on-login loops)</li>
+          <li>Fork bombs · OOM bombs · disk fill</li>
+          <li>Killing sshd · blocking SSH via iptables</li>
+          <li>Bricking critical files (chmod 000 /bin/bash, /etc/passwd, etc.)</li>
+        </ul>
+
+        <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-3 text-muted">
+          ─ Other rules
         </p>
         <ul className="space-y-0.5 list-disc list-inside text-[12px]">
           <li>No attacks on the platform, host, or other tracks.</li>
@@ -205,18 +220,27 @@ export default function KothRulesPage() {
       </RuleSection>
 
       <RuleSection title="What&apos;s coming">
-        <p className="text-[13px] leading-relaxed">
-          Next: a live AI defender — an LLM running as the box&apos;s
-          sysadmin. It reads syslog in real time, patches the path you
-          came through while you&apos;re still inside, and rotates keys
-          on the fly. No other arena ships this.
-        </p>
-        <p className="text-[13px] leading-relaxed pt-1">
-          After that: a four-week season ladder with a top-eight finals
-          bracket, side-by-side spectator streams for the bracket, and
-          shell-history replay on every dethrone so you can read the
-          attacker&apos;s exact keystrokes and patch them out next time.
-        </p>
+        <ul className="space-y-1 list-disc list-inside text-[13px] leading-relaxed">
+          <li>
+            <strong>Per-round slot rotation</strong> — slots release on
+            round close so new operators always have a way in.
+          </li>
+          <li>
+            <strong>AI defender</strong> — an LLM running as the box&apos;s
+            sysadmin, reading syslog in real time and patching paths
+            while you&apos;re still inside.
+          </li>
+          <li>
+            <strong>Season ladder</strong> — four-week ranked windows
+            with a top-eight finals bracket and side-by-side spectator
+            streams.
+          </li>
+          <li>
+            <strong>Dethrone replay</strong> — shell-history capture so
+            the loser can read the attacker&apos;s exact keystrokes and
+            close the path for next time.
+          </li>
+        </ul>
       </RuleSection>
 
       <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted font-mono">
