@@ -309,27 +309,26 @@ export async function POST(req: Request) {
   // ─── Phase 2.5 — Anti-DoS enforcement ───────────────────────
   // The in-arena watchdog POSTs dos_violation when it detects an
   // anti-game pattern (kill-on-login, fork bomb, sshd kill, etc.).
-  // Three side-effects, all in one shot:
-  //   1. Set the offender's koth_ssh_keys.dos_locked_until = now+24h.
-  //      sync-keys.sh strips locked rows from the per-slot
-  //      authorized_keys on its next minute tick → SSH refuses.
-  //   2. Force-close the round so the offender forfeits the hold.
-  //   3. Post a red Discord embed naming the pattern.
+  // Two side-effects:
+  //   1. Force-close the round so the offender forfeits the hold.
+  //   2. Post a red Discord embed naming the pattern.
+  //
+  // Container force-recreate (from reset-arena.sh on the next cron
+  // tick) wipes whatever the offender did inside the box. Round
+  // forfeit + reset is the punishment.
+  //
+  // We deliberately do NOT auto-lock the offender's SSH key here.
+  // Earlier design used dos_locked_until = now+24h, but in practice:
+  //   - false positives cost is catastrophic (we hit one already)
+  //   - actor_slot is often null when watchdog fires (vacant crown
+  //     during sshd_kill etc.), so the lock didn't actually fire in
+  //     the field — security theater
+  //   - forfeit + reset already removes the incentive to repeat
+  // The `dos_locked_until` column stays in koth_ssh_keys for manual
+  // admin override against repeat offenders.
   if (body.kind === "dos_violation") {
     const pattern =
       (body.raw_meta?.pattern as string | undefined) ?? "unknown";
-    if (actorUserId) {
-      try {
-        await db
-          .update(kothSshKeys)
-          .set({
-            dosLockedUntil: sql`now() + interval '24 hours'`,
-          })
-          .where(eq(kothSshKeys.userId, actorUserId));
-      } catch {
-        // best-effort — lock is the deterrent, not the only defense
-      }
-    }
     try {
       await db
         .update(kothRounds)
