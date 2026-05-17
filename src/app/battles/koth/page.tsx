@@ -192,10 +192,6 @@ export default async function KothPage({
     state.top5.map((r) => r.userId),
   );
 
-  const corePaths = state.paths.filter((p) => p.kind === "core");
-  const activeEscalation = state.paths.filter(
-    (p) => p.kind === "escalation" && p.activated,
-  );
   const pendingEscalation = state.paths.filter(
     (p) => p.kind === "escalation" && !p.activated && p.pendingUntil !== null,
   );
@@ -460,101 +456,6 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
               </div>
             </form>
           </div>
-        )}
-      </section>
-
-      {/* Exploit market — Diamond commodity pricing */}
-      <section className="border border-amber/30 px-4 py-3 space-y-3">
-        <div className="flex items-center justify-between gap-3 flex-wrap">
-          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
-            ▸ exploit market
-          </h2>
-          <span className="text-[10px] text-muted font-mono uppercase tracking-widest">
-            diamond pricing · –2 pt / exploit · floor 2
-          </span>
-        </div>
-
-        {/* Core paths — always live */}
-        {corePaths.length > 0 && (
-          <div className="space-y-1.5">
-            <div className="text-[10px] text-green/70 font-mono uppercase tracking-widest">
-              ▾ core · always open
-            </div>
-            <ul className="space-y-1 text-[12px] font-mono">
-              {corePaths.map((p) => {
-                const discounted = p.currentValue < p.baseValue;
-                return (
-                  <li key={p.slug} className="flex items-center gap-3">
-                    <span className="text-amber tabular-nums w-6 text-right">
-                      {p.currentValue}
-                    </span>
-                    <span className="text-muted text-[10px] w-6">pt</span>
-                    <span className="text-text flex-1 truncate">
-                      {p.name} <span className="text-muted">· {p.slug}</span>
-                    </span>
-                    {discounted ? (
-                      <span className="text-muted text-[10px] tabular-nums">
-                        ↓ from {p.baseValue} · {p.exploitsThisRound}×
-                      </span>
-                    ) : (
-                      <span className="text-green/60 text-[10px] tabular-nums">
-                        base
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        )}
-
-        {/* Active escalation paths */}
-        {activeEscalation.length > 0 ? (
-          <div className="space-y-1.5 pt-2 border-t border-amber/15">
-            <div className="text-[10px] text-amber/80 font-mono uppercase tracking-widest">
-              ▾ escalation · live in this round
-            </div>
-            <ul className="space-y-1 text-[12px] font-mono">
-              {activeEscalation.map((p) => {
-                const discounted = p.currentValue < p.baseValue;
-                return (
-                  <li key={p.slug} className="flex items-center gap-3">
-                    <span className="text-amber tabular-nums w-6 text-right">
-                      {p.currentValue}
-                    </span>
-                    <span className="text-muted text-[10px] w-6">pt</span>
-                    <span className="text-text flex-1 truncate">
-                      {p.name} <span className="text-muted">· {p.slug}</span>
-                    </span>
-                    {discounted ? (
-                      <span className="text-muted text-[10px] tabular-nums">
-                        ↓ from {p.baseValue} · {p.exploitsThisRound}×
-                      </span>
-                    ) : (
-                      <span className="text-amber/60 text-[10px] tabular-nums">
-                        new
-                      </span>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-            {myKey && (
-              <p className="text-[10px] text-muted leading-snug pt-1">
-                Hints for each path live in the rules · exploit inside
-                your kothN shell, then
-                <code className="mx-1">
-                  crown-claim koth{myKey.slot} &lt;slug&gt;
-                </code>
-                to claim via that path.
-              </p>
-            )}
-          </div>
-        ) : (
-          <p className="text-[11px] text-muted leading-snug pt-1">
-            no escalation paths live yet · the arena opens a new path
-            when the crown is held past 5 minutes
-          </p>
         )}
       </section>
 
