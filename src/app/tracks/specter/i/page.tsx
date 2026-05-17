@@ -84,28 +84,35 @@ export default async function SpecterIPage() {
         </p>
       </header>
 
-      <aside className="relative border border-amber/30 bg-amber/[0.02] px-5 sm:px-6 pt-5 pb-5 space-y-3">
+      <details className="group relative border border-amber/30 bg-amber/[0.02]">
         <span aria-hidden className="absolute -top-px -left-px h-2 w-2 border-t border-l border-amber" />
         <span aria-hidden className="absolute -top-px -right-px h-2 w-2 border-t border-r border-amber" />
         <span aria-hidden className="absolute -bottom-px -left-px h-2 w-2 border-b border-l border-amber" />
         <span aria-hidden className="absolute -bottom-px -right-px h-2 w-2 border-b border-r border-amber" />
-        <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-          ▸ briefing
+        <summary className="cursor-pointer select-none list-none px-5 sm:px-6 py-4 flex items-center justify-between gap-3 hover:bg-amber/[0.03]">
+          <span className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
+            briefing
+          </span>
+          <span aria-hidden className="text-amber text-xs transition-transform group-open:rotate-90">
+            ▸
+          </span>
+        </summary>
+        <div className="px-5 sm:px-6 pb-5 pt-1 space-y-3">
+          <p className="text-sm leading-relaxed">
+            Most OSINT training stops at typing queries into search engines —
+            ten percent of the job. The other ninety — source independence,
+            calibrated confidence, OPSEC against a target who
+            counter-investigates, defensible documentation — is where
+            professionals live and where almost no public course goes.
+          </p>
+          <p className="text-sm leading-relaxed">
+            Specter I goes there. By the capstone, your findings hold under
+            legal scrutiny, your tradecraft survives adversarial
+            counter-intelligence, and your report meets Berkeley Protocol
+            standards.
+          </p>
         </div>
-        <p className="text-sm leading-relaxed">
-          Most OSINT training stops at typing queries into search engines —
-          ten percent of the job. The other ninety — source independence,
-          calibrated confidence, OPSEC against a target who
-          counter-investigates, defensible documentation — is where
-          professionals live and where almost no public course goes.
-        </p>
-        <p className="text-sm leading-relaxed">
-          Specter I goes there. By the capstone, your findings hold under
-          legal scrutiny, your tradecraft survives adversarial
-          counter-intelligence, and your report meets Berkeley Protocol
-          standards.
-        </p>
-      </aside>
+      </details>
 
       <details className="group border border-border open:border-amber/40 transition-colors">
         <summary className="cursor-pointer select-none list-none px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber/[0.02]">
