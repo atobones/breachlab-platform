@@ -6,7 +6,7 @@ import { db } from "@/lib/db/client";
 import { submissions } from "@/lib/db/schema";
 import { getFirstBloodByLevel } from "@/lib/badges/queries";
 import { SpecterLevelTable } from "@/components/tracks/SpecterLevelTable";
-import { SpecterBootstrapToken } from "@/components/dashboard/SpecterBootstrapToken";
+import { SpecterTokenIssuer } from "@/components/specter/SpecterTokenIssuer";
 import { DISCORD_INVITE_URL } from "@/lib/links";
 
 export const dynamic = "force-dynamic";
@@ -84,8 +84,6 @@ export default async function SpecterIPage() {
         </p>
       </header>
 
-      {user && <SpecterBootstrapToken />}
-
       <aside className="relative border border-amber/30 bg-amber/[0.02] px-5 sm:px-6 pt-5 pb-5 space-y-3">
         <span aria-hidden className="absolute -top-px -left-px h-2 w-2 border-t border-l border-amber" />
         <span aria-hidden className="absolute -top-px -right-px h-2 w-2 border-t border-r border-amber" />
@@ -159,8 +157,8 @@ export default async function SpecterIPage() {
         </ul>
       </details>
 
-      <section className="border border-border p-4 space-y-2">
-        <h2 className="text-amber text-sm uppercase">SSH</h2>
+      <section className="border border-border p-4 space-y-3">
+        <h2 className="text-amber text-sm uppercase tracking-wider">SSH access</h2>
         <dl className="text-sm space-y-1">
           <div>
             <dt className="inline text-muted">Host: </dt>
@@ -176,24 +174,25 @@ export default async function SpecterIPage() {
           </div>
           <div>
             <dt className="inline text-muted">L0 password: </dt>
-            <dd className="inline text-amber">
-              bootstrap token (Generate above)
-            </dd>
+            <dd className="inline text-amber">bootstrap token (below)</dd>
           </div>
         </dl>
-        <p className="text-xs mt-6 pt-3 border-t border-border/40">
-          <span className="text-amber">From L1 onward:</span> solve the
-          level, take the flag the verifier prints, and{" "}
-          <Link href="/submit" className="text-amber underline">
-            submit it at /submit
-          </Link>
-          . The response gives you the next level&apos;s SSH password.
-          Flags and passwords are per-player — sharing them helps no one.
-        </p>
-        <p className="text-xs text-muted mt-2">
-          Each SSH connection spawns a fresh ephemeral container;
-          disconnect tears it down.
-        </p>
+        {user && <SpecterTokenIssuer />}
+        <div className="pt-3 mt-1 border-t border-border/40 space-y-2">
+          <p className="text-xs">
+            <span className="text-amber">From L1 onward:</span> solve the
+            level, take the flag the verifier prints, and{" "}
+            <Link href="/submit" className="text-amber underline">
+              submit it at /submit
+            </Link>
+            . The response gives you the next level&apos;s SSH password.
+            Flags and passwords are per-player.
+          </p>
+          <p className="text-xs text-muted">
+            Each SSH connection spawns a fresh ephemeral container;
+            disconnect tears it down.
+          </p>
+        </div>
       </section>
 
       <details className="group border border-border open:border-amber/40 transition-colors">
