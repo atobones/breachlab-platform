@@ -301,6 +301,9 @@ export default function BattlesPage() {
         </div>
       </header>
 
+      {/* Arena standings — most actionable signal, above the fold */}
+      <ArenaTopOperatives />
+
       {/* Dossier stack */}
       <section className="space-y-3">
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
@@ -316,8 +319,6 @@ export default function BattlesPage() {
           <DossierCard key={a.code} a={a} />
         ))}
       </section>
-
-      <ArenaTopOperatives />
 
       <footer className="pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono">
         <Link href="/" className="hover:text-amber tracking-[0.18em] uppercase">
