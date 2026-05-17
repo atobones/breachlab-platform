@@ -44,6 +44,8 @@ const VALID_KINDS = new Set([
   "path_exploited",
   "path_patched_attributed",
   "path_closed",
+  // Phase 2.5 — Anti-DoS watchdog
+  "dos_violation",
 ]);
 
 export function isValidEventKind(kind: unknown): kind is string {

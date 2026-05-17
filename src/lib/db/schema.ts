@@ -424,6 +424,10 @@ export const kothSshKeys = pgTable("koth_ssh_keys", {
     .notNull()
     .defaultNow(),
   lastUsedAt: timestamp("last_used_at", { withTimezone: true }),
+  // Set by the dos_violation event handler when the in-arena watchdog
+  // flags griefing. While this is in the future, sync-keys.sh skips the
+  // row, so SSH refuses the connection.
+  dosLockedUntil: timestamp("dos_locked_until", { withTimezone: true }),
 });
 
 // ─────────────────────────────────────────────────────────
