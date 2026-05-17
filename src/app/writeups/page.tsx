@@ -44,10 +44,10 @@ export default async function WriteupsIndexPage() {
           <span className="glitch" data-text="Writeups">Writeups</span>
         </h1>
         <p className="text-sm text-muted leading-relaxed">
-          Not a walkthrough hub. Senior-track chokepoints only — gated
-          behind level completion so this stays a wall to hit, not a
-          Google cheat path. No Ghost or intro-level writeups;
-          frustration there is the lesson. Got one of your own? Ping{" "}
+          Curated chokepoint references and community-maintained
+          knowledge bases. Phantom-tier entries unlock once you&apos;ve
+          cleared that level — keeps things out of cheat-path territory.
+          Got one of your own? Ping{" "}
           <code className="text-amber">#writeups</code> on Discord.
         </p>
       </header>
