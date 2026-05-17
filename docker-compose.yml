@@ -24,6 +24,14 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    # Cap json-file logs at 30MB total (10MB × 3 rotating files).
+    # Postgres is normally quiet; this just ensures /var/lib/docker
+    # can't grow unbounded from query log spam.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   web:
     build: .
@@ -88,6 +96,13 @@ services:
       breachlab-shared:
         aliases:
           - web
+    # Cap json-file logs at 30MB total. Next.js error stacks + access
+    # logs can accumulate fast on a busy week.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
   caddy:
     image: caddy:2-alpine
@@ -101,6 +116,13 @@ services:
       - caddy_config:/config
     depends_on:
       - web
+    # Access logs are the loudest source on this stack — every request
+    # to breachlab.org becomes a line here. Same 30MB cap.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 volumes:
   db_data:
