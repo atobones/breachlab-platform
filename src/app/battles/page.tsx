@@ -239,10 +239,6 @@ async function ArenaTopOperatives() {
           full board →
         </Link>
       </div>
-      <p className="text-[11px] text-muted leading-snug">
-        By lifetime Crown Wars round wins. Separate ladder from the
-        global leaderboard — the arena is its own game.
-      </p>
       <ol className="space-y-1 text-[12px] font-mono tabular-nums pt-1">
         {top.map((c, i) => {
           const title = titleFromRoundWins(c.roundWins);
