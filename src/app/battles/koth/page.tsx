@@ -3,12 +3,15 @@ import { and, desc, eq } from "drizzle-orm";
 import { getCurrentSession } from "@/lib/auth/session";
 import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, users } from "@/lib/db/schema";
-import { findKeyForUser } from "@/lib/koth/keys";
+import {
+  findKeyForUser,
+  findRoundSlotForUser,
+} from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
 import { currentPricesForRound } from "@/lib/koth/paths";
 import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { titleFromRoundWins } from "@/lib/koth/titles";
-import { submitKothKey } from "./actions";
+import { joinKothRound, submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
 export const dynamic = "force-dynamic";
@@ -184,6 +187,13 @@ export default async function KothPage({
   const state = await loadState();
 
   const myKey = user ? await findKeyForUser(user.id) : null;
+  // The slot is now per-round. A returning operator whose previous
+  // round closed has a key but no slot in the current round — they
+  // need to click "Join this round" to claim one.
+  const mySlot =
+    user && state.round
+      ? await findRoundSlotForUser(user.id, state.round.id)
+      : null;
 
   // Lifetime totals for the operators on the leaderboard so the row
   // can flex "× 12 round wins · 47 crowns" next to a current-round
@@ -233,7 +243,7 @@ export default async function KothPage({
           a clear "you're in" identity signal across the whole console. */}
       <section
         className={`border ${
-          myKey
+          mySlot
             ? "border-green/40 bg-green/[0.03]"
             : "border-amber/40 bg-amber/[0.03]"
         }`}
@@ -241,7 +251,7 @@ export default async function KothPage({
         {/* Round status strip */}
         <div
           className={`border-b ${
-            myKey ? "border-green/20" : "border-amber/20"
+            mySlot ? "border-green/20" : "border-amber/20"
           } px-4 py-2.5 flex items-center gap-3 flex-wrap text-[11px] font-mono tabular-nums`}
         >
           {state.round ? (
@@ -325,12 +335,12 @@ export default async function KothPage({
               Sign in to enlist
             </Link>
           </div>
-        ) : myKey ? (
+        ) : myKey && mySlot ? (
           <div className="px-4 py-3 space-y-2">
             <div className="flex items-center justify-between gap-3 flex-wrap">
               <div className="flex items-center gap-2 text-[10px] tracking-[0.3em] uppercase font-mono">
                 <span className="text-green/80">
-                  ▸ enlisted · slot koth{myKey.slot}
+                  ▸ enlisted · slot koth{mySlot.slot}
                 </span>
                 {myKey.tutorialCompletedAt ? (
                   <span className="border border-amber/60 text-amber bg-amber/5 px-1 py-0">
@@ -347,7 +357,7 @@ export default async function KothPage({
               </span>
             </div>
             <pre className="text-[12px] leading-relaxed text-text overflow-x-auto">
-{`ssh -i ~/.ssh/your_key -p ${ARENA_PORT} koth${myKey.slot}@${ARENA_HOST}`}
+{`ssh -i ~/.ssh/your_key -p ${ARENA_PORT} koth${mySlot.slot}@${ARENA_HOST}`}
             </pre>
             <p className="text-[10px] text-muted/80 leading-snug -mt-1">
               Your key syncs to the arena every ~60s. If the first
@@ -357,7 +367,7 @@ export default async function KothPage({
             <p className="text-[11px] text-muted leading-snug">
               Once inside: get root via the SUID paths or Redis, then
               <code className="ml-1">
-                crown-claim koth{myKey.slot} &lt;exploit&gt;
+                crown-claim koth{mySlot.slot} &lt;exploit&gt;
               </code>{" "}
               to claim the throne.
             </p>
@@ -374,7 +384,7 @@ export default async function KothPage({
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/phantom-python3 -c \\
-  'import os; os.system("crown-claim koth${myKey.slot} l7-suid")'`}
+  'import os; os.system("crown-claim koth${mySlot.slot} l7-suid")'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
@@ -383,7 +393,7 @@ export default async function KothPage({
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/system-checker \\
-  '127.0.0.1; crown-claim koth${myKey.slot} l8-suid'`}
+  '127.0.0.1; crown-claim koth${mySlot.slot} l8-suid'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
@@ -400,7 +410,7 @@ SET x "\\n\\n$KEY\\n\\n"
 SAVE
 EOF
 ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
-  "crown-claim koth${myKey.slot} l17-redis"`}
+  "crown-claim koth${mySlot.slot} l17-redis"`}
                   </pre>
                 </div>
                 <p className="text-[10px] text-muted leading-snug pt-1">
@@ -411,6 +421,33 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
                 </p>
               </div>
             </details>
+          </div>
+        ) : myKey ? (
+          // Operator has a registered key but no slot in the current
+          // round — happens after a round close. Single-click claim.
+          <div className="px-4 py-3 space-y-3">
+            <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
+              ▸ welcome back — claim your slot for this round
+            </div>
+            {params.error && (
+              <div className="text-[12px] text-red-400 font-mono border border-red-400/40 bg-red-400/5 px-2 py-1">
+                ✗ {params.error}
+              </div>
+            )}
+            <p className="text-[12px] text-muted leading-snug">
+              Slots are now per-round (max 10). Your SSH key is on
+              file — one click and you&apos;re in. Slots release on
+              every round close so new operators always have a path
+              in.
+            </p>
+            <form action={joinKothRound}>
+              <button
+                type="submit"
+                className="btn-bracket text-amber text-[12px] font-mono"
+              >
+                Join this Round
+              </button>
+            </form>
           </div>
         ) : (
           <div className="px-4 py-3 space-y-3">
@@ -427,6 +464,11 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
                 ✓ key registered — slot assigned above
               </div>
             )}
+            <p className="text-[12px] text-muted leading-snug">
+              Slots are per-round (max 10) — they release on every
+              round close so the arena stays open to new operators.
+              Register once, claim a slot whenever you want to play.
+            </p>
             <form action={submitKothKey} className="space-y-2">
               <label
                 htmlFor="pubkey"

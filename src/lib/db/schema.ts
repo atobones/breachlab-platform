@@ -414,8 +414,10 @@ export const kothSshKeys = pgTable("koth_ssh_keys", {
     .references(() => users.id, { onDelete: "cascade" }),
   pubkey: text("pubkey").notNull(),
   fingerprint: text("fingerprint").notNull().unique(),
-  // 0..N — maps to kothN unix account inside the container. Permanent.
-  slot: integer("slot").notNull().unique(),
+  // Legacy field — "last assigned slot" hint, no longer load-bearing.
+  // Per-round slot is in koth_round_slots since migration 0020. The
+  // UNIQUE constraint was dropped in the same migration.
+  slot: integer("slot").notNull(),
   // First successful tutorial dethrone — unlocks ranked rotation.
   tutorialCompletedAt: timestamp("tutorial_completed_at", {
     withTimezone: true,
@@ -429,6 +431,32 @@ export const kothSshKeys = pgTable("koth_ssh_keys", {
   // row, so SSH refuses the connection.
   dosLockedUntil: timestamp("dos_locked_until", { withTimezone: true }),
 });
+
+// Per-round slot assignment. Replaces the old permanent slot mapping
+// in koth_ssh_keys.slot. On round open, this table is empty for the
+// new round id — first 10 operators to claim get slots koth0..koth9.
+// Migration 0020 also drops the UNIQUE constraint on
+// koth_ssh_keys.slot (kept as a legacy hint column).
+export const kothRoundSlots = pgTable(
+  "koth_round_slots",
+  {
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    slot: integer("slot").notNull(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    claimedAt: timestamp("claimed_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.roundId, t.slot] }),
+    uniqueIndex("koth_round_slots_round_user_unique").on(t.roundId, t.userId),
+    index("koth_round_slots_user_idx").on(t.userId),
+  ],
+);
 
 // ─────────────────────────────────────────────────────────
 // KoTH Phase 2 — Escalation engine + Diamond commodity pricing
