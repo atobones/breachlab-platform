@@ -258,21 +258,6 @@ export default async function SpecterIPage() {
         />
       </section>
 
-      <section className="space-y-3 border border-green p-4">
-        <h2 className="text-green text-lg">Status — Live</h2>
-        <p className="text-sm">
-          Specter I is live. All fourteen levels are accessible via per-session
-          ephemeral containers; each level passes our 27-class security audit
-          before it ships. Sessions are isolated per player — no shared shell,
-          no cross-contamination, no flag sharing.
-        </p>
-        <p className="text-sm text-muted">
-          If a level is briefly unreachable during a rolling deploy, retry in
-          a few minutes — sessions are stateless, your chain progress is
-          preserved server-side.
-        </p>
-      </section>
-
       {user ? (
         <p className="text-sm">
           Found a flag?{" "}
