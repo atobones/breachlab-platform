@@ -1,31 +1,43 @@
-import { eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { kothSshKeys } from "@/lib/db/schema";
+import { kothRoundSlots, kothRounds } from "@/lib/db/schema";
 
 // Resolve a kothN slot string (the unix account inside the arena
-// container) back to the BL user_id via koth_ssh_keys. The crown daemon
-// inside the container only knows slot names; we bind it to the player
-// here via the (user_id, slot) row stored at key-submission time.
+// container) back to the BL user_id by looking up the koth_round_slots
+// assignment for the CURRENT active round.
 //
-// Returns null if the slot is currently unassigned (no row in
-// koth_ssh_keys with this slot index). The oracle endpoint stores NULL
-// in actor_user_id / target_user_id in that case — the event still
-// counts (crown changed) but isn't attributed to a player yet.
+// Migration 0020 moved slot assignment from the permanent
+// koth_ssh_keys.slot column to the per-round koth_round_slots table.
+// Each round, the first 10 operators to claim a slot get koth0..koth9
+// for the lifetime of that round only.
+//
+// Returns null if the slot isn't claimed in the current round (arena
+// is half-empty, or the player hasn't joined this round). The oracle
+// endpoint stores NULL in actor_user_id / target_user_id in that case
+// — the event still counts (crown changed) but isn't attributed.
 
 export async function resolveSlotToUserId(
   slot: string | null | undefined,
 ): Promise<string | null> {
   if (!slot) return null;
-  // Expect "kothN" where N is a single digit.
+  // Expect "kothN" where N is a single digit 0..9.
   const m = slot.match(/^koth(\d)$/);
   if (!m) return null;
   const idx = Number(m[1]);
   if (!Number.isInteger(idx) || idx < 0) return null;
 
+  // Cross-join via lateral so a missing active round just yields no rows.
   const [row] = await db
-    .select({ userId: kothSshKeys.userId })
-    .from(kothSshKeys)
-    .where(eq(kothSshKeys.slot, idx))
+    .select({ userId: kothRoundSlots.userId })
+    .from(kothRoundSlots)
+    .innerJoin(kothRounds, eq(kothRounds.id, kothRoundSlots.roundId))
+    .where(
+      and(
+        eq(kothRoundSlots.slot, idx),
+        eq(kothRounds.status, "active"),
+      ),
+    )
+    .orderBy(desc(kothRounds.startedAt))
     .limit(1);
 
   return row?.userId ?? null;

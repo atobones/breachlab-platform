@@ -65,13 +65,18 @@ export default function KothRulesPage() {
 
       <RuleSection title="Loop">
         <ol className="space-y-0.5 list-decimal list-inside font-mono text-[12px]">
-          <li>Register SSH key → get slot <span className="text-amber">kothN</span></li>
+          <li>Register SSH key once → claim a slot in the current round</li>
           <li><code>ssh -i your_key -p 2300 kothN@204.168.229.209</code></li>
           <li>Get root via one of the paths below</li>
           <li><code>crown-claim kothN &lt;path&gt;</code></li>
           <li>Hold the crown · <span className="text-amber">+1 / min</span></li>
           <li>Get dethroned · take it back</li>
         </ol>
+        <p className="text-[12px] text-muted leading-snug pt-2">
+          Slots release on every round close — up to 10 operators per
+          round, first come first served. Returning operators click
+          <em> Join this round</em> to grab a slot when the next one opens.
+        </p>
       </RuleSection>
 
       <RuleSection title="Core paths (always open)">
