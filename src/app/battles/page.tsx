@@ -321,26 +321,6 @@ export default function BattlesPage() {
         ))}
       </section>
 
-      {/* Engage block — final CTA */}
-      <section className="border border-amber/40 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <div className="space-y-0.5">
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
-            ▸ predator arena · live
-          </div>
-          <p className="text-[12px] text-text leading-snug max-w-xl">
-            Register your SSH key, get a slot, and ssh in. Core
-            exploit paths plus escalation paths that open against
-            long-held crowns. 30-min rolling rounds.
-          </p>
-        </div>
-        <Link
-          href="/battles/koth"
-          className="btn-bracket text-amber text-[12px] font-mono whitespace-nowrap"
-        >
-          Enter Crown Wars
-        </Link>
-      </section>
-
       <ArenaTopOperatives />
 
       <footer className="pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono">
