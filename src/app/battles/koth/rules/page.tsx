@@ -178,8 +178,9 @@ export default function KothRulesPage() {
           ✗ Not allowed — anti-game patterns
         </p>
         <p className="text-[12px] leading-snug text-muted pb-1">
-          A watchdog catches these. First hit = round forfeit + SSH key
-          locked for 24 hours.
+          A watchdog catches these. Trigger one = round forfeit, box
+          force-recreated, your work in the round wiped. Repeat
+          offenders get manually banned.
         </p>
         <ul className="space-y-0.5 list-disc list-inside text-[12px] text-text">
           <li>Killing other operators&apos; login shells on sight (kill-on-login loops)</li>
