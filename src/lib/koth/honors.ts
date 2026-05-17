@@ -221,6 +221,7 @@ export async function topChampionsByRoundWins(limit: number): Promise<
     userId: string;
     username: string;
     roundWins: number;
+    totalPoints: number;
     firstWinAt: Date | null;
     lastWinAt: Date | null;
   }>
@@ -229,11 +230,16 @@ export async function topChampionsByRoundWins(limit: number): Promise<
   // the pg driver hands back ISO strings for min/max over timestamp
   // columns. Coerce here so callers can trust the declared shape and
   // safely call .toISOString() on the result.
+  //
+  // totalPoints sums the per-round score that awardRoundWinner stashed
+  // in metadata->>'points'. coalesce + nullif protect against rows
+  // where the field is missing (legacy / hand-inserted).
   const rows = await db
     .select({
       userId: kothHonors.userId,
       username: users.username,
       roundWins: sql<number>`count(*)::int`,
+      totalPoints: sql<number>`coalesce(sum(nullif(${kothHonors.metadata}->>'points','')::int), 0)::int`,
       firstWinAt: sql<string | Date | null>`min(${kothHonors.awardedAt})`,
       lastWinAt: sql<string | Date | null>`max(${kothHonors.awardedAt})`,
     })
@@ -247,6 +253,7 @@ export async function topChampionsByRoundWins(limit: number): Promise<
     userId: r.userId,
     username: r.username,
     roundWins: r.roundWins,
+    totalPoints: r.totalPoints,
     firstWinAt: r.firstWinAt ? new Date(r.firstWinAt) : null,
     lastWinAt: r.lastWinAt ? new Date(r.lastWinAt) : null,
   }));

@@ -272,9 +272,11 @@ async function ArenaTopOperatives() {
                 )}
                 {c.username}
               </span>
-              <span className="text-amber w-16 text-right">
-                × {c.roundWins}{" "}
-                <span className="text-muted">{c.roundWins === 1 ? "win" : "wins"}</span>
+              <span className="text-amber w-32 text-right">
+                {c.totalPoints} pt{" "}
+                <span className="text-muted">
+                  · × {c.roundWins} {c.roundWins === 1 ? "win" : "wins"}
+                </span>
               </span>
             </li>
           );
