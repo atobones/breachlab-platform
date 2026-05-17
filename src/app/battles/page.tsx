@@ -1,10 +1,14 @@
 import Link from "next/link";
+import { topChampionsByRoundWins } from "@/lib/koth/honors";
+import { titleFromRoundWins } from "@/lib/koth/titles";
 
 export const metadata = {
   title: "Battles — BreachLab",
   description:
     "Operational theater for the field-ready operator. Four archetypes — Predator, Ghost, Clash, Crew — across four arenas of real-time tradecraft against thinking adversaries.",
 };
+
+export const dynamic = "force-dynamic";
 
 type Status = "live" | "staged";
 
@@ -218,6 +222,68 @@ function DossierCard({ a }: { a: Archetype }) {
   );
 }
 
+async function ArenaTopOperatives() {
+  const top = await topChampionsByRoundWins(5);
+  if (top.length === 0) return null;
+
+  return (
+    <section className="border border-amber/30 px-4 py-3 space-y-2">
+      <div className="flex items-baseline justify-between gap-3 flex-wrap">
+        <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
+          ▸ arena top operatives
+        </h2>
+        <Link
+          href="/battles/koth/champions"
+          className="text-[10px] text-muted font-mono tracking-[0.18em] uppercase hover:text-amber"
+        >
+          full board →
+        </Link>
+      </div>
+      <p className="text-[11px] text-muted leading-snug">
+        By lifetime Crown Wars round wins. Separate ladder from the
+        global leaderboard — the arena is its own game.
+      </p>
+      <ol className="space-y-1 text-[12px] font-mono tabular-nums pt-1">
+        {top.map((c, i) => {
+          const title = titleFromRoundWins(c.roundWins);
+          return (
+            <li
+              key={c.userId}
+              className="flex items-center gap-3 py-0.5"
+            >
+              <span
+                className={`w-6 text-right ${
+                  i === 0
+                    ? "text-amber"
+                    : i < 3
+                      ? "text-amber/80"
+                      : "text-muted"
+                }`}
+              >
+                #{String(i + 1).padStart(2, "0")}
+              </span>
+              <span className="text-text flex-1 truncate flex items-baseline gap-1.5">
+                {title && (
+                  <span
+                    className={`text-[9px] tracking-wider ${title.color}`}
+                  >
+                    {title.glyph} {title.label}
+                  </span>
+                )}
+                {c.username}
+              </span>
+              <span className="text-amber w-16 text-right">
+                × {c.roundWins}{" "}
+                <span className="text-muted">{c.roundWins === 1 ? "win" : "wins"}</span>
+              </span>
+            </li>
+          );
+        })}
+      </ol>
+    </section>
+  );
+}
+
 export default function BattlesPage() {
   return (
     <article className="space-y-5 max-w-3xl" data-testid="battles-page">
@@ -272,6 +338,8 @@ export default function BattlesPage() {
           Enter Crown Wars
         </Link>
       </section>
+
+      <ArenaTopOperatives />
 
       <footer className="pt-2 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono">
         <Link href="/" className="hover:text-amber tracking-[0.18em] uppercase">
