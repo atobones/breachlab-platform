@@ -18,12 +18,22 @@ function fmtDur(seconds: number): string {
   return `${m}m`;
 }
 
+function fmtStandby(seconds: number): string {
+  const s = Math.max(0, seconds);
+  if (s < 60) return `${s}s`;
+  const h = Math.floor(s / 3600);
+  const m = Math.floor((s % 3600) / 60);
+  if (h > 0) return `${h}h${m > 0 ? ` ${m}m` : ""}`;
+  return `${m}m`;
+}
+
 async function loadHistory() {
   // Past closed/reset rounds — newest first, exclude still-active.
   const rounds = await db
     .select({
       id: kothRounds.id,
       startedAt: kothRounds.startedAt,
+      engagedAt: kothRounds.engagedAt,
       endedAt: kothRounds.endedAt,
       status: kothRounds.status,
       resetReason: kothRounds.resetReason,
@@ -45,16 +55,26 @@ async function loadHistory() {
         .orderBy(desc(kothEvents.occurredAt))
         .limit(1);
 
-      const durationSec =
-        r.endedAt && r.startedAt
-          ? Math.floor((r.endedAt.getTime() - r.startedAt.getTime()) / 1000)
+      // Active window = ended_at - engaged_at, NOT ended_at - started_at.
+      // Rounds sit in standing-by (no clock) until the first crown_taken
+      // sets engaged_at — that's the engaged-on-first-crown model. A
+      // round that sat empty for 8 hours and then ran 30 minutes once
+      // someone engaged should report 30m, not 8h30m.
+      const activeWindowSec =
+        r.endedAt && r.engagedAt
+          ? Math.floor((r.endedAt.getTime() - r.engagedAt.getTime()) / 1000)
           : 0;
+      const standbySec =
+        r.engagedAt && r.startedAt
+          ? Math.floor((r.engagedAt.getTime() - r.startedAt.getTime()) / 1000)
+          : null;
 
       return {
         ...r,
         top3,
         lastEv,
-        durationSec,
+        activeWindowSec,
+        standbySec,
       };
     }),
   );
@@ -76,9 +96,11 @@ export default async function KothHistoryPage() {
           PAST ROUNDS
         </h1>
         <p className="text-[12px] text-muted leading-snug max-w-2xl">
-          Last {HISTORY_LIMIT} closed rounds. Each round is a 30-minute
-          window; the arena resets on a cron schedule and everything
-          starts fresh.
+          Last {HISTORY_LIMIT} closed rounds. The 30-minute clock starts
+          when the first crown is grabbed — the time shown is the active
+          window, not wall-clock. If the arena sat in standing-by before
+          someone engaged, that wait is shown separately as{" "}
+          <span className="text-muted/60">standby</span>.
         </p>
       </header>
 
@@ -97,12 +119,36 @@ export default async function KothHistoryPage() {
               className="border border-border/60 px-4 py-3 space-y-2"
             >
               <div className="flex items-baseline justify-between gap-3 flex-wrap text-[11px] font-mono">
-                <div className="flex items-center gap-2 tabular-nums">
+                <div className="flex items-center gap-2 tabular-nums flex-wrap">
                   <span className="text-amber">
-                    {r.startedAt.toISOString().slice(0, 16).replace("T", " ")} UTC
+                    {(r.engagedAt ?? r.startedAt)
+                      .toISOString()
+                      .slice(0, 16)
+                      .replace("T", " ")}{" "}
+                    UTC
                   </span>
                   <span className="text-muted">·</span>
-                  <span className="text-text">{fmtDur(r.durationSec)}</span>
+                  {r.engagedAt ? (
+                    <span className="text-text">{fmtDur(r.activeWindowSec)}</span>
+                  ) : (
+                    <span
+                      className="text-muted/70"
+                      title="round never engaged — no one took the crown"
+                    >
+                      no engagement
+                    </span>
+                  )}
+                  {r.standbySec !== null && r.standbySec > 60 && (
+                    <>
+                      <span className="text-muted">·</span>
+                      <span
+                        className="text-muted/60 text-[10px]"
+                        title="time the arena sat in standing-by before the first crown grab"
+                      >
+                        {fmtStandby(r.standbySec)} standby
+                      </span>
+                    </>
+                  )}
                   <span className="text-muted">·</span>
                   <span
                     className={
