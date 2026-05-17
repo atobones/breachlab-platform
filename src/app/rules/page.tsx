@@ -34,10 +34,15 @@ export default function RulesPage() {
           </li>
           <li>
             <strong>Don&apos;t spoil active operations.</strong> Other
-            people are mid-level when you&apos;re past it. If someone
-            asks for help, take it to DM. The chatrooms are mirrored
-            across surfaces and spoiler tags don&apos;t survive — write
-            for the lowest-trust channel.
+            people are mid-level when you&apos;re past it. If you need
+            help, use the dedicated help threads in our Discord — there
+            is a thread per track, and you can open a new sub-thread
+            for your specific question. <strong>Read the pinned
+            posting rules</strong> in the <code>#help</code> channel
+            before posting (how to phrase the ask, what context to
+            include, no full spoilers). Don&apos;t drop hints in
+            general — the chatrooms are mirrored across surfaces and
+            spoiler tags don&apos;t survive.
           </li>
           <li>
             <strong>Don&apos;t poison the shared environment.</strong>
@@ -71,12 +76,21 @@ export default function RulesPage() {
         <ol className="list-decimal list-outside pl-5 space-y-3 text-[13px] leading-relaxed">
           <li>
             <strong>
-              Never publish level passwords or flag values.
+              Don&apos;t spoon-feed answers — and never publish
+              credentials.
             </strong>{" "}
-            Writeups, walkthroughs, videos — all welcome and encouraged.
-            But every published credential cheapens the level for the
-            next thousand operators. Teach the technique, not the
-            answer.
+            BreachLab&apos;s model is self-learn: when an operator is
+            stuck, the right move is to go research, read up, and come
+            back to try again — not to be handed the next password.
+            Writeups, walkthroughs, and videos are welcome and
+            encouraged when they teach the <em>technique</em>; they
+            cross the line when they publish the literal password or
+            flag. Players looking for more material can open the{" "}
+            <a href="/writeups" className="text-amber">
+              writeups
+            </a>{" "}
+            section where the community shares technique-focused
+            content.
           </li>
           <li>
             <strong>If your content makes money, send some back.</strong>
@@ -91,8 +105,7 @@ export default function RulesPage() {
           <li>
             <strong>Credit BreachLab when you use the lab.</strong>{" "}
             A link back, a name-drop in the video description, a
-            sentence in the writeup&apos;s intro. Same energy we extend
-            to upstream projects we draw inspiration from.
+            sentence in the writeup&apos;s intro.
           </li>
         </ol>
       </section>
