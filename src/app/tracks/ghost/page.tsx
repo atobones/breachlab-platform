@@ -231,13 +231,9 @@ export default async function GhostTrackPage() {
 
       <footer className="pt-6 mt-4 border-t border-border/40">
         <p className="text-[11px] text-muted leading-snug">
-          Ghost is our welcome track — a modern, in-world intro to
-          privilege-escalation tradecraft. Its shape draws on{" "}
-          <span className="text-text">Bandit</span> by OverTheWire, the
-          original entry-level wargame in this lineage. Ghost
-          wouldn&apos;t exist in this form without it. Credit to the
-          OverTheWire team for setting the template the genre was built
-          on.
+          Ghost&apos;s shape draws on{" "}
+          <span className="text-text">Bandit</span> by OverTheWire.
+          Credit to the OTW team for setting the template.
         </p>
       </footer>
     </div>
