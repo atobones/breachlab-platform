@@ -16,24 +16,38 @@ prerequisites:
 
 # Phantom L9 — Stack Day
 
-> **Spoiler boundary.** This is a writeup, not a solution. It points at
-> the four conceptual locks the level was built around and discusses
-> what makes naive approaches fail. It does not hand you offsets,
-> shellcode, or scripts — you still have to reason from first
-> principles and execute the chain yourself. If that's what you came
-> for, read on. If you wanted a copy-paste path, this isn't it.
+> **Spoiler boundary.** This is a writeup, not a solution. It points
+> at the four conceptual locks the level was built around and
+> discusses what makes naive approaches fail. It does not hand you
+> offsets, shellcode, or scripts — you still have to reason from
+> first principles and execute the chain yourself.
+
+## TL;DR
+
+A classic stack overflow with a senior twist: **four independent
+constraints all need to be solved at once**, and any one of them
+silently kills the exploit.
+
+1. SUID shell trap — `execve("/bin/sh")` drops you back to your own UID.
+2. NUL-free shellcode — `strcpy` truncates at the first `\x00`.
+3. ASLR without an info leak — guess the page, brute-force.
+4. ~80-byte budget — no room for the lazy 200-byte payload.
+
+Operators rarely fail L9 from inexperience. They fail from skill
+silos — knowing each technique solo but never assembling all four.
+
+---
 
 ## What L9 actually is
 
-A 64-byte stack-allocated buffer in a SUID binary, copied into via
-`strcpy`. The flag belongs to a different user (`flagkeeper9`) you
-cannot `su` to. The SUID bit gives you a window — when *you* run the
-binary, your effective UID briefly becomes `flagkeeper9` — and the
-level is about exploiting `strcpy` to redirect execution while that
-window is open.
+A 64-byte stack buffer in a SUID binary, copied into via `strcpy`.
+The flag belongs to `flagkeeper9`; you cannot `su` to that user. The
+SUID bit gives you a window — when *you* run the binary, your
+effective UID briefly becomes `flagkeeper9` — and the level is about
+exploiting `strcpy` to redirect execution while that window is open.
 
-The frame on entry to the vulnerable function looks like this — burn
-this picture into your head, you'll need it for Lock 4:
+The frame on entry to the vulnerable function. Burn this picture
+into your head, you'll need it for Lock 4:
 
 ```
 high addresses
@@ -47,112 +61,94 @@ high addresses
 low addresses
 ```
 
-How far past the start of `buffer` does the saved-RIP slot sit?
-Counting is on you. GDB and a cyclic pattern get you the answer in
-under five minutes; a careful read of the disassembly gets you there
-in two. Either way, you need the offset — call it `K` — for the rest
-of the writeup.
+**Find the offset from `buffer[0]` to the saved-RIP slot yourself.**
+GDB and a cyclic pattern get it in five minutes; a careful read of
+the disassembly gets it in two. Call your answer `K`. You'll need it
+for the rest of the writeup.
 
 That sentence describes most stack-overflow CTF levels of the last
-twenty years, so what makes L9 hard is not the bug. It's that **four
-otherwise-easy skills have to land at the same time**. Solo, none of
-the four would graduate this level past `medium`. Together they form a
-conceptual lock. Operators rarely fail L9 from inexperience — they
-fail from skill silos.
+twenty years, so what makes L9 hard is not the bug. It's that
+**four otherwise-easy skills have to land at the same time**. Solo,
+none of the four would graduate this level past `medium`. Together
+they form a conceptual lock.
 
-Those four locks, in the order you will most likely hit them:
-
-1. **The shell trap.** Your first instinct is to drop a shellcode that
-   does `execve("/bin/sh", ...)`. That instinct is wrong here, and
-   the failure mode is silent. Step into this, and you'll spend hours
-   debugging a clean-looking exploit that runs fine but leaves you
-   exactly where you started.
-2. **NUL bytes.** The vulnerable copy is `strcpy`. That single fact
-   forbids most off-the-shelf payloads — every byte of your shellcode
-   must be non-zero. msfvenom and most tutorial shellcodes will
-   contain zeros somewhere.
-3. **ASLR without an info leak.** Stack base is randomized per exec.
-   You don't get a leak primitive. So how do you know where your
-   shellcode lands?
-4. **Tight byte budget.** The buffer + saved RBP + saved RIP slot
-   constrain you. There's room for a payload, but not for a generous
-   one. Compact syscall idioms are mandatory, not stylistic.
-
-The rest of this writeup walks each lock at the conceptual level and
-points at the technique class that resolves it. It does not show
-you the answer.
+The rest of this writeup walks each lock at the conceptual level
+and points at the technique class that resolves it. It does not
+show you the answer.
 
 ---
 
 ## Lock 1 — the SUID shell trap
 
-Read `man bash` and search for the word `PRIVILEGED`. Read `man execve`
-and look for the section discussing `set-user-ID`. Both manpages
-describe the same defensive behaviour at the start of any modern
-shell: when the shell detects that **real UID and effective UID
-differ**, it concludes that something accidentally invoked it through
-a SUID program, and it drops effective UID back down to real UID
-**before reading a single line of input**.
+### Why your first instinct fails
 
-On L9, that's exactly your situation:
+Read `man bash`, search for `PRIVILEGED`. Read `man execve`, look
+for the set-user-ID section. Both describe the same defensive
+behaviour at the start of any modern shell: when **real UID and
+effective UID differ**, the shell concludes that something
+accidentally invoked it through a SUID program and drops effective
+UID back to real UID **before reading a single line of input**.
 
-- You, the invoker, are `phantom9`. That's your real UID.
-- The SUID bit on the binary raised your effective UID to
-  `flagkeeper9` for the duration of execution.
+On L9:
 
-If your shellcode `execve`s `/bin/sh` (or `/bin/dash`, or `/bin/bash`,
-or anything that wraps them), the new shell process inherits both
-UIDs, sees the mismatch, and re-aligns them — *down*. The shell now
-runs as `phantom9`. The flag is owned by `flagkeeper9` mode 600. You
-get nothing.
+- You are `phantom9` — that's your real UID.
+- The SUID bit raised your effective UID to `flagkeeper9`.
 
-Two ways past this. **One is a syscall before exec** to align the IDs
-yourself; look up which syscall and which arguments. **The other is
-to skip the shell entirely** — you don't need a shell to read a file,
-or to chmod one, or to copy one. Pick whichever fits inside your byte
-budget.
+If your shellcode `execve`s `/bin/sh` (or `dash`, or `bash`, or
+anything that wraps them), the new shell inherits both UIDs, sees
+the mismatch, and re-aligns them — *down*. The shell now runs as
+`phantom9`. The flag is owned by `flagkeeper9` mode 600. You get
+nothing. And the failure is silent: clean-looking exploit, runs
+fine, leaves you exactly where you started.
 
-The trap matters even if you correctly avoid it on your first try,
-because it tells you something about the level's design: **the
-designer expected you to run direct syscalls, not a shell**. That
-nudge will save you bytes later.
+### Two ways past it
+
+- **A syscall before exec** to align the IDs yourself. Look up
+  which syscall and which arguments.
+- **Skip the shell entirely.** You don't need a shell to read a
+  file, or to `chmod` one, or to copy one. Pick whichever fits
+  your byte budget.
+
+The trap matters even if you avoid it on the first try, because
+it tells you something about the level's design: **the designer
+expected direct syscalls, not a shell**. That nudge saves bytes
+later.
 
 ---
 
 ## Lock 2 — NUL-free shellcode
 
-`strcpy` reads until it sees a `\x00`. Every byte of your shellcode
-must therefore be non-zero. Tutorial shellcodes almost always violate
-this:
+`strcpy` reads until it sees a `\x00`. Every byte of your
+shellcode must be non-zero. Tutorial shellcodes almost always
+violate this:
 
-- `mov eax, 0x0000005a` (`SYS_chmod`) — encodes with three zero bytes.
+- `mov eax, 0x0000005a` (`SYS_chmod`) — three zero bytes.
 - `mov rsi, 0x1a4` (`0o644`) — same problem.
-- A string literal terminated with `\0` baked into your payload —
-  obvious problem.
+- A string literal terminated with `\0` baked into the payload.
 - Any address with a small immediate — almost guaranteed zeros.
 
-Every one of these has a NUL-free workaround, and they're not exotic
-— they're the well-trodden idioms of Vietnam-era exploit writing:
+### The well-trodden idioms
 
-- **Stack-pivot small immediates** (push imm32, pop reg): the
-  encoding of `push imm32` is six bytes when imm32 itself has no
-  zeros. If your immediate naturally has zeros, find a larger
-  equivalent that the kernel masks down (this is a real trick for the
-  `chmod` mode argument).
-- **XOR for zero**: `xor eax, eax` zeroes a register without an
-  immediate. Standard.
-- **Runtime string termination**: bake your path string with NO null
-  terminator, then write the terminator yourself at runtime via
-  `mov [reg + len], al` after `xor eax, eax`. The path lives in your
-  shellcode without a zero byte; the kernel sees a properly
+These are not exotic — they're standard Vietnam-era exploit
+writing:
+
+- **`xor reg, reg` for zero.** No immediate, no zero byte.
+- **Stack-pivot small immediates** (`push imm32` / `pop reg`):
+  six bytes when the immediate has no zeros. If your immediate
+  naturally has zeros, find a larger equivalent that the kernel
+  masks down (real trick for `chmod` mode).
+- **Runtime string termination.** Bake your path string with NO
+  null terminator, then write the terminator at runtime via
+  `mov [reg + len], al` after `xor eax, eax`. The path lives in
+  your shellcode with no zero byte; the kernel sees a properly
   terminated string when the syscall fires.
-- **PC-relative addressing**: `lea rdi, [rip + label]` to point at
-  data in your own payload, with no absolute address you'd have to
-  bake.
+- **PC-relative addressing.** `lea rdi, [rip + label]` to point
+  at data in your own payload, with no absolute address baked in.
 
-In skeleton form, the idioms collected together look something like
-this (generic, not the L9 payload — you fill in the actual path,
-syscall numbers, and verify NUL-cleanliness yourself):
+### Skeleton
+
+Generic, not the L9 payload — fill in the real path, syscall
+numbers, and verify NUL-cleanliness yourself:
 
 ```asm
 .intel_syntax noprefix
@@ -173,18 +169,16 @@ code:
     /* exit cleanly so the SUID frame returns predictably */
 ```
 
-Replace the placeholders with values that are correct for your target
-*and* survive the NUL-check. `LEN` is the length of your path string.
-`<syscall-no>` and `<mode-without-zeros>` are exercises — you'll find
-the syscall number in `/usr/include/asm/unistd_64.h`, and the
-mode-without-zeros trick relies on the kernel masking the high bits
-of the mode argument down to twelve.
+Replace placeholders with values that are correct for your target
+*and* survive the NUL-check. `LEN` is your path-string length.
+`<syscall-no>` is in `/usr/include/asm/unistd_64.h`. The
+mode-without-zeros trick relies on the kernel masking the high
+bits of the mode argument down to twelve.
 
-Putting these together, the canonical "NUL-free chmod" shellcode is
-under 70 bytes. The canonical "NUL-free open/read/write" is similar.
-The point of writing it by hand is not to be clever — it's that
-*every msfvenom output for this needs encoder layers that you don't
-have room for*.
+Canonical "NUL-free chmod" lands under 70 bytes. Canonical
+"NUL-free open/read/write" is similar. The point isn't to be
+clever — it's that **every msfvenom output needs encoder layers
+you don't have room for**.
 
 ---
 
@@ -192,30 +186,30 @@ have room for*.
 
 Stack base address randomizes per execution. You will not see the
 same stack pointer twice. You don't have a leak primitive in the
-binary — there's no `printf("%p", ...)`, no `read(stdin)` that echoes
-addresses back. Information-theoretically, how can you possibly know
-where to point saved RIP?
+binary — no `printf("%p", ...)`, no `read(stdin)` that echoes
+addresses back. Information-theoretically, how can you possibly
+know where to point saved RIP?
 
-There are two facts to internalize. The first looks like a clean win
-and isn't. The second is what the level actually charges you.
+Two facts to internalize. The first looks like a clean win and
+isn't. The second is what the level actually charges you.
 
-**Fact 1 — the byte offset within page is deterministic.** When the
-kernel `execve`s a binary, the layout of `argv[]` and `envp[]`
-strings on the new stack is a function of a small set of inputs.
-Hold these four constant:
+### Fact 1 — twelve bits are deterministic
 
-- the length of `argv[0]` (the path the binary was invoked under),
-- the number of argv entries,
-- the total length of all argv strings combined,
-- the environment (envp contents and ordering),
+When the kernel `execve`s a binary, the layout of `argv[]` and
+`envp[]` strings on the new stack is a function of a small set of
+inputs. Hold these four constant:
 
-and the **byte offset of `argv[1]` within its memory page** —
-i.e. `argv[1] & 0xfff` — is identical on every `execve`. The bottom
-twelve bits of the address are something you can know without ever
+- length of `argv[0]` (the path the binary was invoked under),
+- number of argv entries,
+- total length of all argv strings combined,
+- environment (envp contents and ordering).
+
+The **byte offset of `argv[1]` within its memory page** —
+i.e. `argv[1] & 0xfff` — is identical on every `execve`. The
+bottom twelve bits are something you can know without ever
 seeing the real exploit run.
 
-A tiny "probe" binary that prints the address of its own `argv[1]`
-gives you those bottom twelve bits experimentally:
+A tiny probe binary gives you those bits:
 
 ```c
 #include <stdio.h>
@@ -225,10 +219,10 @@ int main(int argc, char **argv) {
 }
 ```
 
-Invoke it under the same four conditions as the real exploit (same
-path-length, same argc, same total argv length, same envp), look at
-the low twelve bits, and write them down. You only do this **once**.
-Across runs you'll see something like
+Invoke it under the same four conditions as the real exploit
+(same path-length, same argc, same total argv length, same envp),
+look at the low twelve bits, and write them down. You only do
+this **once**. Across runs:
 
 ```
 0x7ffe71260e92
@@ -236,116 +230,116 @@ Across runs you'll see something like
 0x7ffc29250e92
 ```
 
-The trailing `e92` is your number. Everything above the third nibble
-from the right is what's about to bite you.
+The trailing `e92` is your number. Everything above the third
+nibble from the right is what's about to bite you.
 
-**Fact 2 — the page address is fresh-random per `execve`.** Linux
-x86_64 stack ASLR randomizes the stack VMA's base by 22 bits,
-page-aligned. The kernel uses `STACK_RND_MASK = 0x3fffff` shifted
-by `PAGE_SHIFT` (see `arch/x86/include/asm/elf.h` and
-`fs/binfmt_elf.c::randomize_stack_top`); the often-quoted "24-bit"
-figure is the 32-bit number, not yours. That's roughly 4 million
-possible pages where your stack — and your `argv[1]` — could end
-up. Bits 12 through 33 of the address come out of a fresh
-`get_random_long()` call on every `execve`. They are not correlated
+### Fact 2 — twenty-two bits are fresh random
+
+Linux x86_64 stack ASLR randomizes the stack VMA's base by 22
+bits, page-aligned. The kernel uses `STACK_RND_MASK = 0x3fffff`
+shifted by `PAGE_SHIFT` (see `arch/x86/include/asm/elf.h` and
+`fs/binfmt_elf.c::randomize_stack_top`). That's ~4 million
+possible pages where your stack — and your `argv[1]` — could
+end up. Bits 12 through 33 come out of a fresh
+`get_random_long()` on every `execve`. They are not correlated
 to the previous run, and they are not predictable from outside.
 
-In particular, the probe **does not** tell you where your real
-exploit will land. The probe is itself an `execve` with its own
-independent random page bits. Re-running it in a tight loop just
-gives you the same constant twelve bits over and over and
-uncorrelated middle bits each time. The probe is a one-time tool
-for learning the deterministic part — it is not an oracle for
-predicting the next `execve`.
+**The probe does not tell you where your real exploit will
+land.** The probe is itself an `execve` with its own independent
+random page bits. Re-running it just gives you the same constant
+twelve bits and uncorrelated middle bits each time. The probe is
+a one-time tool for learning the deterministic part — not an
+oracle for predicting the next `execve`.
 
-**The path is brute force on the page bits.** Pick a plausible
-target page in the actual stack range — on x86_64 with 4-level
-paging that's roughly `0x7ffc_0000_0000` to `0x7fff_ffff_f000`,
-which is exactly the 22-bit window `STACK_RND_MASK` randomizes over
-— set the bottom twelve bits of your guess to the constant the
-probe gave you, and fire the exploit repeatedly. Each attempt is
-an independent draw against ~2²² ≈ 4 million pages. Hit rate per
-attempt is therefore roughly **1 in 4 million**. Plan accordingly.
+### The path: brute force the page bits
 
-A few practical notes for the loop:
+Pick a plausible target page in the actual stack range —
+roughly `0x7ffc_0000_0000` to `0x7fff_ffff_f000` on x86_64 with
+4-level paging, exactly the 22-bit window `STACK_RND_MASK`
+randomizes over. Set the bottom twelve bits to the constant the
+probe gave you. Fire repeatedly.
 
-- A NOP sled doesn't meaningfully widen the landing zone in this
-  setup. Your byte offset is deterministic and exactly known, so
-  every attempt already targets the right offset within the page;
-  what you're brute-forcing is the page itself, and a sled inside a
-  single page doesn't help you hit a different page. Keep a few
-  bytes of sled for off-by-one safety, but don't expect it to drop
-  the hit-rate denominator by a meaningful factor.
-- Run attempts in parallel. Multi-core scales linearly here — there
-  is no shared state between attempts.
-- At a few tens of milliseconds per `kern-tool` invocation, expected
-  solve is on the order of **hours to a couple of days** of CPU
-  time on a single core. This is brute force by design, not a
-  parlor trick; budget the patience and the parallelism.
+Each attempt is an independent draw against ~2²² ≈ 4 million
+pages. **Hit rate ≈ 1 in 4 million per attempt.** Plan
+accordingly.
 
-If your reflex is "I'll just disable ASLR with `setarch -R`", check
-the seccomp profile first — Docker's default blocks the
-`personality(ADDR_NO_RANDOMIZE)` syscall, so `setarch -R bash` exits
-with `Operation not permitted`. The container is locked into
+Practical notes:
+
+- **A NOP sled doesn't meaningfully widen the landing zone.**
+  Your byte offset is already exact within the page; you're
+  brute-forcing the page, not the offset. Keep a few bytes for
+  off-by-one safety, no more.
+- **Run attempts in parallel.** Multi-core scales linearly —
+  no shared state.
+- **Budget hours to a couple of days of CPU time** on a single
+  core (at a few tens of milliseconds per invocation). This is
+  brute force by design.
+
+If your reflex is "I'll just disable ASLR with `setarch -R`",
+check the seccomp profile first — Docker's default blocks the
+`personality(ADDR_NO_RANDOMIZE)` syscall, so `setarch -R bash`
+exits `Operation not permitted`. The container is locked into
 `randomize_va_space=2`. There is no shortcut.
 
-A few invariants to actually hold across the loop:
+### Invariants to hold across the loop
 
-1. **One probe is enough.** The bottom twelve bits don't change. Read
-   them once at startup and reuse them; don't waste an `execve` per
+1. **One probe is enough.** Don't waste an `execve` per
    iteration on a probe that tells you nothing new.
-2. **Match the four conditions exactly.** `argv[0]` length, argc,
-   total argv length, and envp must match between the probe binary
-   and the real exploit invocation, otherwise the byte offset shifts
-   and you've burned the probe. The most common silent failure is
-   forgetting that the probe path needs to be the same byte length
-   as the real binary's path — which often forces you to symlink the
+2. **Match the four conditions exactly.** `argv[0]` length,
+   argc, total argv length, envp. A one-byte mismatch shifts
+   every offset. Most common silent failure: probe path length
+   ≠ real binary path length — you may have to symlink the
    probe to a name that matches the target's path length
    character-for-character. Yes, really.
 
 Don't reach for `getenv()` tricks — those work for environment
-variables, not argv. Don't reach for return-to-libc — you don't need
-ROP gadgets when you have an executable stack and a known byte
-offset within page.
+variables, not argv. Don't reach for return-to-libc — you don't
+need ROP gadgets when you have an executable stack and a known
+byte offset within page.
 
-The senior-pwn insight here isn't "the probe defeats ASLR". It's
-the opposite: **the probe exposes which bits of ASLR are real
+The senior-pwn insight isn't "the probe defeats ASLR". It's the
+opposite: **the probe exposes which bits of ASLR are real
 entropy and which are deterministic — twelve deterministic
-byte-offset bits, twenty-two random page bits.** The first twelve
-you keep for free; the next twenty-two you pay for in attempts.
+byte-offset bits, twenty-two random page bits.** The first
+twelve you keep for free; the next twenty-two you pay for in
+attempts.
 
 ---
 
-## Lock 4 — the budget
+## Lock 4 — the byte budget
 
-You have 64 bytes of buffer, 8 bytes of saved RBP, and 8 bytes of
-saved RIP slot to work with — and one extra byte you can sneak in via
-how `strcpy` writes its trailing NUL. Total useful: ~80 bytes.
+64 bytes of buffer + 8 bytes of saved RBP + 8 bytes of saved RIP
+slot + one extra byte you can sneak in via `strcpy`'s trailing
+NUL = **~80 usable bytes**. Inside that you need:
 
-Inside that, you need:
+- NUL-free shellcode that does the file operation.
+- Padding up to the saved-RIP slot.
+- The saved-RIP slot itself, pointing into your shellcode.
 
-- A NUL-free shellcode that does the file operation.
-- Padding to bring you up to the saved-RIP slot.
-- The saved-RIP slot itself, set to point into your shellcode.
+If your shellcode is 90 bytes, you've already lost. The
+discipline this forces is exactly what sends you back to the
+NUL-free idioms above — you cannot afford the sloppy 200-byte
+payload that "works on your laptop".
 
-If your shellcode is 90 bytes, you've already lost — there's no room
-for the RIP overwrite. The discipline forced by the budget is what
-sends you back to the NUL-free idioms above; you cannot afford the
-sloppy 200-byte payload that "works on your laptop".
+### The strcpy-terminator trick
 
-There's a subtle micro-trick on the saved-RIP write. x86_64
-user-space addresses are bounded above by `0x0000_7fff_ffff_ffff` —
-the top two bytes are always zero. `strcpy` will write a NUL at the
-exact byte after your payload. If you size your payload so that
-`strcpy`'s trailing NUL falls inside the saved-RIP slot at the right
-offset, **you only need to write the low six bytes of the address
-yourself, and `strcpy` writes byte 7 for you for free**. Byte 8 was
-already zero on the previous frame. Net effect: full 8-byte canonical
-address constructed, no NUL byte ever appearing in your written
-payload.
+x86_64 user-space addresses are bounded above by
+`0x0000_7fff_ffff_ffff` — the top two bytes are always zero.
+`strcpy` writes a NUL at the byte immediately after your
+payload. Size your payload so that `strcpy`'s NUL falls inside
+the saved-RIP slot at the right offset, and:
 
-Schematically the payload looks like this (offsets are illustrative —
-substitute your real `K` from the buffer-to-RIP measurement above):
+- You write the low **six** bytes of the address yourself.
+- `strcpy` writes byte 7 (the NUL) for you for free.
+- Byte 8 was already zero on the previous frame.
+
+Net effect: full 8-byte canonical address constructed, no NUL
+byte ever appearing in your written payload.
+
+### Payload shape
+
+(Offsets illustrative — substitute your real `K` from the
+buffer-to-RIP measurement.)
 
 ```
 offset            0 ──────────────────────────────────► payload_len
@@ -365,100 +359,88 @@ offset            0 ────────────────────
                                                  the saved-RIP slot
 ```
 
-The NOP pad is whatever brings the end of your shellcode up to
-exactly the saved-RIP boundary. The 6-byte address is the low half of
-where you computed your shellcode lands. The 7th byte is `strcpy`'s
-trailing NUL. The 8th byte was already zero from the previous frame's
-return address.
+The NOP pad brings the end of your shellcode up to exactly the
+saved-RIP boundary. The 6-byte address is the low half of where
+you computed your shellcode lands. The 7th byte is `strcpy`'s
+trailing NUL. The 8th was already zero.
 
-This is the kind of detail that costs you an afternoon of debugging
-"my exploit segfaults on what looks like a perfect address" if you
-don't think about strcpy's terminator interaction with your byte
-math.
+Miss this and you spend an afternoon debugging "my exploit
+segfaults on what looks like a perfect address".
 
 ---
 
 ## Common dead-ends
 
-These are the failure modes operators report most often. Each is a
-hint that you've solved 3 of the 4 locks but missed one.
+Each entry is a hint that you've solved 3 of the 4 locks but
+missed one.
 
 - **Shellcode runs cleanly, file read succeeds, prints garbage.**
-  You probably read the wrong path, or you read a directory, or
-  you forgot the runtime string-terminator and the kernel sees
-  `path/file<garbage>`.
-- **Shellcode runs cleanly but the flag stays mode 600.**
+  Wrong path, read a directory, or forgot the runtime
+  string-terminator and the kernel sees `path/file<garbage>`.
+- **Shellcode runs cleanly but flag stays mode 600.**
   Almost always: you `execve`d a shell. Re-read Lock 1.
 - **`SIGSEGV` on a beautifully-crafted RIP, attempt #1.**
-  This is *expected*, not a bug. Per Lock 3, the probe gives you
-  bottom-12-bit certainty and the rest is a brute force against
-  ~2²² ≈ 4 million random page values, so the hit rate per attempt
-  is roughly 1 in 4 million. Your first attempt was a free draw;
-  wrap the exploit in a retry loop, run it in parallel across cores,
-  and let it grind for hours. If you're still missing after a
-  multiple-hour run with the loop pinned at full CPU, *that's* a
-  bug — re-check the invariants below.
+  *Expected*, not a bug. Per Lock 3, hit rate is ~1 in 4 million.
+  Wrap in a retry loop, parallel across cores, grind for hours.
+  If still missing after a multi-hour run at full CPU — *that*'s
+  a bug. Re-check the invariants.
 - **The loop never lands no matter how long it runs.**
-  Probe and exploit are out-of-sync on one of the four invariants.
+  Probe and exploit out-of-sync on one of the four invariants.
   Most common cause: payload length differed between probe and
-  exploit, or you ran them in different shell sessions, or your
-  `argv[0]` lengths weren't equal. The probe technique is unforgiving
-  on inputs — a one-byte mismatch shifts every offset.
+  exploit, or different shell sessions, or unequal `argv[0]`
+  lengths. The probe technique is unforgiving on inputs.
 - **`strcpy` truncates at offset N < your payload length.**
-  A NUL byte slipped in. Common locations: a small immediate you
-  thought was non-zero (check the encoding, not the value), the
-  low six bytes of `argv[1]`'s address (rare; if so, change
-  payload length by ±1 to shift the address), or your asm
-  literal somewhere.
+  A NUL byte slipped in. Common: a small immediate you thought
+  was non-zero (check the *encoding*, not the value), low six
+  bytes of `argv[1]`'s address (rare; if so, change payload
+  length by ±1 to shift the address), or an asm literal.
 - **Probe address looks fine but exploit lands "near" the
   shellcode, not on it.**
   You forgot the `argv[]` layout depends on `argc` *and* total
-  argv string length, not just `argv[0]` length. Match all of
-  it, not just the first.
+  argv string length, not just `argv[0]` length.
 
 ---
 
 ## What L9 teaches
 
-Every solo skill in L9 is in any pwn-101 syllabus. NUL-free encoding
-appears in *Smashing the Stack for Fun and Profit* (1996). The SUID
-shell trap is in `man bash` and has been since BSD shells. The argv
-address derivation is folklore in the binary-exploit community for
-twenty years.
+Every solo skill in L9 is in any pwn-101 syllabus. NUL-free
+encoding appears in *Smashing the Stack for Fun and Profit*
+(1996). The SUID shell trap is in `man bash` and has been since
+BSD shells. The argv address derivation is folklore in the
+binary-exploit community for twenty years.
 
-The level forces you to use all four at once, with a budget that
-forbids hand-waving any of them. That is the senior pwn skill in the
-abstract: **assembling well-known small techniques into one
-constraint-satisfaction problem under pressure**. That's also what
-real-world exploit dev looks like, and it's the reason this is a
+The level forces you to use all four at once, under a budget
+that forbids hand-waving any of them. That is the senior pwn
+skill in the abstract: **assembling well-known small techniques
+into one constraint-satisfaction problem under pressure**. It's
+what real-world exploit dev looks like, and it's why this is a
 gate level for what comes after.
 
-If you cleared L9, you have a senior pwn skill that almost no
-certificate teaches. If you're still stuck, the right next move is
-not to hunt for a more clever trick — it's to go back to whichever of
-the four locks you understand the worst, read the relevant manpage
-or paper end-to-end, and try again.
+Cleared L9? You have a senior pwn skill almost no certificate
+teaches. Still stuck? The right next move is not a more clever
+trick — it's to go back to whichever of the four locks you
+understand the worst, read the relevant manpage or paper
+end-to-end, and try again.
 
 ---
 
 ## Pointers, not solutions
 
-If you want to deepen any of the four:
-
 - *Smashing the Stack for Fun and Profit* — Aleph One, Phrack 49.
   Outdated specifics, evergreen mental model.
 - *Bypassing ASLR via deterministic stack layouts* — talks and
-  blog posts on the probe-binary technique abound; search for
-  "stack address derivation argv length".
+  posts on the probe-binary technique. Search
+  *"stack address derivation argv length"*.
 - `man 2 execve` — read the rationale section about set-UID
-  behaviour. Then read `man bash`, search "PRIVILEGED MODE".
+  behaviour. Then `man bash`, search `PRIVILEGED MODE`.
 - `/usr/include/asm/unistd_64.h` — the syscall table. Learn to
   read it.
 - *The Shellcoder's Handbook*, ch. 4-5 — NUL-free encoding
-  patterns laid out methodically. Worth the slow read.
+  patterns laid out methodically.
 
 ---
 
-*Found a better approach, an error, or want to argue about technique?
-Take it to* `#writeups` *on Discord. Verbatim flag values get redacted;
-nudges and class-level discussion are exactly what the channel is for.*
+*Found a better approach, an error, or want to argue about
+technique? Take it to* `#writeups` *on Discord. Verbatim flag
+values get redacted; nudges and class-level discussion are
+exactly what the channel is for.*
