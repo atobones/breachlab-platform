@@ -7,12 +7,14 @@ export function WriteupCard({
   unlocked,
   unlockHint,
   canStar,
+  currentUserIsCurator,
   starDisabledReason,
 }: {
   writeup: CommunityWriteupView;
   unlocked: boolean;
   unlockHint?: string;
   canStar: boolean;
+  currentUserIsCurator?: boolean;
   starDisabledReason?: string;
 }) {
   return (
@@ -20,25 +22,28 @@ export function WriteupCard({
       className="border border-border px-4 py-3 flex flex-col gap-2 h-full"
       data-testid="writeup-card"
     >
-      <header className="flex items-baseline justify-between gap-3 flex-wrap">
-        <div className="text-sm text-amber font-medium">
-          {writeup.title}
+      <header className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0 text-sm space-y-1">
+          <div className="text-amber font-medium">{writeup.title}</div>
           {writeup.isFeatured ? (
             <span
-              className="ml-2 inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
+              className="inline-block text-[10px] uppercase tracking-wider px-1 py-0.5 border border-amber/40 text-amber"
               title="Recommended by BreachLab"
             >
               Recommended by BreachLab
             </span>
           ) : null}
         </div>
-        <StarButton
-          writeupId={writeup.id}
-          initialStarred={writeup.userHasStarred}
-          initialScore={writeup.weightedScore}
-          disabled={!canStar}
-          disabledReason={starDisabledReason}
-        />
+        <div className="shrink-0">
+          <StarButton
+            writeupId={writeup.id}
+            initialStarred={writeup.userHasStarred}
+            initialScore={writeup.weightedScore}
+            currentUserIsCurator={currentUserIsCurator}
+            disabled={!canStar}
+            disabledReason={starDisabledReason}
+          />
+        </div>
       </header>
 
       <div className="flex items-center gap-2 text-xs">
