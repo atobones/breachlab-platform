@@ -24,7 +24,7 @@ export function FeaturedAuthorCard({
             <span className="text-muted">Writeups by </span>
             <Link
               href={`/writeups/by/${author.username}`}
-              className="text-amber font-medium hover:underline"
+              className="text-amber font-medium underline decoration-amber/40 underline-offset-2 hover:decoration-amber"
             >
               {author.username}
             </Link>
