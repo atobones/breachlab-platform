@@ -4,7 +4,10 @@ import { db } from "@/lib/db/client";
 import { kothEvents, kothRounds, kothSshKeys, users } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { resolveSlotToUserId, isValidEventKind } from "@/lib/koth/slots";
-import { postKothEventToDiscord } from "@/lib/koth/discord";
+import {
+  postKothEventToDiscord,
+  postKothDosViolationToDiscord,
+} from "@/lib/koth/discord";
 import {
   recordPathEvent,
   resolvePathBySlug,
@@ -301,6 +304,56 @@ export async function POST(req: Request) {
       .where(eq(users.id, targetUserId))
       .limit(1);
     targetUsername = u?.username ?? null;
+  }
+
+  // ─── Phase 2.5 — Anti-DoS enforcement ───────────────────────
+  // The in-arena watchdog POSTs dos_violation when it detects an
+  // anti-game pattern (kill-on-login, fork bomb, sshd kill, etc.).
+  // Three side-effects, all in one shot:
+  //   1. Set the offender's koth_ssh_keys.dos_locked_until = now+24h.
+  //      sync-keys.sh strips locked rows from the per-slot
+  //      authorized_keys on its next minute tick → SSH refuses.
+  //   2. Force-close the round so the offender forfeits the hold.
+  //   3. Post a red Discord embed naming the pattern.
+  if (body.kind === "dos_violation") {
+    const pattern =
+      (body.raw_meta?.pattern as string | undefined) ?? "unknown";
+    if (actorUserId) {
+      try {
+        await db
+          .update(kothSshKeys)
+          .set({
+            dosLockedUntil: sql`now() + interval '24 hours'`,
+          })
+          .where(eq(kothSshKeys.userId, actorUserId));
+      } catch {
+        // best-effort — lock is the deterrent, not the only defense
+      }
+    }
+    try {
+      await db
+        .update(kothRounds)
+        .set({
+          status: "completed",
+          endedAt: sql`now()`,
+          resetReason: `dos_violation:${pattern}`,
+        })
+        .where(
+          and(
+            eq(kothRounds.id, body.round_id),
+            eq(kothRounds.status, "active"),
+          ),
+        );
+    } catch {
+      // best-effort — reset-arena.sh will pick up the close on next tick
+    }
+    postKothDosViolationToDiscord({
+      offenderUsername: actorUsername,
+      victimUsername: targetUsername,
+      pattern,
+      occurredAt: insertedAt,
+    });
+    return NextResponse.json({ ok: true, event_id: insertedId });
   }
 
   postKothEventToDiscord({

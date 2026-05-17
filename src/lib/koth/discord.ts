@@ -133,6 +133,45 @@ export function postKothEventToDiscord(ev: EventArgs): void {
   postEmbed(embed);
 }
 
+const DOS_PATTERN_LABEL: Record<string, string> = {
+  kill_on_login: "Killing other operators on login",
+  fork_bomb: "Fork bomb / process table exhaustion",
+  mem_bomb: "Memory exhaustion / OOM attack",
+  disk_fill: "Disk fill attack",
+  sshd_kill: "Killed sshd",
+  iptables_drop: "Blocked SSH at the firewall",
+  brick_box: "Bricked critical paths (chmod 000)",
+  crown_daemon_kill: "Killed the crown daemon",
+  escalation_daemon_kill: "Killed the escalation daemon",
+};
+
+function dosPatternLabel(pattern: string): string {
+  return DOS_PATTERN_LABEL[pattern] ?? `Anti-game pattern: ${pattern}`;
+}
+
+// Red-bar embed posted when the in-arena watchdog flags a DoS
+// violation. The round is force-closed by the event handler before
+// this fires, so the embed wording is past-tense ("forfeit").
+export function postKothDosViolationToDiscord(opts: {
+  offenderUsername: string | null;
+  victimUsername: string | null;
+  pattern: string;
+  occurredAt: Date;
+}): void {
+  const offender = opts.offenderUsername ?? "an operator";
+  const victim = opts.victimUsername;
+  const detail = victim
+    ? `**${offender}** attacked **${victim}** — round forfeit.`
+    : `**${offender}** triggered an anti-game pattern — round forfeit.`;
+  postEmbed({
+    color: COLOR.warning,
+    title: `⛔ DoS violation — round closed`,
+    description: `${dosPatternLabel(opts.pattern)}\n${detail}\nKey locked for 24h.`,
+    timestamp: opts.occurredAt.toISOString(),
+    footer: { text: "Crown Wars · fair-play enforcement" },
+  });
+}
+
 // Round summary card. Single embed, gold bar, winner stats in three
 // inline fields so they line up neatly on desktop and mobile.
 export function postKothRoundCloseToDiscord(opts: {

@@ -149,9 +149,35 @@ export default function KothRulesPage() {
       </RuleSection>
 
       <RuleSection title="Fair play">
-        <ul className="space-y-1 list-disc list-inside text-[12px]">
+        <p className="text-[13px] leading-relaxed">
+          The whole point is that operators compete on the same box.
+          That means every new login deserves a fair shot at the
+          crown. Defending is core gameplay — patch the path, kill the
+          attacker&apos;s exploit process mid-run, harden the SUIDs,
+          set traps. Denying everyone else any chance to play is
+          where the line sits.
+        </p>
+        <p className="text-[13px] leading-relaxed pt-1">
+          The arena runs a watchdog that detects anti-game patterns.
+          When it flags one, the round is force-closed (offender
+          loses the hold) and the offender&apos;s SSH key is locked
+          for 24 hours.
+        </p>
+        <p className="text-[12px] leading-snug pt-1 text-muted">
+          Anti-game patterns the watchdog catches:
+        </p>
+        <ul className="space-y-0.5 list-disc list-inside text-[12px] text-muted">
+          <li>Killing other operators&apos; login shells on sight (kill-on-login)</li>
+          <li>Fork bombs / OOM bombs / disk fill</li>
+          <li>Killing sshd or blocking SSH via iptables</li>
+          <li>Bricking critical files (chmod 000 /bin/bash, /etc/passwd)</li>
+          <li>Killing the crown or escalation daemon</li>
+        </ul>
+        <p className="text-[12px] leading-snug pt-1 text-muted">
+          Other rules:
+        </p>
+        <ul className="space-y-0.5 list-disc list-inside text-[12px]">
           <li>No attacks on the platform, host, or other tracks.</li>
-          <li>No DoS on the arena — fork bombs, OOMs, sshd kills.</li>
           <li>No sharing private keys.</li>
           <li>
             Unintended bugs · arena escape · platform vulns → DM{" "}
@@ -162,11 +188,7 @@ export default function KothRulesPage() {
             >
               @ato in Discord
             </a>
-            . HoF credit (
-            <Link href="/hall-of-operatives" className="text-amber">
-              /hall-of-operatives
-            </Link>
-            ).
+            .
           </li>
         </ul>
       </RuleSection>
