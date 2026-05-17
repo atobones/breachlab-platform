@@ -62,7 +62,6 @@ export default async function WriteupsIndexPage() {
                 <FeaturedAuthorCard
                   author={a}
                   canStar={!!user}
-                  currentUserIsCurator={!!(user as any)?.isCurator}
                   starDisabledReason={!user ? "Log in to star" : undefined}
                 />
               </li>
@@ -159,8 +158,7 @@ export default async function WriteupsIndexPage() {
                         : "Log in + clear this level to unlock."
                     }
                     canStar={readable && !!user}
-                    currentUserIsCurator={!!(user as any)?.isCurator}
-                    starDisabledReason={
+                      starDisabledReason={
                       !user ? "Log in to star" : "Complete this level to star"
                     }
                   />

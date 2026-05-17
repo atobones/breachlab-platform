@@ -85,7 +85,6 @@ export default async function WriteupLevelPage({
                         : "Log in + clear this level to unlock."
                     }
                     canStar={readable && !!user}
-                    currentUserIsCurator={!!(user as any)?.isCurator}
                     starDisabledReason={
                       !user ? "Log in to star" : "Complete this level to star"
                     }

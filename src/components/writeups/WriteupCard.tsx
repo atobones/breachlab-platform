@@ -7,14 +7,12 @@ export function WriteupCard({
   unlocked,
   unlockHint,
   canStar,
-  currentUserIsCurator,
   starDisabledReason,
 }: {
   writeup: CommunityWriteupView;
   unlocked: boolean;
   unlockHint?: string;
   canStar: boolean;
-  currentUserIsCurator?: boolean;
   starDisabledReason?: string;
 }) {
   return (
@@ -39,7 +37,6 @@ export function WriteupCard({
             writeupId={writeup.id}
             initialStarred={writeup.userHasStarred}
             initialScore={writeup.weightedScore}
-            currentUserIsCurator={currentUserIsCurator}
             disabled={!canStar}
             disabledReason={starDisabledReason}
           />

@@ -5,7 +5,7 @@ export function AuthorTile({ author }: { author: AuthorView }) {
   const initial = author.username.slice(0, 1).toUpperCase();
   return (
     <Link
-      href={author.id ? `/writeups/by/${author.username}` : "#"}
+      href={author.id ? `/u/${author.username}` : "#"}
       className="inline-flex items-center gap-2 text-xs hover:underline"
       data-testid="author-tile"
     >
