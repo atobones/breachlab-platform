@@ -5,12 +5,10 @@ import type { FeaturedAuthorView } from "@/lib/featured-authors";
 export function FeaturedAuthorCard({
   author,
   canStar,
-  currentUserIsCurator,
   starDisabledReason,
 }: {
   author: FeaturedAuthorView;
   canStar: boolean;
-  currentUserIsCurator?: boolean;
   starDisabledReason?: string;
 }) {
   return (
@@ -23,7 +21,7 @@ export function FeaturedAuthorCard({
           <div>
             <span className="text-muted">Writeups by </span>
             <Link
-              href={`/writeups/by/${author.username}`}
+              href={`/u/${author.username}`}
               className="text-amber font-medium underline decoration-amber/40 underline-offset-2 hover:decoration-amber"
             >
               {author.username}
@@ -43,7 +41,6 @@ export function FeaturedAuthorCard({
             authorId={author.id}
             initialStarred={author.userHasStarred}
             initialScore={author.weightedScore}
-            currentUserIsCurator={currentUserIsCurator}
             disabled={!canStar}
             disabledReason={starDisabledReason}
           />

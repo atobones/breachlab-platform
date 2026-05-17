@@ -72,7 +72,6 @@ export default async function AuthorPage({
                 authorId={featured.id}
                 initialStarred={featured.userHasStarred}
                 initialScore={featured.weightedScore}
-                currentUserIsCurator={!!(user as any)?.isCurator}
                 disabled={!user}
                 disabledReason={!user ? "Log in to star" : undefined}
               />

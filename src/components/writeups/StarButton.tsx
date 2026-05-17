@@ -5,14 +5,12 @@ export function StarButton({
   writeupId,
   initialStarred,
   initialScore,
-  currentUserIsCurator,
   disabled,
   disabledReason,
 }: {
   writeupId: string;
   initialStarred: boolean;
   initialScore: number;
-  currentUserIsCurator?: boolean;
   disabled?: boolean;
   disabledReason?: string;
 }) {
@@ -20,13 +18,12 @@ export function StarButton({
   const [score, setScore] = useState(initialScore);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const delta = currentUserIsCurator ? 10 : 1;
 
   const toggle = () => {
     if (disabled) return;
     const next = !starred;
     setStarred(next);
-    setScore((s) => s + (next ? delta : -delta));
+    setScore((s) => s + (next ? 1 : -1));
     setError(null);
     startTransition(async () => {
       let res: Response;
@@ -36,13 +33,13 @@ export function StarButton({
         });
       } catch {
         setStarred(!next);
-        setScore((s) => s + (next ? -delta : delta));
+        setScore((s) => s + (next ? -1 : 1));
         setError("Network error — try again");
         return;
       }
       if (!res.ok) {
         setStarred(!next);
-        setScore((s) => s + (next ? -delta : delta));
+        setScore((s) => s + (next ? -1 : 1));
         setError(
           res.status === 401
             ? "Log in to star"

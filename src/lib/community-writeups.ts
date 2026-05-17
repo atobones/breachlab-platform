@@ -23,8 +23,11 @@ export type CommunityWriteupView = {
   userHasStarred: boolean;
 };
 
+// Score counts every star equally. Curator presence flips the
+// "Recommended by BreachLab" badge (isFeatured) instead of inflating
+// the number — we want display honesty over a ranking signal.
 export function computeWeightedScore(regular: number, curator: number): number {
-  return regular + 10 * curator;
+  return regular + curator;
 }
 
 const APPROVED = sql`${writeups.status} = 'approved'`;
