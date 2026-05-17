@@ -34,9 +34,9 @@ const COLOR = {
   crown: 0xfcb814, // amber — crown grab
   dethrone: 0xff7a00, // orange — displacement
   warning: 0xff4040, // red — escalation warning
-  newPath: 0xffa500, // tangerine — new path opened
+  newPath: 0x22c55e, // vivid green — new attack path is an opportunity
   victory: 0xffd700, // gold — round won
-  patch: 0x6ab04c, // green — defensive patch
+  patch: 0x6ab04c, // forest green — defensive patch (muted, distinct from newPath)
   info: 0x4ab0ff, // sky — neutral
 } as const;
 
@@ -166,7 +166,7 @@ export function postKothDosViolationToDiscord(opts: {
   postEmbed({
     color: COLOR.warning,
     title: `⛔ DoS violation — round closed`,
-    description: `${dosPatternLabel(opts.pattern)}\n${detail}\nKey locked for 24h.`,
+    description: `${dosPatternLabel(opts.pattern)}\n${detail}`,
     timestamp: opts.occurredAt.toISOString(),
     footer: { text: "Crown Wars · fair-play enforcement" },
   });
