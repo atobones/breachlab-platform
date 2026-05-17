@@ -80,8 +80,8 @@ export default function RulesPage() {
           </li>
           <li>
             <strong>If your content makes money, send some back.</strong>
-            {" "}BreachLab runs on donations. If a Ghost or Phantom or
-            Specter writeup made you ad revenue or course sales, the{" "}
+            {" "}BreachLab runs on donations. If a writeup, video, or
+            course built on any of our tracks made you revenue, the{" "}
             <a href="/donate" className="text-amber">
               donate page
             </a>{" "}
