@@ -157,44 +157,6 @@ export default async function SpecterIPage() {
         </ul>
       </details>
 
-      <section className="border border-border p-4 space-y-3">
-        <h2 className="text-amber text-sm uppercase tracking-wider">SSH access</h2>
-        <dl className="text-sm space-y-1">
-          <div>
-            <dt className="inline text-muted">Host: </dt>
-            <dd className="inline">204.168.229.209</dd>
-          </div>
-          <div>
-            <dt className="inline text-muted">Levels L0–L13: </dt>
-            <dd className="inline">ports 2230–2243 (one per level)</dd>
-          </div>
-          <div>
-            <dt className="inline text-muted">L0 entry user: </dt>
-            <dd className="inline">specter0</dd>
-          </div>
-          <div>
-            <dt className="inline text-muted">L0 password: </dt>
-            <dd className="inline text-amber">bootstrap token (below)</dd>
-          </div>
-        </dl>
-        {user && <SpecterTokenIssuer />}
-        <div className="pt-3 mt-1 border-t border-border/40 space-y-2">
-          <p className="text-xs">
-            <span className="text-amber">From L1 onward:</span> solve the
-            level, take the flag the verifier prints, and{" "}
-            <Link href="/submit" className="text-amber underline">
-              submit it at /submit
-            </Link>
-            . The response gives you the next level&apos;s SSH password.
-            Flags and passwords are per-player.
-          </p>
-          <p className="text-xs text-muted">
-            Each SSH connection spawns a fresh ephemeral container;
-            disconnect tears it down.
-          </p>
-        </div>
-      </section>
-
       <details className="group border border-border open:border-amber/40 transition-colors">
         <summary className="cursor-pointer select-none list-none px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber/[0.02]">
           <h2 className="text-amber text-sm uppercase tracking-wider">Toolkit</h2>
@@ -263,6 +225,44 @@ export default async function SpecterIPage() {
         </p>
         </div>
       </details>
+
+      <section className="border border-border p-4 space-y-3">
+        <h2 className="text-amber text-sm uppercase tracking-wider">SSH access</h2>
+        <dl className="text-sm space-y-1">
+          <div>
+            <dt className="inline text-muted">Host: </dt>
+            <dd className="inline">204.168.229.209</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">Levels L0–L13: </dt>
+            <dd className="inline">ports 2230–2243 (one per level)</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">L0 entry user: </dt>
+            <dd className="inline">specter0</dd>
+          </div>
+          <div>
+            <dt className="inline text-muted">L0 password: </dt>
+            <dd className="inline text-amber">bootstrap token (below)</dd>
+          </div>
+        </dl>
+        {user && <SpecterTokenIssuer />}
+        <div className="pt-3 mt-1 border-t border-border/40 space-y-2">
+          <p className="text-xs">
+            <span className="text-amber">From L1 onward:</span> solve the
+            level, take the flag the verifier prints, and{" "}
+            <Link href="/submit" className="text-amber underline">
+              submit it at /submit
+            </Link>
+            . The response gives you the next level&apos;s SSH password.
+            Flags and passwords are per-player.
+          </p>
+          <p className="text-xs text-muted">
+            Each SSH connection spawns a fresh ephemeral container;
+            disconnect tears it down.
+          </p>
+        </div>
+      </section>
 
       <section>
         <h2 className="text-amber text-lg mb-2">Levels</h2>
