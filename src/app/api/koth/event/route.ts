@@ -308,6 +308,7 @@ export async function POST(req: Request) {
     actorUsername,
     targetUsername,
     exploitPath: body.exploit_path ?? null,
+    pathName: path?.name ?? null,
     occurredAt: insertedAt,
     valueSnapshot,
   });

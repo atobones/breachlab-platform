@@ -5,79 +5,136 @@
 // is created server-side via Discord's "Integrations → Webhooks" UI on
 // the #crown-wars channel.
 //
-// Format examples (Phase 2):
-//   ● [14:32:07] alice took the crown via l7-suid (+12 pt)
-//   ● [14:32:07] alice dethroned bob via writable-passwd (+18 pt)
-//   ⚠ [14:33:00] escalation incoming — writable-passwd in ~60s
-//   ▲ [14:34:00] new path opened: writable-passwd (base 18 pt)
+// Format: rich embeds (coloured left bar + title + body), not raw text.
+// Path slugs (`writable-ld-preload`, `l7-suid`) are technical and ugly
+// in chat — we accept an optional human-readable `pathName` from the
+// caller (resolved against the path catalog in api/koth/event/route.ts)
+// and fall back to the slug only if the name is missing.
 
 type EventArgs = {
   kind: string;
   actorUsername: string | null;
   targetUsername: string | null;
-  exploitPath: string | null;
+  exploitPath: string | null; // slug, kept for fallback
+  pathName?: string | null; // human-readable, e.g. "Writable PYTHONPATH"
   occurredAt: Date;
   valueSnapshot?: number | null;
 };
 
-function fmtPath(slug: string | null, value: number | null | undefined): string {
-  if (!slug) return "";
-  const v = value != null ? ` (+${value} pt)` : "";
-  return ` via \`${slug}\`${v}`;
+type Embed = {
+  color: number;
+  title?: string;
+  description?: string;
+  fields?: Array<{ name: string; value: string; inline?: boolean }>;
+  timestamp?: string;
+  footer?: { text: string };
+};
+
+const COLOR = {
+  crown: 0xfcb814, // amber — crown grab
+  dethrone: 0xff7a00, // orange — displacement
+  warning: 0xff4040, // red — escalation warning
+  newPath: 0xffa500, // tangerine — new path opened
+  victory: 0xffd700, // gold — round won
+  patch: 0x6ab04c, // green — defensive patch
+  info: 0x4ab0ff, // sky — neutral
+} as const;
+
+function pathLabel(name: string | null | undefined, slug: string | null): string | null {
+  if (name && name.trim()) return name;
+  if (slug && slug.trim()) return slug;
+  return null;
 }
 
-function formatLine(ev: EventArgs): string | null {
-  const ts = ev.occurredAt.toISOString().slice(11, 19);
+function embedForEvent(ev: EventArgs): Embed | null {
+  const ts = ev.occurredAt.toISOString();
   const actor = ev.actorUsername ?? "unknown";
-  const path = fmtPath(ev.exploitPath ?? null, ev.valueSnapshot ?? null);
+  const path = pathLabel(ev.pathName, ev.exploitPath);
+  const pts = ev.valueSnapshot;
 
   switch (ev.kind) {
-    case "crown_taken":
+    case "crown_taken": {
+      const valueLine = pts != null ? ` · **+${pts} pt**` : "";
       if (ev.targetUsername) {
-        return `● [${ts}] **${actor}** dethroned **${ev.targetUsername}**${path}`;
+        return {
+          color: COLOR.dethrone,
+          title: `⚔️ ${actor} dethroned ${ev.targetUsername}`,
+          description: path ? `via **${path}**${valueLine}` : undefined,
+          timestamp: ts,
+        };
       }
-      return `● [${ts}] **${actor}** took the crown${path}`;
+      return {
+        color: COLOR.crown,
+        title: `👑 ${actor} took the crown`,
+        description: path ? `via **${path}**${valueLine}` : undefined,
+        timestamp: ts,
+      };
+    }
     case "patched":
-      return `● [${ts}] **${actor}** patched ${ev.exploitPath ?? "an exploit"}`;
+      return {
+        color: COLOR.patch,
+        title: `🛡️ ${actor} patched the box`,
+        description: path ? `Closed **${path}** · **+3 pt**` : undefined,
+        timestamp: ts,
+      };
     case "path_patched_attributed":
-      return `● [${ts}] **${actor}** closed \`${ev.exploitPath}\` (path-attributed +5)`;
-    case "escalated":
-      return `● [${ts}] escalation: new path open${path}`;
+      return {
+        color: COLOR.patch,
+        title: `🛡️ ${actor} sealed the path`,
+        description: path
+          ? `Path-attributed patch on **${path}** · **+5 pt**`
+          : undefined,
+        timestamp: ts,
+      };
     case "escalation_pending":
-      return `⚠ [${ts}] escalation incoming — \`${ev.exploitPath}\` in ~60s`;
-    case "path_activated":
-      return `▲ [${ts}] new path opened: \`${ev.exploitPath}\` (base ${ev.valueSnapshot ?? "?"} pt)`;
+      return {
+        color: COLOR.warning,
+        title: `⚠️ Escalation incoming`,
+        description: path
+          ? `**${path}** opens in ~60 seconds`
+          : `A new attack path opens in ~60 seconds`,
+        timestamp: ts,
+      };
+    case "path_activated": {
+      const baseLine = pts != null ? ` · base **${pts} pt**` : "";
+      return {
+        color: COLOR.newPath,
+        title: `🆕 New attack path open`,
+        description: path ? `**${path}**${baseLine}` : undefined,
+        timestamp: ts,
+      };
+    }
     case "tutorial":
-      return `● [${ts}] **${actor}** cleared the tutorial`;
+      return {
+        color: COLOR.info,
+        title: `✓ ${actor} cleared the tutorial`,
+        timestamp: ts,
+      };
     default:
       return null;
   }
 }
 
-export function postKothEventToDiscord(ev: EventArgs): void {
+function postEmbed(embed: Embed): void {
   const webhook = process.env.KOTH_DISCORD_WEBHOOK;
   if (!webhook) return;
-
-  const line = formatLine(ev);
-  if (!line) return;
-
-  // Fire-and-forget. We don't await — the oracle endpoint must return
-  // 200 to the daemon fast regardless of Discord's mood.
   fetch(webhook, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content: line }),
+    body: JSON.stringify({ embeds: [embed] }),
   }).catch(() => {
-    // best-effort; Discord outage shouldn't surface anywhere
+    // best-effort
   });
 }
 
-// Fire-and-forget summary post when a round closes. Used by the
-// round/close endpoint. Two-line format so the moment lands cleanly
-// in the channel:
-//
-//   ━━ round closed · 21:40 UTC ━━
-//   🏆 **alice** takes the round — 47 pt · 3 dethrones · 12m hold
+export function postKothEventToDiscord(ev: EventArgs): void {
+  const embed = embedForEvent(ev);
+  if (!embed) return;
+  postEmbed(embed);
+}
+
+// Round summary card. Single embed, gold bar, winner stats in three
+// inline fields so they line up neatly on desktop and mobile.
 export function postKothRoundCloseToDiscord(opts: {
   winnerUsername: string;
   points: number;
@@ -85,21 +142,18 @@ export function postKothRoundCloseToDiscord(opts: {
   crownDurationSeconds: number;
   closedAt: Date;
 }): void {
-  const webhook = process.env.KOTH_DISCORD_WEBHOOK;
-  if (!webhook) return;
-  const ts = opts.closedAt.toISOString().slice(11, 16);
   const holdM = Math.floor(opts.crownDurationSeconds / 60);
   const holdS = opts.crownDurationSeconds % 60;
   const hold = holdM > 0 ? `${holdM}m ${holdS}s` : `${holdS}s`;
-  const content =
-    `━━ round closed · ${ts} UTC ━━\n` +
-    `🏆 **${opts.winnerUsername}** takes the round — ` +
-    `${opts.points} pt · ${opts.dethrones} dethrones · ${hold} on the throne`;
-  fetch(webhook, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ content }),
-  }).catch(() => {
-    // best-effort
+  postEmbed({
+    color: COLOR.victory,
+    title: `🏆 ${opts.winnerUsername} takes the round`,
+    fields: [
+      { name: "Score", value: `${opts.points} pt`, inline: true },
+      { name: "Dethrones", value: `${opts.dethrones}`, inline: true },
+      { name: "Throne time", value: hold, inline: true },
+    ],
+    timestamp: opts.closedAt.toISOString(),
+    footer: { text: "Crown Wars · round closed" },
   });
 }
