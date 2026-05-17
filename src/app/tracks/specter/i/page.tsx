@@ -86,25 +86,37 @@ export default async function SpecterIPage() {
 
       {user && <SpecterBootstrapToken />}
 
-      <section className="space-y-3">
-        <p className="text-sm">
-          Most OSINT training teaches you to type queries into search engines.
-          That is the first ten percent. The other ninety percent — source
-          independence, calibrated confidence, operational discipline against a
-          target who counter-investigates, defensible documentation — is where
-          professionals actually live, and where almost no public course goes.
+      <aside className="relative border border-amber/30 bg-amber/[0.02] px-5 sm:px-6 pt-5 pb-5 space-y-3">
+        <span aria-hidden className="absolute -top-px -left-px h-2 w-2 border-t border-l border-amber" />
+        <span aria-hidden className="absolute -top-px -right-px h-2 w-2 border-t border-r border-amber" />
+        <span aria-hidden className="absolute -bottom-px -left-px h-2 w-2 border-b border-l border-amber" />
+        <span aria-hidden className="absolute -bottom-px -right-px h-2 w-2 border-b border-r border-amber" />
+        <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
+          ▸ briefing
+        </div>
+        <p className="text-sm leading-relaxed">
+          Most OSINT training stops at typing queries into search engines —
+          ten percent of the job. The other ninety — source independence,
+          calibrated confidence, OPSEC against a target who
+          counter-investigates, defensible documentation — is where
+          professionals live and where almost no public course goes.
         </p>
-        <p className="text-sm">
-          Specter I goes there. By the time you finish the capstone, your
-          findings stand up to legal scrutiny, your tradecraft survives
-          adversarial counter-intelligence, and your written report meets
-          Berkeley Protocol standards.
+        <p className="text-sm leading-relaxed">
+          Specter I goes there. By the capstone, your findings hold under
+          legal scrutiny, your tradecraft survives adversarial
+          counter-intelligence, and your report meets Berkeley Protocol
+          standards.
         </p>
-      </section>
+      </aside>
 
-      <section className="space-y-4">
-        <h2 className="text-amber text-lg">What makes this different</h2>
-        <ul className="space-y-3 text-sm">
+      <details className="group border border-border open:border-amber/40 transition-colors">
+        <summary className="cursor-pointer select-none list-none px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber/[0.02]">
+          <h2 className="text-amber text-lg">What makes this different</h2>
+          <span aria-hidden className="text-amber text-xs transition-transform group-open:rotate-90">
+            ▸
+          </span>
+        </summary>
+        <ul className="space-y-3 text-sm px-4 pb-4 pt-1">
           <li className="border-l-2 border-amber pl-3">
             <strong className="text-amber">
               Operational discipline graded throughout.
@@ -145,7 +157,7 @@ export default async function SpecterIPage() {
             wrapping.
           </li>
         </ul>
-      </section>
+      </details>
 
       <section className="border border-border p-4 space-y-2">
         <h2 className="text-amber text-sm uppercase">SSH</h2>
@@ -184,8 +196,14 @@ export default async function SpecterIPage() {
         </p>
       </section>
 
-      <section className="border border-border p-4 space-y-3">
-        <h2 className="text-amber text-sm uppercase">Toolkit</h2>
+      <details className="group border border-border open:border-amber/40 transition-colors">
+        <summary className="cursor-pointer select-none list-none px-4 py-3 flex items-center justify-between gap-3 hover:bg-amber/[0.02]">
+          <h2 className="text-amber text-sm uppercase tracking-wider">Toolkit</h2>
+          <span aria-hidden className="text-amber text-xs transition-transform group-open:rotate-90">
+            ▸
+          </span>
+        </summary>
+        <div className="px-4 pb-4 pt-1 space-y-3">
         <p className="text-xs text-muted">
           Every Specter I ephemeral ships with the core OSINT/recon
           toolkit pre-installed. No package install required, no internet
@@ -244,7 +262,8 @@ export default async function SpecterIPage() {
           findings or the level flag. Per-player flags — sharing them
           won&apos;t unlock anyone else&apos;s chain.
         </p>
-      </section>
+        </div>
+      </details>
 
       <section>
         <h2 className="text-amber text-lg mb-2">Levels</h2>
