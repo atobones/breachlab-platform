@@ -57,10 +57,15 @@ export function ReplayPlayer({
           // until clicked. fit:width still scales to container.
           fit: "width",
           terminalFontSize: "14px",
-          // Show the first second of the recording as the poster
-          // frame, so a viewer sees the prompt/first commands rather
-          // than an empty black canvas before pressing play.
-          poster: "npt:0:1",
+          // Poster frame at 3 seconds — far enough past the recording
+          // start that the prompt and any opening commands have been
+          // drawn. At npt:0:1, sparse session_close casts (player
+          // connected, idled briefly, disconnected) render a black
+          // canvas because the shell hasn't drawn anything to the
+          // pty yet. 3s lands deep enough to show real content for
+          // even the quietest sessions, while still being a
+          // representative "first impression" frame.
+          poster: "npt:0:3",
           title,
         },
       );
