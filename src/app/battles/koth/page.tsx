@@ -12,6 +12,7 @@ import { currentPricesForRound } from "@/lib/koth/paths";
 import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { titleFromRoundWins } from "@/lib/koth/titles";
 import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
+import { pendingDiscoveriesForUser } from "@/lib/koth/weapons";
 import { joinKothRound, submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
@@ -23,8 +24,10 @@ const ARENA_HOST = "204.168.229.209";
 const ARENA_PORT = 2300;
 const ESCALATION_THRESHOLD_SECONDS = 300;
 
-// Daily challenge — days since project epoch. Mirrors /battles/koth/daily.
-const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+// Daily challenge — days since the feature shipped. Today (2026-05-18)
+// is Daily #1; #2 fires at the next UTC midnight, etc. Mirrors
+// /battles/koth/daily and lib/koth/daily.ts.
+const DAILY_EPOCH = new Date("2026-05-18T00:00:00Z").getTime();
 function dailyChallengeNumber(day: string): number {
   const d = new Date(day + "T00:00:00Z").getTime();
   return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);
@@ -225,6 +228,13 @@ export default async function KothPage({
   const todayChallenge = dailyChallengeNumber(todayDay);
   const secsToNextDaily = secondsUntilNextSeed();
 
+  // Weapons Forge — unsubmitted first-discoveries surface as a
+  // banner so the discoverer sees the next step right after the
+  // +50 bonus, not deep in a sub-page.
+  const myDiscoveries = user
+    ? await pendingDiscoveriesForUser(user.id)
+    : [];
+
   return (
     <article className="space-y-5 max-w-3xl" data-testid="koth-page">
       <RealtimeRefresh intervalMs={3000} />
@@ -268,12 +278,43 @@ export default async function KothPage({
           ▸ ghost-race
         </Link>
         <Link
+          href="/battles/koth/weapons"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+        >
+          ▸ forge
+        </Link>
+        <Link
           href="/battles/koth/rules"
           className="ml-auto text-muted hover:text-amber tracking-[0.18em] uppercase"
         >
           rules →
         </Link>
       </nav>
+
+      {/* Weapons Forge — discovery banner. Appears only when the
+          viewer has unsubmitted first-discoveries, so it's a per-user
+          "you opened a path, finish the submission" prompt rather
+          than dead UI everyone else has to scroll past. */}
+      {myDiscoveries.length > 0 && (
+        <div className="border border-amber/50 bg-amber/[0.06] px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap font-mono">
+          <div className="text-[12px] text-text">
+            <span className="text-amber tracking-[0.2em] uppercase text-[10px] mr-2">
+              ▸ forge
+            </span>
+            you opened {myDiscoveries.length === 1 ? "a path" : `${myDiscoveries.length} paths`} no one else has —{" "}
+            <code className="text-amber/90">
+              {myDiscoveries[0]}
+              {myDiscoveries.length > 1 && ` +${myDiscoveries.length - 1}`}
+            </code>
+          </div>
+          <Link
+            href={`/battles/koth/weapons/submit?slug=${encodeURIComponent(myDiscoveries[0])}`}
+            className="btn-bracket text-amber text-[12px] font-mono tracking-[0.18em]"
+          >
+            Submit to the Catalog →
+          </Link>
+        </div>
+      )}
 
       {/* Solo modes — hero-level CTAs for Daily + Replays + Race.
           Above the round console so they read as first-class entries,

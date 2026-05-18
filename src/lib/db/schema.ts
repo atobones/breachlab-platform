@@ -478,6 +478,13 @@ export const kothPaths = pgTable("koth_paths", {
   description: text("description"),
   hint: text("hint"),
   levelRef: text("level_ref"),
+  // Weapons Forge — when a path was contributed by a player via the
+  // submission queue, these point back at the author and the row that
+  // originated the catalog entry. NULL = "house" entry shipped by us.
+  authorUserId: uuid("author_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  submissionId: uuid("submission_id"),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
@@ -671,6 +678,33 @@ export type KothReplay = typeof kothReplays.$inferSelect;
 export type KothRaceAttempt = typeof kothRaceAttempts.$inferSelect;
 export type KothDailySeed = typeof kothDailySeeds.$inferSelect;
 export type KothDailyAttempt = typeof kothDailyAttempts.$inferSelect;
+
+// Weapons Forge — player-submitted attack paths. Workflow:
+// pending → admin reviews → approved (path lands in koth_paths under
+// `<author>/<primitive>`) | rejected (with reviewer notes).
+export const kothWeaponSubmissions = pgTable("koth_weapon_submissions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  slug: text("slug").notNull(),
+  title: text("title").notNull(),
+  techniqueMd: text("technique_md").notNull(),
+  exploitText: text("exploit_text").notNull(),
+  // pending | approved | rejected | withdrawn
+  status: text("status").notNull().default("pending"),
+  reviewerId: uuid("reviewer_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  reviewNotes: text("review_notes"),
+  decidedAt: timestamp("decided_at", { withTimezone: true }),
+  approvedPathSlug: text("approved_path_slug"),
+  createdAt: timestamp("created_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type KothWeaponSubmission = typeof kothWeaponSubmissions.$inferSelect;
 
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),

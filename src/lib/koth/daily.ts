@@ -29,14 +29,18 @@ export type DailyChallenge = {
   pathName: string | null;     // human-readable from koth_paths
   pathDescription: string | null;
   pathHint: string | null;
+  // Forge attribution — non-null when the path was player-submitted
+  // via the Weapons Forge. NULL = house entry.
+  authorUsername: string | null;
   generatedAt: Date;
   discordAnnouncedAt: Date | null;
 };
 
-// Days since the project epoch. Matches the formula in
-// /battles/koth/daily/page.tsx so the Discord embed and the page
-// quote the same #N for the same day.
-const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+// Days since the feature shipped. Matches the formula in
+// /battles/koth/daily/page.tsx and /battles/koth/page.tsx so the
+// Discord embed and both pages quote the same #N for the same day.
+// Today (2026-05-18) = Daily #1.
+const DAILY_EPOCH = new Date("2026-05-18T00:00:00Z").getTime();
 export function dailyChallengeNumber(day: string): number {
   const d = new Date(day + "T00:00:00Z").getTime();
   return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);
@@ -94,11 +98,13 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
         pathName: kothPaths.name,
         pathDescription: kothPaths.description,
         pathHint: kothPaths.hint,
+        authorUsername: users.username,
         generatedAt: kothDailySeeds.generatedAt,
         discordAnnouncedAt: kothDailySeeds.discordAnnouncedAt,
       })
       .from(kothDailySeeds)
       .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
+      .leftJoin(users, eq(users.id, kothPaths.authorUserId))
       .where(eq(kothDailySeeds.dayUtc, day))
       .limit(1);
     return r[0] ?? null;
@@ -145,6 +151,7 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
           challengeNumber: dailyChallengeNumber(day),
           pathName: row.pathName,
           pathSlug: row.pathSlug,
+          authorUsername: row.authorUsername,
         });
       } catch {
         // best-effort
