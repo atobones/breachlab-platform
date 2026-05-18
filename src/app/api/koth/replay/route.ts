@@ -6,6 +6,7 @@ import { db } from "@/lib/db/client";
 import { kothReplays } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { resolveSlotToUserId } from "@/lib/koth/slots";
+import { deriveDurationFromCast } from "@/lib/koth/replays";
 
 // Ghost Replay upload endpoint.
 //
@@ -130,6 +131,13 @@ export async function POST(req: Request) {
       );
     }
     durationSec = Math.round(body.duration_sec);
+  } else {
+    // Sidecar hardcodes duration_sec=None today (every replay in DB
+    // has duration_sec NULL as a result). Auto-derive from the cast
+    // events here so the column is populated at insert time, not
+    // recomputed every read in getReplayById. Defense-in-depth: even
+    // when the uploader is fixed, mis-implementations send None.
+    durationSec = deriveDurationFromCast(body.asciicast);
   }
 
   let linkedEventId: number | null = null;
