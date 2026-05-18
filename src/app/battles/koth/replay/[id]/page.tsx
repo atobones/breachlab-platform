@@ -103,8 +103,10 @@ export default async function ReplayDetailPage({
         </h1>
       </header>
 
-      {/* Player — featured artifact, large and confident */}
-      <section className="border border-amber/30 bg-bg shadow-[0_0_40px_-12px_rgba(252,184,20,0.18)]">
+      {/* Player — featured artifact. Constrained max-width so it
+          doesn't dominate wide monitors; metadata strip below stays
+          page-width via the article's max-w-5xl. */}
+      <section className="border border-amber/30 bg-bg shadow-[0_0_40px_-12px_rgba(252,184,20,0.18)] max-w-3xl mx-auto w-full">
         <ReplayPlayer
           cast={replay.asciicast}
           title={playerTitle}

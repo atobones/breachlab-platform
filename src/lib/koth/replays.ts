@@ -119,7 +119,7 @@ export async function getReplayById(id: string): Promise<ReplayDetail | null> {
 // Asciicast v2 is JSONL — first line is the header, subsequent lines
 // are [timestamp_sec, "o"|"i", data]. The last event's timestamp is
 // the recording duration. Cheap to do at render time.
-function deriveDurationFromCast(cast: string): number | null {
+export function deriveDurationFromCast(cast: string): number | null {
   let lastTs: number | null = null;
   let cursor = cast.length;
   // Walk backwards to find the last non-empty line — handles trailing
