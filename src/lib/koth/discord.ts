@@ -218,6 +218,27 @@ export function postKothFirstDiscoveryToDiscord(opts: {
   });
 }
 
+// King's Guard claim announce — fires when a player claims the
+// single guard slot for the current round. Quick blue card so it
+// reads as a role-claim, not a kill.
+export function postKothGuardClaimedToDiscord(opts: {
+  guardUsername: string;
+  occurredAt?: Date;
+  siteUrl?: string;
+}): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
+  postEmbed({
+    color: COLOR.info,
+    title: `🛡 ${opts.guardUsername} is the King's Guard`,
+    description: `One slot per round. They earn half of the king's active hold-time per minute. Decay seconds don't pay the guard either — incentives aligned with active defense.\n\n[▸ Crown Wars](${siteUrl}/battles/koth)`,
+    timestamp: (opts.occurredAt ?? new Date()).toISOString(),
+    footer: { text: "Crown Wars · asymmetric role" },
+  });
+}
+
 // Daily Shared-Seed announce — fires once per UTC day, on the first
 // page hit after midnight. Wordle-style FOMO drip: same primitive for
 // every operator, leaderboard reset, link to play. Idempotency is
