@@ -743,22 +743,18 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           minute. Phase B: gated on first crown_taken + can burn one
           Lockdown token per round. */}
       {state.round && (
-        <div className="border border-border/60 px-4 py-2 space-y-2 font-mono text-[11px]">
+        <div className="border border-amber/40 px-4 py-2 space-y-2 font-mono text-[11px]">
           <div className="flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <span className="text-amber/80 tracking-[0.18em] uppercase">
+              <span className="text-amber tracking-[0.18em] uppercase font-semibold">
                 ▸ king&apos;s guard
               </span>
               {guard ? (
-                <span className="text-text">
-                  <span className="text-amber/90">@{guard.username ?? "anon"}</span>
-                </span>
+                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
               ) : gameStarted ? (
-                <span className="text-muted">slot open · ½ of king&apos;s hold</span>
+                <span className="text-muted">slot open · ½ king&apos;s hold</span>
               ) : (
-                <span className="text-muted/70">
-                  awaits first crown · slot opens once the round engages
-                </span>
+                <span className="text-muted/70">awaits first crown</span>
               )}
             </div>
             {user && !guard && !iAmGuard && gameStarted && (
