@@ -642,6 +642,17 @@ export default async function KothPage({
                 </span>
                 <span className="text-muted">·</span>
                 <span className="text-amber/80">round: 30:00 fresh</span>
+                {drift && (
+                  <>
+                    <span className="text-muted">·</span>
+                    <span
+                      className="text-amber/70"
+                      title="Drift Mode — binary names rotate per round. Run `which` if a path 404s."
+                    >
+                      ◈ drift: {drift.schemeLabel}
+                    </span>
+                  </>
+                )}
               </>
             )
           ) : (
