@@ -96,18 +96,14 @@ export default async function RacePage({ params }: { params: Params }) {
         <h1 className="text-amber text-2xl sm:text-3xl phosphor wordmark font-bold tracking-[0.04em]">
           ▸ race the ghost
         </h1>
-        <p className="text-[14px] leading-relaxed text-muted max-w-3xl">
-          You&apos;re about to race{" "}
-          <span className="text-text font-semibold">{who}</span>
+        <p className="text-[13px] text-muted max-w-3xl">
+          racing <span className="text-text font-semibold">{who}</span>
           {replay.exploitPath ? (
             <>
               {" "}
               via <code className="text-amber/80">{replay.exploitPath}</code>
             </>
           ) : null}
-          . SSH into the arena in another terminal, then hit{" "}
-          <code className="text-amber">start race</code>. Take crown faster
-          than the ghost did to land on this replay&apos;s leaderboard.
         </p>
       </header>
 
@@ -183,15 +179,6 @@ export default async function RacePage({ params }: { params: Params }) {
         )}
       </section>
 
-      <footer className="pt-4 border-t border-border/40 text-[11px] text-muted font-mono">
-        <p>
-          The race timer starts the moment you press{" "}
-          <code className="text-amber/80">start race</code>. Server-side time
-          is authoritative — the leaderboard reflects elapsed seconds between
-          start and the matching <code>crown_taken</code> event for your
-          account (or self-report if you&apos;re anonymous). Anyone can race.
-        </p>
-      </footer>
     </article>
   );
 }

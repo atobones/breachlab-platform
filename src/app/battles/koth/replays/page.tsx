@@ -43,11 +43,6 @@ export default async function ReplaysLibraryPage({
         <h1 className="text-amber text-2xl sm:text-3xl phosphor wordmark font-bold tracking-[0.08em]">
           REPLAYS
         </h1>
-        <p className="text-[14px] leading-relaxed text-muted">
-          Every KoTH session is recorded. Watch a kill chain step by step.
-          Race the ghost of yesterday&apos;s king. Share the moment your
-          crown landed.
-        </p>
       </header>
 
       <section className="border border-border/40 p-3 text-[11px] font-mono">
@@ -98,15 +93,12 @@ export default async function ReplaysLibraryPage({
       )}
 
       <footer className="pt-4 border-t border-border/40 text-[11px] text-muted font-mono">
-        <p>
-          Recordings are asciinema v2 casts —{" "}
-          <a
-            href="/battles/koth"
-            className="text-amber/80 hover:text-amber"
-          >
-            jump into the arena →
-          </a>
-        </p>
+        <a
+          href="/battles/koth"
+          className="text-amber/80 hover:text-amber"
+        >
+          ▸ jump into the arena
+        </a>
       </footer>
     </article>
   );

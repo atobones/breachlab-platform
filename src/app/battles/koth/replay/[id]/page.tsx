@@ -176,10 +176,6 @@ export default async function ReplayDetailPage({
           <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase font-mono">
             ▸ contemporaneous sessions
           </div>
-          <p className="text-[12px] text-muted">
-            Recorded in the same round, within 5 min on either side. Click
-            any to switch focus.
-          </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {siblings.map((sib) => (
               <ReplayCard key={sib.id} replay={sib} compact />
