@@ -42,7 +42,6 @@ function KV({ rows }: { rows: Row[] }) {
 export default function KothRulesPage() {
   return (
     <article className="space-y-7 max-w-2xl" data-testid="koth-rules-page">
-      {/* Hero */}
       <header className="space-y-2">
         <div className="flex items-baseline justify-between gap-3 flex-wrap">
           <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
@@ -63,145 +62,192 @@ export default function KothRulesPage() {
         </p>
       </header>
 
-      <RuleSection title="Loop">
+      <RuleSection title="The loop">
         <ol className="space-y-0.5 list-decimal list-inside font-mono text-[12px]">
-          <li>Register SSH key once → claim a slot in the current round</li>
+          <li>Register SSH key, claim a slot</li>
           <li><code>ssh -i your_key -p 2300 kothN@204.168.229.209</code></li>
-          <li>Get root via one of the paths below</li>
-          <li><code>crown-claim kothN &lt;path&gt;</code></li>
-          <li>Hold the crown · <span className="text-amber">+1 / min</span></li>
+          <li>Get root via any primitive below</li>
+          <li><code>crown-claim kothN &lt;primitive-slug&gt;</code></li>
+          <li>Hold the throne · <span className="text-amber">+1/min</span> while active</li>
           <li>Get dethroned · take it back</li>
         </ol>
-        <p className="text-[12px] text-muted leading-snug pt-2">
-          Slots release on every round close — up to 10 operators per
-          round, first come first served. Returning operators click
-          <em> Join this round</em> to grab a slot when the next one opens.
-        </p>
       </RuleSection>
 
-      <RuleSection title="Core paths (always open)">
+      <RuleSection title="Primitives">
+        <p className="text-[11px] text-muted mb-2">
+          Slugs you pass to <code>crown-claim</code>. Exploit one-liners
+          live in the in-arena cheat sheet.
+        </p>
+        <div className="text-[10px] text-amber/80 font-mono tracking-widest uppercase mt-1 mb-1">
+          ─ core (always open)
+        </div>
         <KV
           rows={[
-            ["L7  phantom-python3 SUID", "argv code injection"],
-            ["L8  system-checker SUID", "shell metachar injection"],
-            ["L17 Redis CONFIG SET", "write /root/.ssh/authorized_keys"],
+            ["suid-python-wrapper", "argv code injection"],
+            ["suid-shell-injection", "shell metachar injection"],
+            ["redis-config-set-dir", "write /root/.ssh/authorized_keys"],
           ]}
         />
-        <p className="text-[11px] text-muted pt-2 leading-snug">
-          Concrete one-liners are in the <em>exploit cheat sheet</em> on the
-          arena page (visible once you&apos;re enlisted).
-        </p>
-      </RuleSection>
-
-      <RuleSection title="Escalation">
-        <p className="text-[13px] leading-relaxed">
-          Hold the crown long enough and the box mutates against you.
-          After <strong>five minutes on the throne</strong>, the arena
-          picks a fresh attack path from its library and gives you a
-          sixty-second warning before it opens. Up to three new paths
-          can land in a single round, spaced about three minutes apart.
-        </p>
-        <p className="text-[13px] leading-relaxed pt-1">
-          Other operators get a clean shot at dethroning you through an
-          exploit you&apos;ve never seen before. Watch the{" "}
-          <em>exploit market</em> on the arena — when a new slug appears
-          (<code>writable-passwd</code>, <code>python-cap-setuid</code>,
-          and friends), the clock on your reign just got shorter.
-        </p>
-      </RuleSection>
-
-      <RuleSection title="The exploit market">
-        <p className="text-[13px] leading-relaxed">
-          Every path is priced. It starts the round at its base value —
-          usually twelve points for the always-open core, up to eighteen
-          for the bigger escalations. Every time someone grabs the crown
-          through a path, that path&apos;s price drops by two, floored at
-          two. A crowded path is a cheap path; the operator who finds
-          the underused one cashes in the bigger ticket.
-        </p>
-        <p className="text-[13px] leading-relaxed pt-1">
-          The price is captured at the moment of the grab, so your
-          payout is locked in even if the market shifts a second later.
-          Prices reset when the round closes.
-        </p>
+        <div className="text-[10px] text-amber/80 font-mono tracking-widest uppercase mt-3 mb-1">
+          ─ escalation (unlock during the round)
+        </div>
+        <KV
+          rows={[
+            ["writable-ld-preload", "constructor as root"],
+            ["writable-passwd", "world-writable /etc/passwd"],
+            ["python-cap-setuid", "capability-bound setuid"],
+            ["sudo-busybox-nopasswd", "sudo busybox NOPASSWD"],
+            ["wrapper-cron-injection", "cron-driven wrapper"],
+            ["writable-pythonpath", "import-hook hijack"],
+            ["group-writable-cron-d", "write into /etc/cron.d"],
+            ["writable-init-script", "modify init.d job"],
+            ["suid-wrapper-tmp-script", "SUID → /tmp script"],
+            ["suid-wrapper-userland", "SUID → userland script"],
+            ["leaked-root-creds", "credential leak"],
+          ]}
+        />
       </RuleSection>
 
       <RuleSection title="Scoring">
         <KV
           rows={[
-            ["Crown grab via a known path", "+ value at exploit time"],
-            ["Per minute of hold", "+1 / min"],
+            ["Crown via known primitive", "+ market value at grab time"],
+            ["Hold the throne", "+1 / min (active only)"],
             ["Generic patch", "+3"],
-            ["Path-attributed patch (close the path you got hit with)", "+5"],
-            ["First crown via an unknown path (not yet in the catalog)", "+50, once per slug"],
+            ["Patch the path you got hit with", "+5"],
+            ["First crown via a new slug", "+50 (once per slug, global)"],
           ]}
         />
-        <p className="text-[12px] text-muted pt-2 leading-snug">
-          Unintended privesc paths are part of the game. If you find one
-          not in the path catalog, <code>crown-claim &lt;slot&gt; &lt;any-name&gt;</code>
-          {" "}still works — the +50 first-discoverer bonus lands when the
-          path gets added. DM the technique to @ato to seed the catalog.
+        <p className="text-[11px] text-muted pt-2 leading-snug">
+          Market: every primitive starts the round at its base value (10–18).
+          Each grab via a path drops its price by 2 (floor: 2). Price is
+          locked at grab time. Resets on round close.
+        </p>
+      </RuleSection>
+
+      <RuleSection title="Crown decay">
+        <p>
+          After <strong>5 min</strong> on the throne, your score starts
+          bleeding <strong>30% per minute</strong>. Patch the path you got
+          hit with (+5) to reset the timer. Or pray the Guard heals you.
+        </p>
+      </RuleSection>
+
+      <RuleSection title="Escalation">
+        <p>
+          After 5 min of an active king, the arena opens a fresh escalation
+          primitive (60s warning). Up to 3 per round, ~3 min apart. Watch
+          the <em>exploit market</em> on the arena page — new slug = the
+          king&apos;s reign just got shorter.
+        </p>
+      </RuleSection>
+
+      <RuleSection title="King's Guard · asymmetric defender">
+        <p className="pb-2">
+          Pure browser play, no SSH needed. <strong>One slot per round</strong>,
+          first-come-first-served, opens only <strong>after the first crown
+          grab</strong>. Sits with the king against attackers.
+        </p>
+        <KV
+          rows={[
+            ["🔒 lockdown · 1/round", "freeze a primitive 3min — no crowns score"],
+            ["👁 eye · always on", "live syscall feed across all slots"],
+            ["💚 heal · 1/round", "reset king's decay → 5min grace"],
+            ["passive scoring", "½ king's active hold-seconds / min"],
+          ]}
+        />
+      </RuleSection>
+
+      <RuleSection title="Drift mode (mutating arena)">
+        <p>
+          SUID binaries get renamed every round via a deterministic scheme.
+          Last round&apos;s <code>/usr/local/bin/phantom-python3</code> might
+          land at <code>/usr/local/bin/ops-py3</code> this round. Same
+          primitive, same exploit chain — different path. Memorize the
+          chain, not the path. Enumerate with{" "}
+          <code>find / -perm -4000</code>.
+        </p>
+      </RuleSection>
+
+      <RuleSection title="Live audit feed">
+        <p>
+          Every syscall the king makes streams live to{" "}
+          <Link href="/battles/koth" className="text-amber">/battles/koth</Link>.
+          Captured outside the arena via host-namespace strace —
+          king-as-root cannot disable it. You ARE being watched while
+          you sit on the throne.
         </p>
       </RuleSection>
 
       <RuleSection title="Round cycle">
-        <p className="text-[13px]">
-          The 30-minute clock starts when the <strong>first crown</strong>
-          {" "}is grabbed in the round — not when the arena opens. While
-          no one has taken the crown, the arena is <em>standing by</em>{" "}
-          and you can ssh in, look around, prep, all without burning
-          round time. The first crown grab kicks the timer off.
+        <p>
+          30-minute clock starts on the <strong>first crown grab</strong>,
+          not when the arena opens. Until then: <em>standing by</em>, you can
+          ssh in, look around, prep. After close: container force-recreated,
+          primitives reset, prices reset, drift reshuffles. SSH keys persist.
         </p>
-        <p className="text-[13px] pt-1">
-          Thirty minutes after that grab, the round closes: container
-          force-recreated, every path resets, escalations deactivate,
-          prices back to base. SSH keys persist across rounds — you
-          don&apos;t re-register.
+      </RuleSection>
+
+      <RuleSection title="Daily challenge">
+        <p>
+          One primitive a day, same configuration for every player worldwide.
+          Shared leaderboard. Resets 00:00 UTC. Twist mode rotates daily —
+          encoded slug, riddle, or plain. See{" "}
+          <Link href="/battles/koth/daily" className="text-amber">/battles/koth/daily</Link>.
+        </p>
+      </RuleSection>
+
+      <RuleSection title="Ghost replay">
+        <p>
+          Every session is recorded as an asciinema cast. Watch any
+          past kill at{" "}
+          <Link href="/battles/koth/replays" className="text-amber">
+            /battles/koth/replays
+          </Link>
+          . Race the ghost: your timer ticks against the past king&apos;s
+          playback in real-time. Beat their time to land on the
+          replay&apos;s leaderboard.
         </p>
       </RuleSection>
 
       <RuleSection title="Fair play">
-        <p className="text-[13px] leading-relaxed">
-          The line is simple: do anything to the box, do nothing to
-          deny the box. Hardening it, patching it, killing attackers
-          mid-exploit, trapping it — that&apos;s the game. Locking
-          everyone else out so you alone can sit on the throne is not.
+        <p className="pb-2">
+          Do anything to the box. Do nothing to deny the box. Hardening,
+          patching, killing attackers mid-exploit, booby-trapping — game.
+          Locking everyone out so you alone sit on the throne — not.
         </p>
 
-        <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-2 text-emerald-400/80">
-          ✓ Allowed — these are how you defend
+        <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-1 text-emerald-400/80">
+          ✓ allowed
         </p>
         <ul className="space-y-0.5 list-disc list-inside text-[12px] text-text">
-          <li>Patch the path you got hit with (chmod -s SUIDs, edit configs, kill services)</li>
-          <li>Kill another operator&apos;s exploit process mid-run (specific PIDs)</li>
-          <li>Booby-trap files attackers might run (decoys in /tmp, tampered wrappers)</li>
-          <li>Modify your own home, run anything as root that doesn&apos;t brick the box</li>
-          <li>Read auth.log, ps, w — track competitors</li>
+          <li>Patch the path you got hit with</li>
+          <li>Kill specific exploit PIDs mid-run</li>
+          <li>Booby-trap files attackers might run</li>
+          <li>Read auth.log, ps, w</li>
         </ul>
 
         <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-3 text-red-400/80">
-          ✗ Not allowed — anti-game patterns
-        </p>
-        <p className="text-[12px] leading-snug text-muted pb-1">
-          A watchdog catches these. Trigger one = round forfeit, box
-          force-recreated, your work in the round wiped. Repeat
-          offenders get manually banned.
+          ✗ not allowed · watchdog enforced
         </p>
         <ul className="space-y-0.5 list-disc list-inside text-[12px] text-text">
-          <li>Killing other operators&apos; login shells on sight (kill-on-login loops)</li>
+          <li>Kill-on-login loops · killing other ops&apos; shells on sight</li>
           <li>Fork bombs · OOM bombs · disk fill</li>
-          <li>Killing sshd · blocking SSH via iptables</li>
-          <li>Bricking critical files (chmod 000 /bin/bash, /etc/passwd, etc.)</li>
+          <li>Killing sshd · iptables-blocking SSH</li>
+          <li>Bricking critical files (chmod 000 /bin/bash, /etc/passwd…)</li>
         </ul>
+        <p className="text-[11px] text-muted pt-1 leading-snug">
+          Trigger = round forfeit + force-recreate. Repeat = manual ban.
+        </p>
 
         <p className="text-[11px] font-mono tracking-[0.18em] uppercase pt-3 text-muted">
-          ─ Other rules
+          ─ other
         </p>
         <ul className="space-y-0.5 list-disc list-inside text-[12px]">
-          <li>No attacks on the platform, host, or other tracks.</li>
-          <li>No sharing private keys.</li>
+          <li>No attacks on platform, host, or other tracks</li>
+          <li>No sharing private keys</li>
           <li>
-            Unintended bugs · arena escape · platform vulns → DM{" "}
+            Arena escape · platform vulns → DM{" "}
             <a
               href={DISCORD_INVITE_URL}
               rel="noreferrer"
@@ -209,7 +255,6 @@ export default function KothRulesPage() {
             >
               @ato in Discord
             </a>
-            .
           </li>
         </ul>
       </RuleSection>
@@ -217,36 +262,13 @@ export default function KothRulesPage() {
       <RuleSection title="Command reference">
         <KV
           rows={[
-            ["crown-claim <slot> <path>", "claim throne · run as root"],
+            ["crown-claim <slot> <slug>", "claim throne (run as root)"],
+            ["find / -perm -4000", "enumerate SUID binaries (drift)"],
             ["stat /root/.crown", "current king (owner field)"],
             ["cat /var/log/auth.log", "watch other ops"],
-            ["w  ·  ps auxf", "who else is on the box"],
+            ["w · ps auxf", "who else is on the box"],
           ]}
         />
-      </RuleSection>
-
-      <RuleSection title="What&apos;s coming">
-        <ul className="space-y-1 list-disc list-inside text-[13px] leading-relaxed">
-          <li>
-            <strong>Per-round slot rotation</strong> — slots release on
-            round close so new operators always have a way in.
-          </li>
-          <li>
-            <strong>AI defender</strong> — an LLM running as the box&apos;s
-            sysadmin, reading syslog in real time and patching paths
-            while you&apos;re still inside.
-          </li>
-          <li>
-            <strong>Season ladder</strong> — four-week ranked windows
-            with a top-eight finals bracket and side-by-side spectator
-            streams.
-          </li>
-          <li>
-            <strong>Dethrone replay</strong> — shell-history capture so
-            the loser can read the attacker&apos;s exact keystrokes and
-            close the path for next time.
-          </li>
-        </ul>
       </RuleSection>
 
       <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-[11px] text-muted font-mono">
