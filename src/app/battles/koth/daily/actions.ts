@@ -5,10 +5,10 @@ import { revalidatePath } from "next/cache";
 
 import { getCurrentSession } from "@/lib/auth/session";
 import {
+  abandonDailyAttempt,
   finishDailyAttempt,
   getOrCreateTodaySeed,
   startDailyAttempt,
-  todayUtcString,
 } from "@/lib/koth/daily";
 
 // Daily Shared-Seed Solo — server actions.
@@ -21,8 +21,6 @@ import {
 // for the sidecar / arena oracle use cases.
 
 export async function startDailyAction(): Promise<void> {
-  // Ensure today's seed exists (creates if first-of-day) — same as
-  // the API endpoint does.
   const seed = await getOrCreateTodaySeed();
   if (!seed) {
     redirect(
@@ -41,23 +39,46 @@ export async function startDailyAction(): Promise<void> {
   redirect("/battles/koth/daily");
 }
 
+// Server-verified finish — checks the arena's koth_events for a real
+// crown_taken with exploit_path == today's seed. No honor system; if
+// the player hasn't actually crowned via the right primitive, this
+// action leaves the attempt running and surfaces a 'not yet'
+// indicator via the page's render of the attempt snapshot.
 export async function finishDailyAction(formData: FormData): Promise<void> {
   const { user } = await getCurrentSession();
   if (!user) {
     redirect("/login?next=/battles/koth/daily");
   }
 
-  const tookCrown = formData.get("tookCrown") === "true";
-  const day = todayUtcString();
-
-  // Resolve the user's attempt for today, then finish it. Same shape
-  // as the API endpoint but server-only.
   const attemptId = String(formData.get("attemptId") ?? "");
   if (!attemptId) {
     redirect("/battles/koth/daily?error=missing-attempt");
   }
 
-  await finishDailyAttempt(attemptId, { tookCrown });
+  const outcome = await finishDailyAttempt(attemptId);
   revalidatePath("/battles/koth/daily");
-  redirect(`/battles/koth/daily?finished=1&day=${encodeURIComponent(day)}`);
+  if (!outcome || !outcome.verified) {
+    redirect("/battles/koth/daily?check=not-yet");
+  }
+  redirect("/battles/koth/daily");
+}
+
+// Explicit abandon — player decides to bail. Marks the attempt
+// finished with tookCrown=false so it doesn't block today's slot
+// indefinitely (one attempt per user per day; without this they'd be
+// stuck if they ran out of time).
+export async function abandonDailyAction(formData: FormData): Promise<void> {
+  const { user } = await getCurrentSession();
+  if (!user) {
+    redirect("/login?next=/battles/koth/daily");
+  }
+
+  const attemptId = String(formData.get("attemptId") ?? "");
+  if (!attemptId) {
+    redirect("/battles/koth/daily?error=missing-attempt");
+  }
+
+  await abandonDailyAttempt(attemptId);
+  revalidatePath("/battles/koth/daily");
+  redirect("/battles/koth/daily?abandoned=1");
 }

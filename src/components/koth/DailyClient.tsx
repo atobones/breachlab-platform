@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 
 import {
   startDailyAction,
   finishDailyAction,
+  abandonDailyAction,
 } from "@/app/battles/koth/daily/actions";
 
 type Phase = "ready" | "racing" | "finished";
@@ -106,6 +108,9 @@ export function DailyClient({
   const result = initialResult;
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const checkNotYet = searchParams?.get("check") === "not-yet";
 
   useEffect(() => {
     if (phase === "racing" && startedAt != null) {
@@ -118,6 +123,18 @@ export function DailyClient({
     }
     return undefined;
   }, [phase, startedAt]);
+
+  // Auto-poll while racing — the server checks for a matching
+  // crown_taken event on every render, so refreshing the route every
+  // 6s surfaces the verified finish without the player clicking
+  // anything. Stops as soon as we leave racing.
+  useEffect(() => {
+    if (phase !== "racing") return undefined;
+    const t = setInterval(() => {
+      router.refresh();
+    }, 6_000);
+    return () => clearInterval(t);
+  }, [phase, router]);
 
   async function copyShare() {
     if (!result) return;
@@ -169,30 +186,38 @@ export function DailyClient({
             <div className="ml-auto flex flex-col items-end gap-2">
               <form action={finishDailyAction}>
                 <input type="hidden" name="attemptId" value={attemptId ?? ""} />
-                <input type="hidden" name="tookCrown" value="true" />
                 <button
                   type="submit"
                   className="border border-green bg-green/10 text-green px-3 py-1.5 hover:bg-green/20 transition-colors uppercase tracking-wider text-[12px] font-semibold"
+                  title="Pings the oracle. Only counts if you actually crowned via today's primitive."
                 >
-                  ✓ I crowned
+                  ▸ check status
                 </button>
               </form>
-              <form action={finishDailyAction}>
+              <form action={abandonDailyAction}>
                 <input type="hidden" name="attemptId" value={attemptId ?? ""} />
-                <input type="hidden" name="tookCrown" value="false" />
                 <button
                   type="submit"
                   className="border border-border/40 text-muted px-3 py-1 hover:border-amber/40 hover:text-text transition-colors uppercase tracking-wider text-[11px]"
                 >
-                  × give up
+                  × abandon
                 </button>
               </form>
             </div>
           </div>
-          <p className="text-[12px] text-muted">
-            Target primitive: <code className="text-amber/80">{pathSlug}</code>.
-            SSH into Crown Wars in another tab — your time runs from this
-            click until you press <code>I crowned</code>.
+          {checkNotYet && (
+            <p className="text-[12px] text-red-400">
+              ⚠ not yet — no crown_taken with{" "}
+              <code className="text-red-400/90">{pathSlug}</code> on your
+              account since you pressed start. The page checks automatically
+              every few seconds; this button is a manual poll.
+            </p>
+          )}
+          <p className="text-[12px] text-muted leading-relaxed">
+            SSH into Crown Wars in another tab and crown the king via{" "}
+            <code className="text-amber/80">{pathSlug}</code>. The page auto-
+            detects your crown via the oracle — no need to come back and
+            click anything.
           </p>
         </section>
       )}
@@ -213,10 +238,8 @@ export function DailyClient({
             </div>
             <div className="text-[12px] text-muted mt-1">
               {result.tookCrown
-                ? result.linkedEventId
-                  ? "verified via crown_taken event"
-                  : "self-reported"
-                : "did not crown — next reset at 00:00 UTC"}
+                ? "verified via crown_taken"
+                : "abandoned — next reset at 00:00 UTC"}
             </div>
           </div>
           {result.tookCrown && (

@@ -229,15 +229,30 @@ export async function getDailyAttempt(id: string) {
   return r[0] ?? null;
 }
 
+// Strict-verify finish — only marks the attempt as crowned when there
+// is an actual crown_taken event in the round, by this user, AFTER
+// the attempt started, AND via the exact path slug today's seed
+// names. No honor-system fallback: clicking finish without a real
+// in-arena crown leaves the attempt unfinished.
+//
+// Behaviour matrix:
+//   - already finished → idempotent: return the persisted result
+//   - unfinished, no matching event → leave unfinished, return
+//     { verified: false } so the UI can keep the timer running
+//   - unfinished, matching event → flip finished, write elapsed +
+//     linked_event_id, return { verified: true, ... }
+export type FinishOutcome =
+  | {
+      verified: true;
+      elapsedSec: number;
+      tookCrown: true;
+      linkedEventId: number;
+    }
+  | { verified: false; reason: "not_crowned_yet" | "no_user" | "no_seed" };
+
 export async function finishDailyAttempt(
   attemptId: string,
-  opts: { tookCrown?: boolean } = {},
-): Promise<{
-  elapsedSec: number;
-  tookCrown: boolean;
-  selfReported: boolean;
-  linkedEventId: number | null;
-} | null> {
+): Promise<FinishOutcome | null> {
   const existing = await db
     .select()
     .from(kothDailyAttempts)
@@ -246,36 +261,52 @@ export async function finishDailyAttempt(
   if (existing.length === 0) return null;
   const a = existing[0];
   if (a.finishedAt != null) {
-    return {
-      elapsedSec: a.elapsedSec ?? 0,
-      tookCrown: a.tookCrown,
-      selfReported: a.selfReported,
-      linkedEventId: a.linkedEventId,
-    };
-  }
-
-  let linkedEventId: number | null = null;
-  let tookCrown = opts.tookCrown ?? false;
-  if (a.userId != null) {
-    const evt = await db
-      .select({ id: kothEvents.id })
-      .from(kothEvents)
-      .where(
-        and(
-          eq(kothEvents.actorUserId, a.userId),
-          eq(kothEvents.kind, "crown_taken"),
-          gt(kothEvents.occurredAt, a.startedAt),
-        ),
-      )
-      .orderBy(kothEvents.occurredAt)
-      .limit(1);
-    if (evt.length > 0) {
-      linkedEventId = evt[0].id;
-      tookCrown = true;
+    // Already finished — replay the stored result.
+    if (a.tookCrown && a.linkedEventId != null) {
+      return {
+        verified: true,
+        elapsedSec: a.elapsedSec ?? 0,
+        tookCrown: true,
+        linkedEventId: a.linkedEventId,
+      };
     }
+    return { verified: false, reason: "not_crowned_yet" };
+  }
+  if (a.userId == null) {
+    return { verified: false, reason: "no_user" };
   }
 
-  const finishedAt = new Date();
+  // Resolve today's seed slug — verification keys off this. If the
+  // seed row is gone (catalog tear-down), we can't verify so we punt.
+  const seedRow = await db
+    .select({ pathSlug: kothDailySeeds.pathSlug })
+    .from(kothDailySeeds)
+    .where(eq(kothDailySeeds.dayUtc, a.dayUtc))
+    .limit(1);
+  if (seedRow.length === 0) {
+    return { verified: false, reason: "no_seed" };
+  }
+  const requiredSlug = seedRow[0].pathSlug;
+
+  const evt = await db
+    .select({ id: kothEvents.id, occurredAt: kothEvents.occurredAt })
+    .from(kothEvents)
+    .where(
+      and(
+        eq(kothEvents.actorUserId, a.userId),
+        eq(kothEvents.kind, "crown_taken"),
+        eq(kothEvents.exploitPath, requiredSlug),
+        gt(kothEvents.occurredAt, a.startedAt),
+      ),
+    )
+    .orderBy(kothEvents.occurredAt)
+    .limit(1);
+  if (evt.length === 0) {
+    return { verified: false, reason: "not_crowned_yet" };
+  }
+
+  const matchedEvent = evt[0];
+  const finishedAt = matchedEvent.occurredAt;
   const elapsedSec = Math.max(
     0,
     Math.round((finishedAt.getTime() - a.startedAt.getTime()) / 1000),
@@ -286,17 +317,37 @@ export async function finishDailyAttempt(
     .set({
       finishedAt,
       elapsedSec,
-      tookCrown,
-      linkedEventId,
+      tookCrown: true,
+      linkedEventId: matchedEvent.id,
     })
     .where(eq(kothDailyAttempts.id, attemptId));
 
   return {
+    verified: true,
     elapsedSec,
-    tookCrown,
-    selfReported: a.selfReported,
-    linkedEventId,
+    tookCrown: true,
+    linkedEventId: matchedEvent.id,
   };
+}
+
+// Mark an unfinished attempt as abandoned. Same shape as a normal
+// finish but tookCrown=false and linked_event_id=null. Excluded from
+// the leaderboard query (which filters by tookCrown=true).
+export async function abandonDailyAttempt(attemptId: string): Promise<boolean> {
+  const r = await db
+    .update(kothDailyAttempts)
+    .set({
+      finishedAt: new Date(),
+      tookCrown: false,
+    })
+    .where(
+      and(
+        eq(kothDailyAttempts.id, attemptId),
+        sql`finished_at IS NULL`,
+      ),
+    )
+    .returning({ id: kothDailyAttempts.id });
+  return r.length > 0;
 }
 
 export async function getDailyLeaderboard(
