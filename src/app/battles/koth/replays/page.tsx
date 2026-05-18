@@ -114,12 +114,12 @@ function FilterChip({
   active: boolean;
 }) {
   const cls = active
-    ? "text-amber border-amber/60 bg-amber/[0.06]"
-    : "text-muted border-border/40 hover:border-amber/40 hover:text-text";
+    ? "border-amber bg-amber/10 text-amber font-semibold"
+    : "border-amber/60 text-amber/70 hover:bg-amber/10 hover:text-amber";
   return (
     <a
       href={href}
-      className={`inline-block border px-2 py-0.5 ${cls} transition-colors`}
+      className={`inline-block border px-3 py-1.5 ${cls} transition-colors uppercase tracking-wider text-[11px]`}
     >
       {label}
     </a>
