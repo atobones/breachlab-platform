@@ -109,6 +109,11 @@ export default async function ReplayDetailPage({
           cast={replay.asciicast}
           title={playerTitle}
           idleTimeLimit={1}
+          // Dedicated viewer page — autoplay so visitors see the
+          // recording immediately. Sparse session_close casts (e.g.,
+          // a player who connected, typed little, disconnected) would
+          // otherwise show a black-canvas poster until clicked.
+          autoPlay
         />
       </section>
 
