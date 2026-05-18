@@ -268,6 +268,12 @@ export default async function KothPage({
           ▸ ghost-race
         </Link>
         <Link
+          href="/battles/koth/weapons"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+        >
+          ▸ forge
+        </Link>
+        <Link
           href="/battles/koth/rules"
           className="ml-auto text-muted hover:text-amber tracking-[0.18em] uppercase"
         >
