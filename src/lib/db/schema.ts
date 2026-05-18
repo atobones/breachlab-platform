@@ -631,6 +631,10 @@ export const kothDailySeeds = pgTable("koth_daily_seeds", {
   // Set when the Discord announce-of-the-day post lands; conditional
   // UPDATE WHERE NULL is the idempotency mechanism. See lib/koth/daily.ts.
   discordAnnouncedAt: timestamp("discord_announced_at", { withTimezone: true }),
+  // Per-day puzzle variety: plain | encoded | riddle. See migration
+  // 0030 + lib/koth/daily.ts:generateTwist.
+  twistMode: text("twist_mode").notNull().default("plain"),
+  twist: jsonb("twist"),
 });
 
 export const kothDailyAttempts = pgTable(
