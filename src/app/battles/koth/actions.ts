@@ -12,7 +12,11 @@ import {
   parseAndValidatePubkey,
   pickFreeSlotForRound,
 } from "@/lib/koth/keys";
-import { claimGuard } from "@/lib/koth/guards";
+import {
+  claimGuard,
+  hasFirstCrownBeenTaken,
+  placeLockdown,
+} from "@/lib/koth/guards";
 
 // Server actions for /battles/koth — registering an SSH key and
 // claiming a slot in the current round. Permanent slot assignment was
@@ -172,6 +176,18 @@ export async function claimGuardAction(): Promise<void> {
     redirect("/battles/koth?error=" + encodeURIComponent(NO_ROUND_ERR));
   }
 
+  // Gate guard claim on "game started" — at least one crown_taken
+  // in this round. Before that, there's no king to guard and the
+  // role would just be a passive points farm. See feedback
+  // 2026-05-18 PM (Boss).
+  const started = await hasFirstCrownBeenTaken(roundId as string);
+  if (!started) {
+    redirect(
+      "/battles/koth?error=" +
+        encodeURIComponent("game hasn't started — wait for the first crown."),
+    );
+  }
+
   const r = await claimGuard(user!.id, roundId as string);
   if (!r.ok) {
     redirect("/battles/koth?error=" + encodeURIComponent(r.error));
@@ -179,4 +195,34 @@ export async function claimGuardAction(): Promise<void> {
 
   revalidatePath("/battles/koth");
   redirect("/battles/koth?guard=1");
+}
+
+// Guard ability — burn the per-round Lockdown token on a chosen path.
+// All gating + duplicate prevention lives in placeLockdown(); we just
+// surface the result back into the URL.
+export async function placeLockdownAction(formData: FormData): Promise<void> {
+  const { user } = await getCurrentSession();
+  if (!user) {
+    redirect("/login?next=/battles/koth");
+  }
+
+  const roundId = await currentActiveRoundId();
+  if (!roundId) {
+    redirect("/battles/koth?error=" + encodeURIComponent(NO_ROUND_ERR));
+  }
+
+  const pathSlug = String(formData.get("pathSlug") ?? "").trim();
+  if (!pathSlug) {
+    redirect(
+      "/battles/koth?error=" + encodeURIComponent("pick a primitive to lock down."),
+    );
+  }
+
+  const r = await placeLockdown(user!.id, roundId as string, pathSlug);
+  if (!r.ok) {
+    redirect("/battles/koth?error=" + encodeURIComponent(r.error));
+  }
+
+  revalidatePath("/battles/koth");
+  redirect("/battles/koth?lockdown=1");
 }

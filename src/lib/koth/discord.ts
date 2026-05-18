@@ -233,6 +233,32 @@ export function postKothGuardClaimedToDiscord(opts: {
   });
 }
 
+// Guard Lockdown announce — fires the moment a guard burns their
+// per-round token. Public broadcast so attackers immediately know
+// to switch primitives. Mirrors the visible chip on /battles/koth.
+export function postKothGuardLockdownToDiscord(opts: {
+  guardUsername: string;
+  pathSlug: string;
+  durationSec: number;
+  occurredAt?: Date;
+  siteUrl?: string;
+}): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
+  const mins = Math.floor(opts.durationSec / 60);
+  const secs = opts.durationSec % 60;
+  const dur = `${mins}:${secs.toString().padStart(2, "0")}`;
+  postEmbed({
+    color: COLOR.warning,
+    title: `🛡 LOCKDOWN — ${opts.guardUsername}`,
+    description: `Guard has locked down \`${opts.pathSlug}\` for **${dur}**. Any crown taken via this primitive during the window will be **rejected** — no score lands. Switch primitives or wait it out.\n\n[▸ Crown Wars](${siteUrl}/battles/koth)`,
+    timestamp: (opts.occurredAt ?? new Date()).toISOString(),
+    footer: { text: "Crown Wars · guard ability" },
+  });
+}
+
 // Daily Shared-Seed announce — fires once per UTC day, on the first
 // page hit after midnight. Wordle-style FOMO drip: same primitive for
 // every operator, leaderboard reset, link to play. Idempotency is

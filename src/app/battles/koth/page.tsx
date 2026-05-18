@@ -8,14 +8,26 @@ import {
   findRoundSlotForUser,
 } from "@/lib/koth/keys";
 import { topNForRound } from "@/lib/koth/scoring";
-import { currentPricesForRound } from "@/lib/koth/paths";
+import { currentPricesForRound, listPaths } from "@/lib/koth/paths";
 import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { titleFromRoundWins } from "@/lib/koth/titles";
 import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
-import { getGuardForRound, isUserGuardForRound } from "@/lib/koth/guards";
+import {
+  LOCKDOWN_WINDOW_SEC,
+  getActiveLockdowns,
+  getGuardForRound,
+  guardHasUsedLockdown,
+  hasFirstCrownBeenTaken,
+  isUserGuardForRound,
+} from "@/lib/koth/guards";
 import { DECAY_GRACE_SEC } from "@/lib/koth/scoring";
 import { getOrCreateMutationForRound } from "@/lib/koth/mutations";
-import { joinKothRound, submitKothKey, claimGuardAction } from "./actions";
+import {
+  joinKothRound,
+  submitKothKey,
+  claimGuardAction,
+  placeLockdownAction,
+} from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 import { AuditFeed } from "@/components/koth/AuditFeed";
 
@@ -303,6 +315,24 @@ export default async function KothPage({
     user && state.round
       ? await isUserGuardForRound(user.id, state.round.id)
       : false;
+  // Phase B: gate Guard claim on game-start + surface Lockdown state.
+  const gameStarted = state.round
+    ? await hasFirstCrownBeenTaken(state.round.id)
+    : false;
+  const activeLockdowns = state.round
+    ? await getActiveLockdowns(state.round.id)
+    : [];
+  const guardUsedLockdown =
+    iAmGuard && user && state.round
+      ? await guardHasUsedLockdown(state.round.id, user.id)
+      : false;
+  // Catalog rows the guard can pick from when placing a lockdown.
+  // Filter to escalation primitives so the choice is "which active
+  // exploit path", not housekeeping/core kinds.
+  const lockdownCandidates =
+    iAmGuard && !guardUsedLockdown
+      ? (await listPaths()).filter((p) => p.kind === "escalation")
+      : [];
 
   // King is in decay if their last patch was >5min ago AND tenure
   // itself is > 5min (we give a grace period at tenure start).
@@ -660,35 +690,116 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
 
       {/* King's Guard — asymmetric defender role. Single slot per
           round, FCFS; scores ½ of the king's active hold-time per
-          minute. Compact panel under the arena console. */}
+          minute. Phase B: gated on first crown_taken + can burn one
+          Lockdown token per round. */}
       {state.round && (
-        <div className="border border-border/60 px-4 py-2 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="text-amber/80 tracking-[0.18em] uppercase">
-              ▸ king&apos;s guard
-            </span>
-            {guard ? (
-              <span className="text-text">
-                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
+        <div className="border border-border/60 px-4 py-2 space-y-2 font-mono text-[11px]">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <div className="flex items-center gap-2">
+              <span className="text-amber/80 tracking-[0.18em] uppercase">
+                ▸ king&apos;s guard
               </span>
-            ) : (
-              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
+              {guard ? (
+                <span className="text-text">
+                  <span className="text-amber/90">@{guard.username ?? "anon"}</span>
+                </span>
+              ) : gameStarted ? (
+                <span className="text-muted">slot open · ½ of king&apos;s hold</span>
+              ) : (
+                <span className="text-muted/70">
+                  awaits first crown · slot opens once the round engages
+                </span>
+              )}
+            </div>
+            {user && !guard && !iAmGuard && gameStarted && (
+              <form action={claimGuardAction}>
+                <button
+                  type="submit"
+                  className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1 text-amber tracking-[0.18em] uppercase text-[11px]"
+                >
+                  claim →
+                </button>
+              </form>
+            )}
+            {iAmGuard && (
+              <span className="text-green/80 tracking-[0.18em] uppercase">
+                ▸ you are the guard
+              </span>
             )}
           </div>
-          {user && !guard && !iAmGuard && (
-            <form action={claimGuardAction}>
+
+          {/* Lockdown form — only the active guard sees this, and only
+              before they've burned their token for the round. */}
+          {iAmGuard && !guardUsedLockdown && lockdownCandidates.length > 0 && (
+            <form
+              action={placeLockdownAction}
+              className="flex items-center gap-2 flex-wrap pt-1 border-t border-border/40"
+            >
+              <span className="text-red-400/80 tracking-[0.18em] uppercase text-[10px]">
+                ▸ lockdown (1 token · {Math.floor(LOCKDOWN_WINDOW_SEC / 60)}min):
+              </span>
+              <select
+                name="pathSlug"
+                defaultValue=""
+                required
+                className="bg-bg border border-border/40 text-text px-2 py-1 text-[11px] font-mono"
+              >
+                <option value="" disabled>
+                  pick a primitive…
+                </option>
+                {lockdownCandidates.map((p) => (
+                  <option key={p.slug} value={p.slug}>
+                    {p.name} ({p.slug})
+                  </option>
+                ))}
+              </select>
               <button
                 type="submit"
-                className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1 text-amber tracking-[0.18em] uppercase text-[11px]"
+                className="border border-red-400/60 text-red-400 hover:bg-red-400/10 transition-colors px-3 py-1 tracking-[0.18em] uppercase text-[11px]"
               >
-                claim →
+                lock down →
               </button>
             </form>
           )}
-          {iAmGuard && (
-            <span className="text-green/80 tracking-[0.18em] uppercase">
-              ▸ you are the guard
-            </span>
+          {iAmGuard && guardUsedLockdown && (
+            <p className="text-[10px] text-muted/80 italic pt-1 border-t border-border/40">
+              ▸ lockdown token spent for this round — resets next round.
+            </p>
+          )}
+
+          {/* Active lockdowns — public to everyone (attackers need to
+              see what's frozen and switch primitives). */}
+          {activeLockdowns.length > 0 && (
+            <ul className="space-y-1 pt-1 border-t border-border/40">
+              {activeLockdowns.map((ld) => {
+                const remainSec = Math.max(
+                  0,
+                  Math.floor((ld.expiresAt.getTime() - Date.now()) / 1000),
+                );
+                const m = Math.floor(remainSec / 60);
+                const s = remainSec % 60;
+                return (
+                  <li
+                    key={ld.id}
+                    className="flex items-center gap-2 flex-wrap text-[11px]"
+                  >
+                    <span className="text-red-400">🛡 LOCKED</span>
+                    <code className="text-amber/90">{ld.pathSlug}</code>
+                    <span className="text-muted">
+                      · @{ld.guardUsername ?? "anon"}
+                    </span>
+                    <span className="text-red-400/80 ml-auto">
+                      {m}:{s.toString().padStart(2, "0")} left
+                      {ld.blockedCount > 0 && (
+                        <span className="text-muted ml-2">
+                          · {ld.blockedCount} blocked
+                        </span>
+                      )}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
       )}
