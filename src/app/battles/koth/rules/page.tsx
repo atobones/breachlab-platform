@@ -160,12 +160,19 @@ export default function KothRulesPage() {
 
       <RuleSection title="Drift mode (mutating arena)">
         <p>
-          SUID binaries get renamed every round via a deterministic scheme.
-          Last round&apos;s <code>/usr/local/bin/phantom-python3</code> might
-          land at <code>/usr/local/bin/ops-py3</code> this round. Same
-          primitive, same exploit chain — different path. Memorize the
-          chain, not the path. Enumerate with{" "}
-          <code>find / -perm -4000</code>.
+          SUID binaries get renamed AND relocated every round.
+          <code>phantom-python3</code> might land at{" "}
+          <code>/opt/svc/bin/ops-py3</code> one round,
+          <code>/srv/local/sbin/py-runtime</code> the next. Same primitive,
+          same exploit chain — different path. Memorize the chain, not the
+          path. Enumerate with <code>find / -perm -4000</code>.
+        </p>
+        <p className="pt-2">
+          Each round also plants a <strong>decoy SUID binary</strong> at{" "}
+          <code>/usr/local/bin/</code>. Looks exploitable; isn&apos;t.
+          Touching it logs your uid and argv to a file the Guard&apos;s Eye
+          reads — naive attackers get burned. Smart players{" "}
+          <code>strings</code> a binary before exploiting it.
         </p>
       </RuleSection>
 
