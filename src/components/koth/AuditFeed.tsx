@@ -122,6 +122,12 @@ export function AuditFeed() {
     }
   }, [lines]);
 
+  // Hide the widget entirely until there's something to show OR the
+  // stream is in an error state worth surfacing.
+  if (lines.length === 0 && (status === "live" || status === "connecting" || status === "idle")) {
+    return null;
+  }
+
   return (
     <section className="border border-amber/40 bg-bg/30 font-mono">
       <div className="px-3 py-2 border-b border-amber/30 bg-amber/[0.04] flex items-center justify-between gap-2 flex-wrap text-[11px]">
