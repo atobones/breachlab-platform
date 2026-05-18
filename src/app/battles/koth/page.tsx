@@ -379,6 +379,33 @@ export default async function KothPage({
         </Link>
       </nav>
 
+      {/* King-only decay alert — only visible to the user CURRENTLY
+          holding the crown when they're inside the grace window or
+          already decaying. Tells them to patch something now. */}
+      {state.king &&
+        user &&
+        state.king.username === user.username &&
+        (kingDecaying ||
+          (state.king.lastPatchAt !== null &&
+            decaySecondsTillKickIn > 0 &&
+            decaySecondsTillKickIn < 120)) && (
+          <div
+            className={`border ${
+              kingDecaying
+                ? "border-red-400/60 bg-red-400/[0.06]"
+                : "border-amber/40 bg-amber/[0.05]"
+            } px-4 py-2.5 font-mono text-[12px] flex items-center justify-between gap-3 flex-wrap`}
+          >
+            <span
+              className={kingDecaying ? "text-red-400" : "text-amber"}
+            >
+              {kingDecaying
+                ? "▼ your crown is bleeding points — close a path to refresh the active window"
+                : `◷ ${decaySecondsTillKickIn}s until decay — patch a path to extend your active window`}
+            </span>
+          </div>
+        )}
+
       {/* King's Guard — single slot per round, FCFS. Shows the
           current Guard's name to all viewers; shows a claim button
           to logged-in non-Guard viewers when the slot is empty. */}

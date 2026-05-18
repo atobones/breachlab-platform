@@ -2,6 +2,7 @@ import { and, desc, eq } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import { kothGuards, kothRounds, users } from "@/lib/db/schema";
+import { postKothGuardClaimedToDiscord } from "@/lib/koth/discord";
 
 // Crown Wars — King's Guard helpers.
 //
@@ -66,6 +67,21 @@ export async function claimGuard(
 > {
   try {
     await db.insert(kothGuards).values({ userId, roundId });
+    // Fire-and-forget Discord announce — never block the action on
+    // Discord-side trouble.
+    try {
+      const u = await db
+        .select({ username: users.username })
+        .from(users)
+        .where(eq(users.id, userId))
+        .limit(1);
+      const uname = u[0]?.username;
+      if (uname) {
+        postKothGuardClaimedToDiscord({ guardUsername: uname });
+      }
+    } catch {
+      // ignore
+    }
     return { ok: true };
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
