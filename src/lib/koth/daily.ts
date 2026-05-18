@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { and, desc, eq, gt, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, gt, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
 import {
@@ -9,6 +9,7 @@ import {
   kothPaths,
   users,
 } from "@/lib/db/schema";
+import { postKothDailyAnnounceToDiscord } from "@/lib/koth/discord";
 
 // Crown Wars — Daily Shared-Seed Solo.
 //
@@ -29,7 +30,17 @@ export type DailyChallenge = {
   pathDescription: string | null;
   pathHint: string | null;
   generatedAt: Date;
+  discordAnnouncedAt: Date | null;
 };
+
+// Days since the project epoch. Matches the formula in
+// /battles/koth/daily/page.tsx so the Discord embed and the page
+// quote the same #N for the same day.
+const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+export function dailyChallengeNumber(day: string): number {
+  const d = new Date(day + "T00:00:00Z").getTime();
+  return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);
+}
 
 export type DailyLeaderRow = {
   id: string;
@@ -65,48 +76,84 @@ async function pickPathFor(day: string): Promise<string | null> {
 
 // Get-or-create today's seed. On first call of the day, picks a path
 // and inserts. Subsequent calls return the existing row.
+//
+// Also responsible for the Discord auto-announce: after the seed row
+// exists, attempts to claim the `discord_announced_at` slot via a
+// conditional UPDATE. Whichever request wins the claim posts the
+// embed; everyone else's UPDATE matches zero rows and is a no-op.
+// This gives us exactly one announce per UTC day with no external
+// cron — the first page hit on the new day fires the post.
 export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
   const day = todayUtcString();
 
-  const existing = await db
-    .select({
-      dayUtc: kothDailySeeds.dayUtc,
-      pathSlug: kothDailySeeds.pathSlug,
-      pathName: kothPaths.name,
-      pathDescription: kothPaths.description,
-      pathHint: kothPaths.hint,
-      generatedAt: kothDailySeeds.generatedAt,
-    })
-    .from(kothDailySeeds)
-    .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
-    .where(eq(kothDailySeeds.dayUtc, day))
-    .limit(1);
-  if (existing.length > 0) return existing[0];
+  const fetchRow = async () => {
+    const r = await db
+      .select({
+        dayUtc: kothDailySeeds.dayUtc,
+        pathSlug: kothDailySeeds.pathSlug,
+        pathName: kothPaths.name,
+        pathDescription: kothPaths.description,
+        pathHint: kothPaths.hint,
+        generatedAt: kothDailySeeds.generatedAt,
+        discordAnnouncedAt: kothDailySeeds.discordAnnouncedAt,
+      })
+      .from(kothDailySeeds)
+      .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
+      .where(eq(kothDailySeeds.dayUtc, day))
+      .limit(1);
+    return r[0] ?? null;
+  };
 
-  const slug = await pickPathFor(day);
-  if (!slug) return null;
+  let row = await fetchRow();
 
-  // Race-safe insert: another request might be doing the same right
-  // now. ON CONFLICT DO NOTHING + re-read.
-  await db
-    .insert(kothDailySeeds)
-    .values({ dayUtc: day, pathSlug: slug })
-    .onConflictDoNothing({ target: kothDailySeeds.dayUtc });
+  if (row == null) {
+    const slug = await pickPathFor(day);
+    if (!slug) return null;
 
-  const row = await db
-    .select({
-      dayUtc: kothDailySeeds.dayUtc,
-      pathSlug: kothDailySeeds.pathSlug,
-      pathName: kothPaths.name,
-      pathDescription: kothPaths.description,
-      pathHint: kothPaths.hint,
-      generatedAt: kothDailySeeds.generatedAt,
-    })
-    .from(kothDailySeeds)
-    .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
-    .where(eq(kothDailySeeds.dayUtc, day))
-    .limit(1);
-  return row[0] ?? null;
+    // Race-safe insert: another request might be doing the same right
+    // now. ON CONFLICT DO NOTHING + re-read.
+    await db
+      .insert(kothDailySeeds)
+      .values({ dayUtc: day, pathSlug: slug })
+      .onConflictDoNothing({ target: kothDailySeeds.dayUtc });
+
+    row = await fetchRow();
+    if (row == null) return null;
+  }
+
+  // Try to claim the Discord-announce slot. The UPDATE only matches
+  // when discord_announced_at is still NULL, so concurrent callers
+  // produce at most one "I won" result. The winner fires the embed.
+  if (row.discordAnnouncedAt == null) {
+    const claim = await db
+      .update(kothDailySeeds)
+      .set({ discordAnnouncedAt: new Date() })
+      .where(
+        and(
+          eq(kothDailySeeds.dayUtc, day),
+          isNull(kothDailySeeds.discordAnnouncedAt),
+        ),
+      )
+      .returning({ dayUtc: kothDailySeeds.dayUtc });
+    if (claim.length === 1) {
+      // Fire-and-forget. Discord-side failure must not block the page
+      // render, and the announce is already considered "delivered"
+      // from a state-machine standpoint (we won't try again).
+      try {
+        postKothDailyAnnounceToDiscord({
+          dayUtc: day,
+          challengeNumber: dailyChallengeNumber(day),
+          pathName: row.pathName,
+          pathSlug: row.pathSlug,
+        });
+      } catch {
+        // best-effort
+      }
+      row.discordAnnouncedAt = new Date();
+    }
+  }
+
+  return row;
 }
 
 // One-attempt-per-user-per-day. Returns the existing row if the user

@@ -212,6 +212,35 @@ export function postKothFirstDiscoveryToDiscord(opts: {
   });
 }
 
+// Daily Shared-Seed announce — fires once per UTC day, on the first
+// page hit after midnight. Wordle-style FOMO drip: same primitive for
+// every operator, leaderboard reset, link to play. Idempotency is
+// enforced by a conditional UPDATE on koth_daily_seeds.discord_announced_at;
+// this function is only called after the caller has claimed the row.
+export function postKothDailyAnnounceToDiscord(opts: {
+  dayUtc: string;
+  challengeNumber: number;
+  pathName: string | null;
+  pathSlug: string;
+  siteUrl?: string;
+}): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
+  const label = opts.pathName?.trim() || opts.pathSlug;
+  // No hint, no description — pure puzzle drop. Players see the
+  // primitive name and the link, nothing else. Spoiler protection
+  // is the point.
+  postEmbed({
+    color: COLOR.victory,
+    title: `🗓 Daily #${opts.challengeNumber} — ${label}`,
+    description: `Today's primitive is live. One attempt per operator, shared seed worldwide. Crown the path faster than yesterday's leaders.\n\n[▸ Play today's challenge](${siteUrl}/battles/koth/daily)`,
+    timestamp: new Date(opts.dayUtc + "T00:00:00Z").toISOString(),
+    footer: { text: `Crown Wars · daily · resets at 00:00 UTC` },
+  });
+}
+
 // Round summary card. Single embed, gold bar, winner stats in three
 // inline fields so they line up neatly on desktop and mobile.
 export function postKothRoundCloseToDiscord(opts: {

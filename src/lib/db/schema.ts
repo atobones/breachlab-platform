@@ -621,6 +621,9 @@ export const kothDailySeeds = pgTable("koth_daily_seeds", {
   generatedAt: timestamp("generated_at", { withTimezone: true })
     .notNull()
     .defaultNow(),
+  // Set when the Discord announce-of-the-day post lands; conditional
+  // UPDATE WHERE NULL is the idempotency mechanism. See lib/koth/daily.ts.
+  discordAnnouncedAt: timestamp("discord_announced_at", { withTimezone: true }),
 });
 
 export const kothDailyAttempts = pgTable(
