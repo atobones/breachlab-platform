@@ -29,6 +29,9 @@ export type DailyChallenge = {
   pathName: string | null;     // human-readable from koth_paths
   pathDescription: string | null;
   pathHint: string | null;
+  // Forge attribution — non-null when the path was player-submitted
+  // via the Weapons Forge. NULL = house entry.
+  authorUsername: string | null;
   generatedAt: Date;
   discordAnnouncedAt: Date | null;
 };
@@ -94,11 +97,13 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
         pathName: kothPaths.name,
         pathDescription: kothPaths.description,
         pathHint: kothPaths.hint,
+        authorUsername: users.username,
         generatedAt: kothDailySeeds.generatedAt,
         discordAnnouncedAt: kothDailySeeds.discordAnnouncedAt,
       })
       .from(kothDailySeeds)
       .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
+      .leftJoin(users, eq(users.id, kothPaths.authorUserId))
       .where(eq(kothDailySeeds.dayUtc, day))
       .limit(1);
     return r[0] ?? null;
@@ -145,6 +150,7 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
           challengeNumber: dailyChallengeNumber(day),
           pathName: row.pathName,
           pathSlug: row.pathSlug,
+          authorUsername: row.authorUsername,
         });
       } catch {
         // best-effort

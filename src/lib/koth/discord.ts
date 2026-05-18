@@ -201,14 +201,20 @@ export function postKothFirstDiscoveryToDiscord(opts: {
   slug: string;
   bonus: number;
   occurredAt: Date;
+  siteUrl?: string;
 }): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
   const actor = opts.actorUsername ?? "an operator";
+  const forgeLink = `${siteUrl}/battles/koth/weapons/submit?slug=${encodeURIComponent(opts.slug)}`;
   postEmbed({
     color: COLOR.victory,
     title: `🌟 First discovery — ${actor} opened a new path`,
-    description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.`,
+    description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.\n\n${actor === "an operator" ? "Player" : `**${actor}**`} — [▸ submit it to the Forge](${forgeLink}) and your handle joins the catalog as permanent credit.`,
     timestamp: opts.occurredAt.toISOString(),
-    footer: { text: "Crown Wars · discoverer bonus" },
+    footer: { text: "Crown Wars · discoverer bonus · Weapons Forge open" },
   });
 }
 
@@ -222,6 +228,7 @@ export function postKothDailyAnnounceToDiscord(opts: {
   challengeNumber: number;
   pathName: string | null;
   pathSlug: string;
+  authorUsername?: string | null;
   siteUrl?: string;
 }): void {
   const siteUrl =
@@ -229,13 +236,16 @@ export function postKothDailyAnnounceToDiscord(opts: {
     process.env.NEXT_PUBLIC_SITE_URL ??
     "https://breachlab.org";
   const label = opts.pathName?.trim() || opts.pathSlug;
+  const credit = opts.authorUsername
+    ? `\n\n_Forged by **${opts.authorUsername}**._`
+    : "";
   // No hint, no description — pure puzzle drop. Players see the
   // primitive name and the link, nothing else. Spoiler protection
   // is the point.
   postEmbed({
     color: COLOR.victory,
     title: `🗓 Daily #${opts.challengeNumber} — ${label}`,
-    description: `Today's primitive is live. One attempt per operator, shared seed worldwide. Crown the path faster than yesterday's leaders.\n\n[▸ Play today's challenge](${siteUrl}/battles/koth/daily)`,
+    description: `Today's primitive is live. One attempt per operator, shared seed worldwide. Crown the path faster than yesterday's leaders.${credit}\n\n[▸ Play today's challenge](${siteUrl}/battles/koth/daily)`,
     timestamp: new Date(opts.dayUtc + "T00:00:00Z").toISOString(),
     footer: { text: `Crown Wars · daily · resets at 00:00 UTC` },
   });

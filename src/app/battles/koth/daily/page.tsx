@@ -83,12 +83,21 @@ export default async function DailyPage() {
       </section>
 
       {seed ? (
-        <DailyClient
-          day={day}
-          pathSlug={seed.pathSlug}
-          pathName={seed.pathName}
-          challengeNumber={chNum}
-        />
+        <>
+          <DailyClient
+            day={day}
+            pathSlug={seed.pathSlug}
+            pathName={seed.pathName}
+            challengeNumber={chNum}
+          />
+          {seed.authorUsername && (
+            <p className="text-[11px] text-amber/70 font-mono italic">
+              ▸ today&apos;s primitive was contributed by{" "}
+              <span className="text-amber">{seed.authorUsername}</span> via
+              the Weapons Forge.
+            </p>
+          )}
+        </>
       ) : (
         <div className="border border-red/40 text-red p-6 font-mono text-sm">
           ⚠ no daily seed available — the catalog appears empty. ping admin.
