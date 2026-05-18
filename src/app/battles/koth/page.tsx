@@ -407,8 +407,8 @@ export default async function KothPage({
               className={kingDecaying ? "text-red-400" : "text-amber"}
             >
               {kingDecaying
-                ? "▼ your crown is bleeding points — close a path to refresh the active window"
-                : `◷ ${decaySecondsTillKickIn}s until decay — patch a path to extend your active window`}
+                ? "▼ crown decaying — patch a path"
+                : `◷ ${decaySecondsTillKickIn}s until decay`}
             </span>
           </div>
         )}
@@ -424,13 +424,10 @@ export default async function KothPage({
             </span>
             {guard ? (
               <span className="text-text">
-                <span className="text-amber/90">@{guard.username ?? "anon"}</span>{" "}
-                <span className="text-muted">protecting the throne · scores while crown stands</span>
+                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
               </span>
             ) : (
-              <span className="text-muted">
-                slot open · earn ½ of king&apos;s active hold-time per minute
-              </span>
+              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
             )}
           </div>
           {user && !guard && !iAmGuard && (
@@ -461,7 +458,7 @@ export default async function KothPage({
             <span className="text-amber tracking-[0.2em] uppercase text-[10px] mr-2">
               ▸ forge
             </span>
-            you opened {myDiscoveries.length === 1 ? "a path" : `${myDiscoveries.length} paths`} no one else has —{" "}
+            unsubmitted:{" "}
             <code className="text-amber/90">
               {myDiscoveries[0]}
               {myDiscoveries.length > 1 && ` +${myDiscoveries.length - 1}`}
@@ -471,7 +468,7 @@ export default async function KothPage({
             href={`/battles/koth/weapons/submit?slug=${encodeURIComponent(myDiscoveries[0])}`}
             className="btn-bracket text-amber text-[12px] font-mono tracking-[0.18em]"
           >
-            Submit to the Catalog →
+            Submit →
           </Link>
         </div>
       )}
@@ -757,10 +754,7 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
                   </pre>
                 </div>
                 <p className="text-[10px] text-muted leading-snug pt-1">
-                  These work today. The box mutates against playbooks —
-                  defenders close paths after they&apos;re used. Real opsec
-                  means reading <code className="mx-1">/var/log/auth.log</code>
-                  and adapting in real time, not copy-paste forever.
+                  Paths rotate per round. <code>which</code> if a 404 hits.
                 </p>
               </div>
             </details>

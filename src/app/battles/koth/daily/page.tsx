@@ -67,9 +67,8 @@ export default async function DailyPage() {
           DAILY · #{chNum}
         </h1>
         <p className="text-[14px] leading-relaxed text-muted max-w-3xl">
-          One primitive a day. Every operator on the planet gets the same
-          configuration — your time goes on a shared leaderboard. Resets at
-          00:00 UTC.
+          One primitive a day. Everyone gets the same configuration; your
+          time goes on a shared leaderboard. Resets at 00:00 UTC.
         </p>
       </header>
 
@@ -113,7 +112,7 @@ export default async function DailyPage() {
         </div>
         {leaderboard.length === 0 ? (
           <div className="p-6 text-center text-muted font-mono text-sm">
-            No one has crowned today&apos;s challenge yet. Be first.
+            no entries yet today.
           </div>
         ) : (
           <ol className="divide-y divide-border/30 font-mono text-[13px]">
@@ -150,14 +149,6 @@ export default async function DailyPage() {
         )}
       </section>
 
-      <footer className="pt-4 border-t border-border/40 text-[11px] text-muted font-mono leading-relaxed">
-        <p>
-          Daily seed is deterministic — every UTC day, a SHA256 of the date
-          picks one escalation path from the catalog. Two web instances land
-          on the same pick without coordinating. The challenge is to take
-          crown via that specific primitive faster than your peers.
-        </p>
-      </footer>
     </article>
   );
 }

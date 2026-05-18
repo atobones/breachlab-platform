@@ -126,7 +126,7 @@ export function AuditFeed() {
     <section className="border border-amber/40 bg-bg/30 font-mono">
       <div className="px-3 py-2 border-b border-amber/30 bg-amber/[0.04] flex items-center justify-between gap-2 flex-wrap text-[11px]">
         <div className="text-amber tracking-[0.18em] uppercase">
-          ▸ live audit · transparency feed
+          ▸ live audit
         </div>
         <div className="text-muted flex items-center gap-2">
           {status === "live" && (
@@ -166,9 +166,9 @@ export function AuditFeed() {
         {lines.length === 0 ? (
           <p className="text-muted">
             {status === "idle"
-              ? "arena is standing by — feed turns on when the next round starts."
+              ? "no active round."
               : status === "live" || status === "connecting"
-                ? "no audit lines yet — king hasn't typed anything since this stream opened."
+                ? "waiting for king activity…"
                 : "audit feed unavailable."}
           </p>
         ) : (
@@ -194,9 +194,6 @@ export function AuditFeed() {
         )}
       </div>
 
-      <div className="px-3 py-1.5 border-t border-border/40 text-[10px] text-muted/80">
-        captured outside the arena · king-as-root cannot disable this
-      </div>
     </section>
   );
 }
