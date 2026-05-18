@@ -69,7 +69,7 @@ export default async function DailyPage() {
         <p className="text-[14px] leading-relaxed text-muted max-w-3xl">
           One primitive a day. Every operator on the planet gets the same
           configuration — your time goes on a shared leaderboard. Resets at
-          00:00 UTC. Wordle, but with root shells.
+          00:00 UTC.
         </p>
       </header>
 
