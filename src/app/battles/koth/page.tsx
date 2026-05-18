@@ -241,80 +241,39 @@ export default async function KothPage({
         </h1>
       </header>
 
-      {/* Help-bar — prominent Rules CTA. Right under the hero, before
-          the round status banner, so eyes hit it on the way down. */}
-      <div className="border border-amber/30 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-[13px] font-mono">
-          <span className="text-muted">new here? </span>
-          <span className="text-text">read the rules first.</span>
-        </div>
-        <Link
-          href="/battles/koth/rules"
-          className="btn-bracket text-amber text-[13px] font-mono tracking-[0.18em]"
-        >
-          Read the Rules →
-        </Link>
-      </div>
-
-      {/* Solo modes — hero-level CTAs for Daily + Replays + Race.
-          Above the round console so they read as first-class entries,
-          not buried in the footer. Three equal cards, each fully
-          clickable. */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+      {/* Quick-nav strip — Daily, Replays, Race, Rules in one compact
+          row. Replaces the old help-bar + 3-card hero. All CTAs above
+          the fold without dominating the page. Daily chip keeps a live
+          countdown to the next UTC reset. */}
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono border-b border-amber/20 pb-2">
         <Link
           href="/battles/koth/daily"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+          className="text-amber hover:text-amber/80 tracking-[0.18em] uppercase"
         >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ daily · solo
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            #{todayChallenge} · one primitive
-          </div>
-          <div className="text-muted text-[11px] mt-1 tabular-nums">
-            resets in {fmtHHMMSS(secsToNextDaily)}
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            crown today →
-          </div>
+          ▸ daily #{todayChallenge}
+          <span className="text-muted/80 normal-case tabular-nums ml-1 tracking-normal">
+            · {fmtHHMMSS(secsToNextDaily)}
+          </span>
         </Link>
-
         <Link
           href="/battles/koth/replays"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
         >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ replays · library
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            every crown · auto-clipped
-          </div>
-          <div className="text-muted text-[11px] mt-1">
-            asciinema · raw .cast · deep links
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            watch the kills →
-          </div>
+          ▸ replays
         </Link>
-
         <Link
           href="/battles/koth/replays?kind=crown_moment"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
         >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ ghost · race
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            beat a recorded crown
-          </div>
-          <div className="text-muted text-[11px] mt-1">
-            solo · per-replay leaderboard
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            pick a ghost →
-          </div>
+          ▸ ghost-race
         </Link>
-      </section>
+        <Link
+          href="/battles/koth/rules"
+          className="ml-auto text-muted hover:text-amber tracking-[0.18em] uppercase"
+        >
+          rules →
+        </Link>
+      </nav>
 
       {/* ─── Combined Arena Console ───────────────────────────────
           Round status strip (top) + enlist / SSH / sign-in (body).
@@ -653,20 +612,11 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           ← battles
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/battles/koth/daily" className="hover:text-amber tracking-[0.18em] uppercase">
-            daily
-          </Link>
-          <Link href="/battles/koth/replays" className="hover:text-amber tracking-[0.18em] uppercase">
-            replays
-          </Link>
           <Link href="/battles/koth/champions" className="hover:text-amber tracking-[0.18em] uppercase">
             champions
           </Link>
           <Link href="/battles/koth/history" className="hover:text-amber tracking-[0.18em] uppercase">
             history
-          </Link>
-          <Link href="/battles/koth/rules" className="hover:text-amber tracking-[0.18em] uppercase">
-            rules →
           </Link>
         </div>
         <span className="tracking-[0.18em] uppercase">predator</span>
