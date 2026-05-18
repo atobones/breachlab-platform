@@ -19,6 +19,7 @@
     "@lucia-auth/adapter-drizzle": "^1.1.0",
     "@oslojs/crypto": "^1.0.1",
     "@oslojs/encoding": "^1.1.0",
+    "asciinema-player": "^3.15.1",
     "drizzle-orm": "^0.45.2",
     "lucia": "^3.2.2",
     "marked": "^18.0.2",

@@ -6,7 +6,7 @@
 // the #crown-wars channel.
 //
 // Format: rich embeds (coloured left bar + title + body), not raw text.
-// Path slugs (`writable-ld-preload`, `l7-suid`) are technical and ugly
+// Path slugs (`writable-ld-preload`, `suid-python-wrapper`) are technical and ugly
 // in chat — we accept an optional human-readable `pathName` from the
 // caller (resolved against the path catalog in api/koth/event/route.ts)
 // and fall back to the slug only if the name is missing.
@@ -14,6 +14,7 @@
 type EventArgs = {
   kind: string;
   actorUsername: string | null;
+  actorSlot?: string | null; // "koth0".."koth9" — used for replay-link in embed
   targetUsername: string | null;
   exploitPath: string | null; // slug, kept for fallback
   pathName?: string | null; // human-readable, e.g. "Writable PYTHONPATH"
@@ -55,18 +56,37 @@ function embedForEvent(ev: EventArgs): Embed | null {
   switch (ev.kind) {
     case "crown_taken": {
       const valueLine = pts != null ? ` · **+${pts} pt**` : "";
+      // Replay deep-link — the sidecar uploads a crown_moment cast a
+      // few seconds after the event fires; by the time someone clicks
+      // this link, the replays-list page renders it as the top entry.
+      // We can't link a specific replay-id yet (cast isn't uploaded at
+      // this point), so we link the filtered list scoped to this slot
+      // + crown_moment kind — newest first.
+      const siteUrl = (process.env.SITE_URL ?? "https://breachlab.org").replace(
+        /\/$/,
+        "",
+      );
+      const replayLink =
+        ev.actorSlot != null
+          ? `${siteUrl}/battles/koth/replays?slot=${encodeURIComponent(
+              ev.actorSlot,
+            )}&kind=crown_moment`
+          : null;
+      const description =
+        (path ? `via **${path}**${valueLine}` : "") +
+        (replayLink ? `\n[▸ watch the kill](${replayLink})` : "");
       if (ev.targetUsername) {
         return {
           color: COLOR.dethrone,
           title: `⚔️ ${actor} dethroned ${ev.targetUsername}`,
-          description: path ? `via **${path}**${valueLine}` : undefined,
+          description: description || undefined,
           timestamp: ts,
         };
       }
       return {
         color: COLOR.crown,
         title: `👑 ${actor} took the crown`,
-        description: path ? `via **${path}**${valueLine}` : undefined,
+        description: description || undefined,
         timestamp: ts,
       };
     }
@@ -189,6 +209,35 @@ export function postKothFirstDiscoveryToDiscord(opts: {
     description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.`,
     timestamp: opts.occurredAt.toISOString(),
     footer: { text: "Crown Wars · discoverer bonus" },
+  });
+}
+
+// Daily Shared-Seed announce — fires once per UTC day, on the first
+// page hit after midnight. Wordle-style FOMO drip: same primitive for
+// every operator, leaderboard reset, link to play. Idempotency is
+// enforced by a conditional UPDATE on koth_daily_seeds.discord_announced_at;
+// this function is only called after the caller has claimed the row.
+export function postKothDailyAnnounceToDiscord(opts: {
+  dayUtc: string;
+  challengeNumber: number;
+  pathName: string | null;
+  pathSlug: string;
+  siteUrl?: string;
+}): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
+  const label = opts.pathName?.trim() || opts.pathSlug;
+  // No hint, no description — pure puzzle drop. Players see the
+  // primitive name and the link, nothing else. Spoiler protection
+  // is the point.
+  postEmbed({
+    color: COLOR.victory,
+    title: `🗓 Daily #${opts.challengeNumber} — ${label}`,
+    description: `Today's primitive is live. One attempt per operator, shared seed worldwide. Crown the path faster than yesterday's leaders.\n\n[▸ Play today's challenge](${siteUrl}/battles/koth/daily)`,
+    timestamp: new Date(opts.dayUtc + "T00:00:00Z").toISOString(),
+    footer: { text: `Crown Wars · daily · resets at 00:00 UTC` },
   });
 }
 

