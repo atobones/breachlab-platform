@@ -30,17 +30,11 @@ export async function POST(
     );
   }
 
-  let body: { tookCrown?: unknown } = {};
-  try {
-    body = (await req.json()) as { tookCrown?: unknown };
-  } catch {
-    body = {};
-  }
-  const claimedTookCrown = body.tookCrown === true;
-
-  const result = await finishDailyAttempt(id, { tookCrown: claimedTookCrown });
-  if (!result) {
+  // Strict verify — body no longer takes a tookCrown hint; the
+  // oracle alone decides based on koth_events.
+  const outcome = await finishDailyAttempt(id);
+  if (!outcome) {
     return NextResponse.json({ error: "finish failed" }, { status: 500 });
   }
-  return NextResponse.json(result, { status: 200 });
+  return NextResponse.json(outcome, { status: 200 });
 }

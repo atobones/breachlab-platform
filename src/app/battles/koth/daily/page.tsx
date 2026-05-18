@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import {
+  finishDailyAttempt,
   getDailyAttemptForUser,
   getDailyLeaderboard,
   getOrCreateTodaySeed,
@@ -58,7 +59,23 @@ export default async function DailyPage() {
   // Lets DailyClient boot straight into the right phase without a
   // client-side API roundtrip — Cloudflare 403s anonymous POSTs to
   // /api/koth/* and breaks the fetch-based flow.
-  const attemptRow = user ? await getDailyAttemptForUser(user.id, day) : null;
+  let attemptRow = user ? await getDailyAttemptForUser(user.id, day) : null;
+
+  // Auto-detect — if the player has an unfinished attempt and they
+  // actually crowned via today's primitive in-arena, mark verified
+  // here on render. The user doesn't have to click anything; coming
+  // back to the page after their SSH session is enough to surface
+  // the result. finishDailyAttempt is a no-op if no event matches.
+  if (attemptRow && attemptRow.finishedAt == null) {
+    const verified = await finishDailyAttempt(attemptRow.id);
+    if (verified && "verified" in verified && verified.verified) {
+      // Re-fetch the row so the snapshot we hand to DailyClient
+      // reflects the persisted finish.
+      attemptRow = user
+        ? await getDailyAttemptForUser(user!.id, day)
+        : attemptRow;
+    }
+  }
   const initialAttempt: DailyAttemptSnapshot | null = attemptRow
     ? {
         id: attemptRow.id,
@@ -159,11 +176,6 @@ export default async function DailyPage() {
                 <span className="text-text">
                   {row.username ?? "anonymous"}
                 </span>
-                {row.selfReported && (
-                  <span className="text-[10px] text-muted/60 italic">
-                    self-reported
-                  </span>
-                )}
                 <span className="ml-auto text-amber/80">
                   {fmt(row.elapsedSec)}
                 </span>
