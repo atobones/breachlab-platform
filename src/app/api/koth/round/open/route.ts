@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import { kothRounds } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
+import { getOrCreateMutationForRound } from "@/lib/koth/mutations";
 
 // Open a new KoTH round. Called by reset-arena.sh on prod every 20
 // minutes (host cron). If a round is currently active, mark it 'reset'
@@ -53,6 +54,16 @@ export async function POST(req: Request) {
       containerId: body.container_id ?? null,
     })
     .returning({ id: kothRounds.id });
+
+  // Drift Mode — pick a deterministic alias scheme for this round.
+  // Phase A is informational on the dashboard; Phase B will wire the
+  // arena reset script to honour the scheme.
+  try {
+    await getOrCreateMutationForRound(inserted.id);
+  } catch {
+    // best-effort — round creation must not fail because Drift hit a
+    // hiccup.
+  }
 
   return NextResponse.json({ id: inserted.id });
 }

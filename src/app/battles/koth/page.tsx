@@ -15,6 +15,7 @@ import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
 import { pendingDiscoveriesForUser } from "@/lib/koth/weapons";
 import { getGuardForRound, isUserGuardForRound } from "@/lib/koth/guards";
 import { DECAY_GRACE_SEC } from "@/lib/koth/scoring";
+import { getOrCreateMutationForRound } from "@/lib/koth/mutations";
 import { joinKothRound, submitKothKey, claimGuardAction } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 import { AuditFeed } from "@/components/koth/AuditFeed";
@@ -295,6 +296,12 @@ export default async function KothPage({
   const myDiscoveries = user
     ? await pendingDiscoveriesForUser(user.id)
     : [];
+
+  // Drift Mode — per-round mutation scheme. Phase A is purely
+  // informational; cheat-sheet wiring + arena-side renames are Phase B.
+  const drift = state.round
+    ? await getOrCreateMutationForRound(state.round.id)
+    : null;
 
   // Crown Decay + King's Guard surface
   const guard = state.round
@@ -606,6 +613,17 @@ export default async function KothPage({
                   <span className="text-muted">·</span>
                   <span className="text-red-400 animate-pulse">
                     ⚠ incoming: {pendingEscalation.map((p) => p.slug).join(", ")}
+                  </span>
+                </>
+              )}
+              {drift && (
+                <>
+                  <span className="text-muted">·</span>
+                  <span
+                    className="text-amber/70"
+                    title="Drift Mode — binary names rotate per round. Run `which` if a path 404s."
+                  >
+                    ◈ drift: {drift.schemeLabel}
                   </span>
                 </>
               )}
