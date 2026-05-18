@@ -701,6 +701,41 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         )}
       </section>
 
+      {/* King's Guard — asymmetric defender role. Single slot per
+          round, FCFS; scores ½ of the king's active hold-time per
+          minute. Compact panel under the arena console. */}
+      {state.round && (
+        <div className="border border-border/60 px-4 py-2 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
+          <div className="flex items-center gap-2">
+            <span className="text-amber/80 tracking-[0.18em] uppercase">
+              ▸ king&apos;s guard
+            </span>
+            {guard ? (
+              <span className="text-text">
+                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
+              </span>
+            ) : (
+              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
+            )}
+          </div>
+          {user && !guard && !iAmGuard && (
+            <form action={claimGuardAction}>
+              <button
+                type="submit"
+                className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1 text-amber tracking-[0.18em] uppercase text-[11px]"
+              >
+                claim →
+              </button>
+            </form>
+          )}
+          {iAmGuard && (
+            <span className="text-green/80 tracking-[0.18em] uppercase">
+              ▸ you are the guard
+            </span>
+          )}
+        </div>
+      )}
+
       {/* Top-5 leaderboard — hidden until there's something to show. */}
       {state.top5.length > 0 && (
         <section className="border border-border/60 px-4 py-3 space-y-2">

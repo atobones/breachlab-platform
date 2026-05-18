@@ -51,20 +51,16 @@ export function ReplayPlayer({
           autoPlay,
           idleTimeLimit,
           speed,
-          // Custom theme — match BL's amber-on-black palette. asciinema
-          // ships several built-ins (asciinema/tango/solarized-dark/
-          // solarized-light/monokai/nord/dracula); "asciinema" stays
-          // closest to our existing terminal look.
           theme: "asciinema",
-          // Keep the original recording's dimensions but cap to fit
-          // typical desktop widths (sidebar layout = ~800px usable).
-          cols: 100,
-          rows: 30,
-          // Bigger font on the player than the default — feels
-          // confident, like a featured artifact.
+          // Let the player honour the cast's native cols/rows; locking
+          // them here was clipping output and showing a black canvas
+          // until clicked. fit:width still scales to container.
           fit: "width",
           terminalFontSize: "14px",
-          // Title shown in the player metadata header.
+          // Show the first second of the recording as the poster
+          // frame, so a viewer sees the prompt/first commands rather
+          // than an empty black canvas before pressing play.
+          poster: "npt:0:1",
           title,
         },
       );
