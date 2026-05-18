@@ -756,6 +756,28 @@ export const kothGuardLockdowns = pgTable(
 
 export type KothGuardLockdown = typeof kothGuardLockdowns.$inferSelect;
 
+// Crown Wars — Guard Heal ability (Phase D). One token per (round,
+// guard). Inserting a row also inserts a `guard_heal` koth_event so
+// the decay timer reset is picked up by the existing lastPatchAt
+// computation. See migration 0032.
+export const kothGuardHeals = pgTable("koth_guard_heals", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roundId: uuid("round_id")
+    .notNull()
+    .references(() => kothRounds.id, { onDelete: "cascade" }),
+  guardUserId: uuid("guard_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  healedUserId: uuid("healed_user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  appliedAt: timestamp("applied_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type KothGuardHeal = typeof kothGuardHeals.$inferSelect;
+
 // Crown Wars — Mutating Arena (Drift Mode). One row per round
 // declaring which aliases the SUID binaries / redis tooling expose
 // for that round. Catalog slugs stay valid; surface paths drift.

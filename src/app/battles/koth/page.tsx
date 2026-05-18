@@ -16,10 +16,12 @@ import {
   LOCKDOWN_WINDOW_SEC,
   getActiveLockdowns,
   getGuardForRound,
+  guardHasUsedHeal,
   guardHasUsedLockdown,
   hasFirstCrownBeenTaken,
   isUserGuardForRound,
 } from "@/lib/koth/guards";
+import { recentAudit } from "@/lib/koth/audit";
 import { DECAY_GRACE_SEC } from "@/lib/koth/scoring";
 import { getOrCreateMutationForRound } from "@/lib/koth/mutations";
 import {
@@ -27,6 +29,7 @@ import {
   submitKothKey,
   claimGuardAction,
   placeLockdownAction,
+  placeHealAction,
 } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 import { AuditFeed } from "@/components/koth/AuditFeed";
@@ -156,6 +159,21 @@ async function loadState() {
         )
         .orderBy(desc(kothEvents.occurredAt))
         .limit(1);
+      // Phase D — Crown Heal also resets the decay timer. heal events
+      // are inserted with target_user_id = king's user id, so we look
+      // up by that (not actor_user_id which is the guard).
+      const lastHealRow = await db
+        .select({ occurredAt: kothEvents.occurredAt })
+        .from(kothEvents)
+        .where(
+          and(
+            eq(kothEvents.targetUserId, kingId),
+            eq(kothEvents.roundId, round.id),
+            eq(kothEvents.kind, "guard_heal"),
+          ),
+        )
+        .orderBy(desc(kothEvents.occurredAt))
+        .limit(1);
       const lastAttributedRow = await db
         .select({ occurredAt: kothEvents.occurredAt })
         .from(kothEvents)
@@ -170,8 +188,11 @@ async function loadState() {
         .limit(1);
       const a = lastPatchRow[0]?.occurredAt ?? null;
       const b = lastAttributedRow[0]?.occurredAt ?? null;
-      if (a && b) kingLastPatchAt = a > b ? a : b;
-      else kingLastPatchAt = a ?? b;
+      const c = lastHealRow[0]?.occurredAt ?? null;
+      const candidates = [a, b, c].filter((d): d is Date => d != null);
+      kingLastPatchAt = candidates.length
+        ? candidates.reduce((m, d) => (d > m ? d : m))
+        : null;
       // Only count patches AFTER the king's current tenure started.
       if (kingLastPatchAt && kingLastPatchAt < kingEvent.occurredAt) {
         kingLastPatchAt = null;
@@ -332,6 +353,19 @@ export default async function KothPage({
   const lockdownCandidates =
     iAmGuard && !guardUsedLockdown
       ? (await listPaths()).filter((p) => p.kind === "escalation")
+      : [];
+  // Phase D — Heal token state (1 per round per guard).
+  const guardUsedHeal =
+    iAmGuard && user && state.round
+      ? await guardHasUsedHeal(state.round.id, user.id)
+      : false;
+  // Phase C — Eye of the Guard. Last 30 audit events across ALL slots
+  // (not just king), only fetched when the viewer is the guard. The
+  // existing public AuditFeed widget is king-only; Eye gives the
+  // guard the full picture: which attacker is doing what, when.
+  const eyeFeed =
+    iAmGuard && state.round
+      ? await recentAudit({ roundId: state.round.id, limit: 30 })
       : [];
 
   // King is in decay if their last patch was >5min ago AND tenure
@@ -765,6 +799,88 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
             <p className="text-[10px] text-muted/80 italic pt-1 border-t border-border/40">
               ▸ lockdown token spent for this round — resets next round.
             </p>
+          )}
+
+          {/* Phase D — Crown Heal. Single button; resets king's decay
+              grace window. Only visible when there IS a king to heal
+              and the guard hasn't already used their token. */}
+          {iAmGuard && !guardUsedHeal && state.king && (
+            <form
+              action={placeHealAction}
+              className="flex items-center gap-2 flex-wrap pt-1 border-t border-border/40"
+            >
+              <span className="text-green/80 tracking-[0.18em] uppercase text-[10px]">
+                ▸ heal (1 token):
+              </span>
+              <span className="text-muted text-[11px]">
+                reset decay on @{state.king.username} — gives them 5min grace
+              </span>
+              <button
+                type="submit"
+                className="border border-green/60 text-green hover:bg-green/10 transition-colors px-3 py-1 tracking-[0.18em] uppercase text-[11px] ml-auto"
+              >
+                heal king →
+              </button>
+            </form>
+          )}
+          {iAmGuard && guardUsedHeal && (
+            <p className="text-[10px] text-muted/80 italic pt-1 border-t border-border/40">
+              ▸ heal token spent for this round — resets next round.
+            </p>
+          )}
+
+          {/* Phase C — Eye of the Guard. Last 30 syscalls across ALL
+              slots, not just king. The public AuditFeed shows only
+              the king's activity; Eye gives the guard the full picture
+              so they can time Lockdown/Heal under coordinated attacks. */}
+          {iAmGuard && (
+            <div className="pt-2 border-t border-border/40">
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-amber/80 tracking-[0.18em] uppercase text-[10px]">
+                  👁 eye of the guard · live intel
+                </span>
+                <span className="text-muted/60 text-[10px]">
+                  all slots · refresh 3s
+                </span>
+              </div>
+              {eyeFeed.length === 0 ? (
+                <p className="text-[10.5px] text-muted/70 italic">
+                  no arena activity yet — feed lights up when attackers start moving.
+                </p>
+              ) : (
+                <ul className="space-y-0.5 max-h-48 overflow-y-auto text-[10.5px] leading-[1.45] font-mono tabular-nums">
+                  {eyeFeed
+                    .slice()
+                    .reverse()
+                    .map((line) => (
+                      <li
+                        key={line.id}
+                        className="flex items-baseline gap-2"
+                      >
+                        <span className="text-amber/60 w-12 shrink-0">
+                          {line.occurredAt.toISOString().slice(11, 19)}
+                        </span>
+                        <span className="text-amber/80 w-12 shrink-0">
+                          [{line.actorSlot ?? "?"}]
+                        </span>
+                        <span
+                          className={
+                            line.syscallClass === "execve"
+                              ? "text-amber"
+                              : line.syscallClass === "setuid"
+                                ? "text-red-400"
+                                : line.syscallClass === "network"
+                                  ? "text-blue-400"
+                                  : "text-text/80"
+                          }
+                        >
+                          {line.summary}
+                        </span>
+                      </li>
+                    ))}
+                </ul>
+              )}
+            </div>
           )}
 
           {/* Active lockdowns — public to everyone (attackers need to

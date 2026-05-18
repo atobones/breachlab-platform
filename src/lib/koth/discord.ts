@@ -233,6 +233,27 @@ export function postKothGuardClaimedToDiscord(opts: {
   });
 }
 
+// Guard Heal announce — fires when guard burns their heal token on
+// the current king. Mirrors the "decay reset" visible in the page UI.
+export function postKothGuardHealToDiscord(opts: {
+  guardUsername: string;
+  kingUsername: string;
+  occurredAt?: Date;
+  siteUrl?: string;
+}): void {
+  const siteUrl =
+    opts.siteUrl ??
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://breachlab.org";
+  postEmbed({
+    color: COLOR.patch,
+    title: `💚 HEAL — ${opts.guardUsername} → ${opts.kingUsername}`,
+    description: `Guard reset the king's decay timer. 5-minute grace window starts now — attackers, time to push.\n\n[▸ Crown Wars](${siteUrl}/battles/koth)`,
+    timestamp: (opts.occurredAt ?? new Date()).toISOString(),
+    footer: { text: "Crown Wars · guard ability" },
+  });
+}
+
 // Guard Lockdown announce — fires the moment a guard burns their
 // per-round token. Public broadcast so attackers immediately know
 // to switch primitives. Mirrors the visible chip on /battles/koth.
