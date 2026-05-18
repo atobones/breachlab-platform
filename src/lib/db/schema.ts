@@ -724,6 +724,38 @@ export const kothGuards = pgTable("koth_guards", {
 
 export type KothGuard = typeof kothGuards.$inferSelect;
 
+// Crown Wars — Guard Lockdown ability (Phase B). One token per
+// (round, guard). Each lockdown picks a path slug and freezes it
+// for the configured window; the oracle rejects crown_taken via
+// that path during the window. See migration 0031.
+export const kothGuardLockdowns = pgTable(
+  "koth_guard_lockdowns",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    guardUserId: uuid("guard_user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    pathSlug: text("path_slug").notNull(),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    blockedCount: integer("blocked_count").notNull().default(0),
+  },
+  (t) => [
+    index("koth_guard_lockdowns_active").on(
+      t.roundId,
+      t.pathSlug,
+      t.expiresAt,
+    ),
+  ],
+);
+
+export type KothGuardLockdown = typeof kothGuardLockdowns.$inferSelect;
+
 // Crown Wars — Mutating Arena (Drift Mode). One row per round
 // declaring which aliases the SUID binaries / redis tooling expose
 // for that round. Catalog slugs stay valid; surface paths drift.

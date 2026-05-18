@@ -19,6 +19,10 @@ import {
   maybeAwardFirstDiscovery,
   maybeAwardFirstTime,
 } from "@/lib/koth/honors";
+import {
+  isPathLockedDown,
+  recordLockdownBlock,
+} from "@/lib/koth/guards";
 
 // Crown daemon oracle endpoint. The daemon runs inside the KoTH arena
 // container (Wave B1) and POSTs here every time it detects a crown
@@ -125,6 +129,24 @@ export async function POST(req: Request) {
     meta.value_snapshot = valueSnapshot;
   }
 
+  // Guard Lockdown enforcement (Phase B). If the Guard has placed an
+  // active lockdown on this primitive in this round, rewrite the
+  // event kind so scoring and path-exploited bookkeeping skip it
+  // entirely. The koth_events row still lands as `crown_blocked` so
+  // we have an audit trail and the guard sees their impact counter
+  // tick up.
+  let effectiveKind = body.kind;
+  let blockedByLockdownId: string | null = null;
+  if (body.kind === "crown_taken" && body.exploit_path) {
+    const ld = await isPathLockedDown(body.round_id, body.exploit_path);
+    if (ld.locked && ld.lockdownId) {
+      effectiveKind = "crown_blocked";
+      blockedByLockdownId = ld.lockdownId;
+      meta.blocked_by_lockdown_id = ld.lockdownId;
+      meta.blocked_path = body.exploit_path;
+    }
+  }
+
   // Discoverer bonus — first crown via a slug not in the catalog
   // gets a one-time +50. Awarded ONCE per slug (globally, not per
   // user). The bonus lands as a value_snapshot on the koth_events
@@ -185,9 +207,9 @@ export async function POST(req: Request) {
         rawMeta: body.raw_meta ?? null,
       });
     } else if (
-      body.kind === "crown_taken" ||
-      body.kind === "path_exploited" ||
-      body.kind === "dethroned"
+      effectiveKind === "crown_taken" ||
+      effectiveKind === "path_exploited" ||
+      effectiveKind === "dethroned"
     ) {
       await recordPathEvent({
         roundId: body.round_id,
@@ -230,7 +252,7 @@ export async function POST(req: Request) {
       .insert(kothEvents)
       .values({
         roundId: body.round_id,
-        kind: body.kind,
+        kind: effectiveKind,
         actorUserId: actorUserId,
         targetUserId: targetUserId,
         exploitPath: body.exploit_path ?? null,
@@ -242,11 +264,22 @@ export async function POST(req: Request) {
     insertedAt = inserted.occurredAt;
   }
 
+  // Bump the lockdown's blocked_count so the guard sees their impact
+  // in the UI. Best-effort — never fail the request on this.
+  if (blockedByLockdownId) {
+    try {
+      await recordLockdownBlock(blockedByLockdownId);
+    } catch {
+      // ignore
+    }
+  }
+
   // Engage the round timer on the FIRST crown_taken in this round.
   // engaged_at IS NULL until someone actually plays — keeps the
   // 30-min clock from ticking into an empty arena. The IS NULL guard
-  // makes this idempotent on every subsequent crown change.
-  if (body.kind === "crown_taken") {
+  // makes this idempotent on every subsequent crown change. Blocked
+  // crown attempts do NOT engage the timer.
+  if (effectiveKind === "crown_taken") {
     try {
       await db
         .update(kothRounds)
@@ -262,7 +295,8 @@ export async function POST(req: Request) {
   // Tutorial tracking (Wave D2 — minimal): mark the actor's first
   // crown_taken event as their tutorial completion. Cheap UPDATE
   // guarded on tutorial_completed_at IS NULL so it only fires once.
-  if (body.kind === "crown_taken" && actorUserId) {
+  // Blocked attempts don't count toward tutorial completion.
+  if (effectiveKind === "crown_taken" && actorUserId) {
     try {
       await db
         .update(kothSshKeys)
