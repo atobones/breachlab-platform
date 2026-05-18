@@ -31,19 +31,19 @@ export function CopyLinkButton({ path, label = "share link" }: Props) {
       ? "border-green text-green bg-green/10"
       : status === "failed"
         ? "border-red text-red bg-red/10"
-        : "border-amber/40 text-amber hover:bg-amber/10";
+        : "border-amber/60 text-amber hover:bg-amber/10";
 
   const text =
     status === "copied"
-      ? "✓ copied"
+      ? "✓ COPIED"
       : status === "failed"
-        ? "× clipboard blocked"
+        ? "× CLIPBOARD BLOCKED"
         : `▸ ${label}`;
 
   return (
     <button
       onClick={copy}
-      className={`border ${cls} px-2 py-1 transition-colors font-mono text-[12px]`}
+      className={`border ${cls} px-3 py-2 transition-colors font-mono text-[12px] uppercase tracking-wider`}
       data-testid="copy-link-button"
     >
       {text}
