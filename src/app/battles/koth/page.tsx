@@ -346,14 +346,11 @@ export default async function KothPage({
         </h1>
       </header>
 
-      {/* Quick-nav strip — Daily, Replays, Race, Rules in one compact
-          row. Replaces the old help-bar + 3-card hero. All CTAs above
-          the fold without dominating the page. Daily chip keeps a live
-          countdown to the next UTC reset. */}
-      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono border-b border-amber/20 pb-2">
+      {/* Quick-nav buttons — bordered for affordance, amber on hover. */}
+      <nav className="flex flex-wrap items-center gap-2 text-[11px] font-mono">
         <Link
           href="/battles/koth/daily"
-          className="text-amber hover:text-amber/80 tracking-[0.18em] uppercase"
+          className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1.5 text-amber tracking-[0.18em] uppercase"
         >
           ▸ daily #{todayChallenge}
           <span className="text-muted/80 normal-case tabular-nums ml-1 tracking-normal">
@@ -362,19 +359,19 @@ export default async function KothPage({
         </Link>
         <Link
           href="/battles/koth/replays"
-          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+          className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1.5 text-amber/90 tracking-[0.18em] uppercase"
         >
-          ▸ replays & race
+          ▸ replays &amp; race
         </Link>
         <Link
           href="/battles/koth/weapons"
-          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+          className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1.5 text-amber/90 tracking-[0.18em] uppercase"
         >
           ▸ forge
         </Link>
         <Link
           href="/battles/koth/rules"
-          className="ml-auto text-muted hover:text-amber tracking-[0.18em] uppercase"
+          className="ml-auto border border-muted/40 hover:border-amber hover:text-amber transition-colors px-3 py-1.5 text-muted tracking-[0.18em] uppercase"
         >
           rules →
         </Link>
@@ -747,40 +744,6 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         </section>
       )}
 
-      {/* King's Guard — single slot per round, FCFS. Lives under
-          top-operators (low-priority passive role, not above-the-fold). */}
-      {state.round && (
-        <div className="border border-border/40 px-4 py-2 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="text-amber/70 tracking-[0.18em] uppercase">
-              ▸ king&apos;s guard
-            </span>
-            {guard ? (
-              <span className="text-text">
-                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
-              </span>
-            ) : (
-              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
-            )}
-          </div>
-          {user && !guard && !iAmGuard && (
-            <form action={claimGuardAction}>
-              <button
-                type="submit"
-                className="text-amber/80 hover:text-amber text-[11px] font-mono tracking-[0.18em] uppercase"
-              >
-                claim →
-              </button>
-            </form>
-          )}
-          {iAmGuard && (
-            <span className="text-green/80 tracking-[0.18em] uppercase">
-              ▸ you are the guard
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Live audit feed — outside-the-arena syscall stream of the
           current crown holder. Client island; subscribes to SSE on
           /api/koth/audit/stream. Survives king-as-root because the
@@ -809,12 +772,6 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           ← battles
         </Link>
         <div className="flex items-center gap-3">
-          <Link href="/battles/koth/daily" className="hover:text-amber tracking-[0.18em] uppercase">
-            daily
-          </Link>
-          <Link href="/battles/koth/replays" className="hover:text-amber tracking-[0.18em] uppercase">
-            replays
-          </Link>
           <Link href="/battles/koth/champions" className="hover:text-amber tracking-[0.18em] uppercase">
             champions
           </Link>
