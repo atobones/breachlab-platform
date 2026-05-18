@@ -66,20 +66,18 @@ export default async function WeaponsForgePage({
           WEAPONS FORGE
         </h1>
         <p className="text-[14px] leading-relaxed text-muted max-w-3xl">
-          When you take crown via a path no one else has used, the system
-          flags it as a first-discovery and gives you +50 pt. The Forge
-          turns that one-off into a permanent catalog entry: write up the
-          technique, we sandbox-replay it, and on approval the slug enters
-          the catalog as <code className="text-amber/80">{`<your-handle>/<primitive>`}</code>
-          {" "}— author credit forever.
+          Crown a path no one else has used → +50 pt + a slot in the Forge.
+          Write up the technique, we review, and the slug enters the
+          catalog under{" "}
+          <code className="text-amber/80">{`<your-handle>/<primitive>`}</code>.
         </p>
       </header>
 
       {q.submitted && (
         <div className="border border-green/40 bg-green/5 text-green text-[13px] font-mono px-4 py-2">
-          ✓ submission received for{" "}
-          <code className="text-green/90">{q.submitted}</code>. Sandbox
-          review usually lands within ~24h.
+          ✓ received{" "}
+          <code className="text-green/90">{q.submitted}</code> — review within
+          24h.
         </div>
       )}
 
@@ -97,15 +95,12 @@ export default async function WeaponsForgePage({
         </div>
         {pending.length === 0 ? (
           <p className="text-[12px] text-muted font-mono leading-snug">
-            no unsubmitted first-discoveries on file. Take a crown via a
-            slug not in the catalog and the +50 bonus will surface a
-            submission CTA here.
+            no unsubmitted discoveries on file.
           </p>
         ) : (
           <div className="space-y-1 font-mono text-[12px]">
             <p className="text-muted leading-snug">
-              Slugs you opened in-arena that aren&apos;t in the catalog
-              yet. One click to submit:
+              your slugs not yet in catalog · click to submit:
             </p>
             <div className="flex flex-wrap gap-2">
               {pending.map((slug) => (
@@ -133,8 +128,7 @@ export default async function WeaponsForgePage({
         </div>
         {mine.length === 0 ? (
           <div className="p-6 text-center text-muted font-mono text-sm">
-            No submissions yet. Take a fresh crown, then submit the
-            technique.
+            no submissions yet.
           </div>
         ) : (
           <ul className="divide-y divide-border/30 font-mono text-[12px]">
@@ -173,15 +167,6 @@ export default async function WeaponsForgePage({
         )}
       </section>
 
-      <footer className="pt-4 border-t border-border/40 text-[11px] text-muted font-mono leading-relaxed">
-        <p>
-          The Forge is the long-tail of Crown Wars. House paths are a
-          starting catalog; the real game is finding root the box{" "}
-          <em>doesn&apos;t know about yet</em>. Every approved weapon
-          becomes a Daily-challenge candidate and a permanent receipt of
-          your name in the catalog.
-        </p>
-      </footer>
     </article>
   );
 }

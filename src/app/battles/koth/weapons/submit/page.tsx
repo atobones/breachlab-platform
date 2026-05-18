@@ -57,11 +57,9 @@ export default async function ForgeSubmitPage({
           WEAPONS FORGE · SUBMIT
         </h1>
         <p className="text-[13px] leading-relaxed text-muted max-w-2xl">
-          Already opened a fresh privesc in the arena? Hand us the
-          technique. After review it lands in the catalog under{" "}
-          <code className="text-amber/80">{`<your-handle>/<primitive>`}</code>{" "}
-          — author credit forever, picked up by Daily challenges, surfaced
-          in every replay tagged with it.
+          Opened a fresh privesc? Submit the technique; after review it
+          lands in the catalog under{" "}
+          <code className="text-amber/80">{`<your-handle>/<primitive>`}</code>.
         </p>
       </header>
 
@@ -74,7 +72,7 @@ export default async function ForgeSubmitPage({
       {pending.length > 0 && (
         <section className="border border-amber/40 bg-amber/[0.04] px-4 py-3 font-mono text-[12px] space-y-2">
           <div className="text-amber tracking-[0.18em] uppercase text-[10px]">
-            ▸ your unsubmitted first-discoveries
+            ▸ your unsubmitted slugs
           </div>
           <div className="flex flex-wrap gap-2">
             {pending.map((slug) => (
@@ -86,10 +84,6 @@ export default async function ForgeSubmitPage({
               </code>
             ))}
           </div>
-          <p className="text-muted text-[11px] leading-snug">
-            Pick one of these for the slug field below — only paths you
-            opened in-arena can be submitted.
-          </p>
         </section>
       )}
 
@@ -112,8 +106,8 @@ export default async function ForgeSubmitPage({
             className="w-full bg-bg border border-amber/30 px-3 py-2 text-[13px] font-mono text-text focus:outline-none focus:border-amber"
           />
           <p className="text-[10px] text-muted leading-snug">
-            lowercase letters, digits, dashes. 2–64 chars. Must match a
-            first-discovery you logged.
+            lowercase / digits / dashes · 2–64 chars · must match a logged
+            first-discovery.
           </p>
         </div>
 
@@ -156,8 +150,7 @@ export default async function ForgeSubmitPage({
             className="w-full bg-bg border border-amber/30 px-3 py-2 text-[12px] font-mono text-text resize-y focus:outline-none focus:border-amber"
           />
           <p className="text-[10px] text-muted leading-snug">
-            10240 char ceiling. Aim for 100–500 words: enough that another
-            player understands the technique without watching your replay.
+            up to 10240 chars · aim for 100–500 words.
           </p>
         </div>
 
@@ -180,9 +173,7 @@ export default async function ForgeSubmitPage({
             className="w-full bg-bg border border-amber/30 px-3 py-2 text-[12px] font-mono text-text resize-y focus:outline-none focus:border-amber"
           />
           <p className="text-[10px] text-muted leading-snug">
-            5120 char ceiling. Will be sandbox-replayed in a throwaway arena
-            before approval. Use only public information that&apos;s safe to
-            credit you with — exploits are public after approval.
+            up to 5120 chars · sandbox-replayed before approval · public after.
           </p>
         </div>
 
@@ -204,11 +195,8 @@ export default async function ForgeSubmitPage({
 
       <footer className="pt-4 border-t border-border/40 text-[11px] text-muted font-mono leading-relaxed">
         <p>
-          The Forge is moderated. Each submission gets sandbox-replayed
-          against a throwaway arena before approval to confirm it actually
-          gets root the way you describe. We&apos;ll respond within ~24h.
-          Rejections come with reviewer notes — you can iterate and
-          resubmit.
+          review within ~24h. rejections include reviewer notes; iterate
+          and resubmit.
         </p>
       </footer>
     </article>
