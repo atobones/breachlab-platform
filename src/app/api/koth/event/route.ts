@@ -102,9 +102,9 @@ export async function POST(req: Request) {
   ]);
 
   // Phase 2: resolve the path slug (if any) to its catalog id. Used
-  // for path_event bookkeeping and value snapshotting. Legacy l7-suid/
-  // l8-suid/l17-redis slugs map cleanly because we seeded them as
-  // core paths in koth_paths.
+  // for path_event bookkeeping and value snapshotting. Core path slugs
+  // (suid-python-wrapper / suid-shell-injection / redis-config-set-dir)
+  // are seeded in koth_paths via drizzle/0016 + renamed in 0021.
   const path = await resolvePathBySlug(body.exploit_path ?? null);
   const valueSnapshot = path
     ? await snapshotForExploit(body.round_id, path)

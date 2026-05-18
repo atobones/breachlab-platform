@@ -6,7 +6,7 @@
 // the #crown-wars channel.
 //
 // Format: rich embeds (coloured left bar + title + body), not raw text.
-// Path slugs (`writable-ld-preload`, `l7-suid`) are technical and ugly
+// Path slugs (`writable-ld-preload`, `suid-python-wrapper`) are technical and ugly
 // in chat — we accept an optional human-readable `pathName` from the
 // caller (resolved against the path catalog in api/koth/event/route.ts)
 // and fall back to the slug only if the name is missing.

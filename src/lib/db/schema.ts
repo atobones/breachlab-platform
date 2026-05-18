@@ -7,6 +7,7 @@ import {
   integer,
   unique,
   bigserial,
+  bigint,
   jsonb,
   index,
   uniqueIndex,
@@ -369,7 +370,7 @@ export const kothEvents = pgTable(
     targetUserId: uuid("target_user_id").references(() => users.id, {
       onDelete: "set null",
     }),
-    // l7-suid | l8-suid | l17-redis | crontab | unknown
+    // catalog slug (suid-python-wrapper, redis-config-set-dir, etc) or "unknown"
     exploitPath: text("exploit_path"),
     pointsDelta: integer("points_delta").notNull().default(0),
     occurredAt: timestamp("occurred_at", { withTimezone: true })
@@ -540,6 +541,44 @@ export const kothHonors = pgTable(
   ],
 );
 
+export const kothReplays = pgTable(
+  "koth_replays",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    roundId: uuid("round_id")
+      .notNull()
+      .references(() => kothRounds.id, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    // "koth0".."koth9"
+    actorSlot: text("actor_slot").notNull(),
+    // session_close | crown_moment | ambient
+    kind: text("kind").notNull(),
+    durationSec: integer("duration_sec"),
+    // asciinema v2 cast — header object + jsonl events as a single blob
+    asciicast: text("asciicast").notNull(),
+    // octet_length(asciicast); cheap to read in lists without pulling the blob
+    byteSize: integer("byte_size").notNull(),
+    // FK back to the crown_taken event that triggered the upload, when applicable
+    linkedEventId: bigint("linked_event_id", { mode: "number" }).references(
+      () => kothEvents.id,
+      { onDelete: "set null" },
+    ),
+    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
+    uploadedAt: timestamp("uploaded_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    // sha256 of the asciicast text — idempotent uploads, UNIQUE in DB
+    sha256: text("sha256").notNull().unique(),
+  },
+  (t) => [
+    index("koth_replays_round_recent").on(t.roundId, t.recordedAt.desc()),
+    index("koth_replays_user_recent").on(t.userId, t.recordedAt.desc()),
+    index("koth_replays_kind").on(t.kind, t.uploadedAt.desc()),
+  ],
+);
+
 export type KothRound = typeof kothRounds.$inferSelect;
 export type KothEvent = typeof kothEvents.$inferSelect;
 export type KothScore = typeof kothScores.$inferSelect;
@@ -547,6 +586,7 @@ export type KothSshKey = typeof kothSshKeys.$inferSelect;
 export type KothPath = typeof kothPaths.$inferSelect;
 export type KothPathEvent = typeof kothPathEvents.$inferSelect;
 export type KothHonor = typeof kothHonors.$inferSelect;
+export type KothReplay = typeof kothReplays.$inferSelect;
 
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),
