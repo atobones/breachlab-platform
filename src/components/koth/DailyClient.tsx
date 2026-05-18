@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+
+import {
+  startDailyAction,
+  finishDailyAction,
+} from "@/app/battles/koth/daily/actions";
 
 type Phase = "ready" | "racing" | "finished";
 
@@ -12,11 +16,25 @@ type FinishResult = {
   linkedEventId: number | null;
 };
 
+// Snapshot of the user's attempt for today, passed in from the
+// server-rendered page so the client knows which phase to boot into
+// without a client-side API roundtrip (Cloudflare 403s those).
+export type DailyAttemptSnapshot = {
+  id: string;
+  startedAt: string;       // ISO
+  finishedAt: string | null;
+  elapsedSec: number | null;
+  tookCrown: boolean;
+  selfReported: boolean;
+  linkedEventId: number | null;
+};
+
 type Props = {
   day: string;            // "YYYY-MM-DD" UTC
   pathSlug: string;
   pathName: string | null;
   challengeNumber: number;
+  initialAttempt: DailyAttemptSnapshot | null;
 };
 
 function fmt(sec: number): string {
@@ -54,17 +72,40 @@ export function DailyClient({
   pathSlug,
   pathName,
   challengeNumber,
+  initialAttempt,
 }: Props) {
-  const [phase, setPhase] = useState<Phase>("ready");
-  const [attemptId, setAttemptId] = useState<string | null>(null);
-  const [startedAt, setStartedAt] = useState<number | null>(null);
-  const [elapsedMs, setElapsedMs] = useState(0);
-  const [result, setResult] = useState<FinishResult | null>(null);
-  const [resumed, setResumed] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  // Boot phase from the server-rendered attempt snapshot. The "ready"
+  // phase is for "no attempt logged yet today"; "racing" is for "we
+  // have an unfinished attempt, the clock is ticking"; "finished" is
+  // for "attempt is done, show result".
+  const initialPhase: Phase =
+    initialAttempt == null
+      ? "ready"
+      : initialAttempt.finishedAt != null
+        ? "finished"
+        : "racing";
+  const initialStartMs = initialAttempt
+    ? new Date(initialAttempt.startedAt).getTime()
+    : null;
+  const initialResult: FinishResult | null =
+    initialAttempt && initialAttempt.finishedAt
+      ? {
+          elapsedSec: initialAttempt.elapsedSec ?? 0,
+          tookCrown: initialAttempt.tookCrown,
+          selfReported: initialAttempt.selfReported,
+          linkedEventId: initialAttempt.linkedEventId,
+        }
+      : null;
+
+  const [phase] = useState<Phase>(initialPhase);
+  const attemptId = initialAttempt?.id ?? null;
+  const startedAt = initialStartMs;
+  const [elapsedMs, setElapsedMs] = useState(
+    initialStartMs ? Date.now() - initialStartMs : 0,
+  );
+  const result = initialResult;
   const [copyStatus, setCopyStatus] = useState<"idle" | "copied">("idle");
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const router = useRouter();
 
   useEffect(() => {
     if (phase === "racing" && startedAt != null) {
@@ -77,67 +118,6 @@ export function DailyClient({
     }
     return undefined;
   }, [phase, startedAt]);
-
-  async function startChallenge() {
-    setError(null);
-    try {
-      // X-Requested-With + same-origin credentials make Cloudflare's
-      // bot-challenge heuristic accept the request as a normal
-      // browser fetch instead of a scripted attack. Without this,
-      // anonymous POSTs to /api/koth/* return a CF interstitial 403.
-      const r = await fetch("/api/koth/daily/start", {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: "{}",
-      });
-      if (!r.ok) {
-        const b = await r.json().catch(() => ({}));
-        throw new Error(b.error ?? `HTTP ${r.status}`);
-      }
-      const data: {
-        attemptId: string;
-        startedAt: string;
-        resumed: boolean;
-        anonymous: boolean;
-      } = await r.json();
-      setAttemptId(data.attemptId);
-      setStartedAt(new Date(data.startedAt).getTime());
-      setResumed(data.resumed);
-      setPhase("racing");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "start failed");
-    }
-  }
-
-  async function finish(claimedCrown: boolean) {
-    if (!attemptId) return;
-    setError(null);
-    try {
-      const r = await fetch(`/api/koth/daily/${attemptId}/finish`, {
-        method: "POST",
-        credentials: "same-origin",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Requested-With": "XMLHttpRequest",
-        },
-        body: JSON.stringify({ tookCrown: claimedCrown }),
-      });
-      if (!r.ok) {
-        const b = await r.json().catch(() => ({}));
-        throw new Error(b.error ?? `HTTP ${r.status}`);
-      }
-      const data: FinishResult = await r.json();
-      setResult(data);
-      setPhase("finished");
-      setTimeout(() => router.refresh(), 1200);
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "finish failed");
-    }
-  }
 
   async function copyShare() {
     if (!result) return;
@@ -166,12 +146,14 @@ export function DailyClient({
             All players worldwide get the same path — your time goes on a
             shared leaderboard. Resets at 00:00 UTC.
           </p>
-          <button
-            onClick={startChallenge}
-            className="mt-4 border border-amber bg-amber/10 text-amber px-4 py-2 hover:bg-amber/20 transition-colors uppercase tracking-wider font-semibold text-[13px]"
-          >
-            ▸ start today&apos;s run
-          </button>
+          <form action={startDailyAction}>
+            <button
+              type="submit"
+              className="mt-4 border border-amber bg-amber/10 text-amber px-4 py-2 hover:bg-amber/20 transition-colors uppercase tracking-wider font-semibold text-[13px]"
+            >
+              ▸ start today&apos;s run
+            </button>
+          </form>
         </section>
       )}
 
@@ -185,25 +167,28 @@ export function DailyClient({
               <div className="text-amber text-3xl mt-1">{fmt(elapsedSec)}</div>
             </div>
             <div className="ml-auto flex flex-col items-end gap-2">
-              <button
-                onClick={() => finish(true)}
-                className="border border-green bg-green/10 text-green px-3 py-1.5 hover:bg-green/20 transition-colors uppercase tracking-wider text-[12px] font-semibold"
-              >
-                ✓ I crowned
-              </button>
-              <button
-                onClick={() => finish(false)}
-                className="border border-border/40 text-muted px-3 py-1 hover:border-amber/40 hover:text-text transition-colors uppercase tracking-wider text-[11px]"
-              >
-                × give up
-              </button>
+              <form action={finishDailyAction}>
+                <input type="hidden" name="attemptId" value={attemptId ?? ""} />
+                <input type="hidden" name="tookCrown" value="true" />
+                <button
+                  type="submit"
+                  className="border border-green bg-green/10 text-green px-3 py-1.5 hover:bg-green/20 transition-colors uppercase tracking-wider text-[12px] font-semibold"
+                >
+                  ✓ I crowned
+                </button>
+              </form>
+              <form action={finishDailyAction}>
+                <input type="hidden" name="attemptId" value={attemptId ?? ""} />
+                <input type="hidden" name="tookCrown" value="false" />
+                <button
+                  type="submit"
+                  className="border border-border/40 text-muted px-3 py-1 hover:border-amber/40 hover:text-text transition-colors uppercase tracking-wider text-[11px]"
+                >
+                  × give up
+                </button>
+              </form>
             </div>
           </div>
-          {resumed && (
-            <p className="text-[11px] text-amber/70 italic">
-              ▸ resumed — timer continues from your earlier start today
-            </p>
-          )}
           <p className="text-[12px] text-muted">
             Target primitive: <code className="text-amber/80">{pathSlug}</code>.
             SSH into Crown Wars in another tab — your time runs from this
@@ -257,9 +242,6 @@ export function DailyClient({
         </section>
       )}
 
-      {error && (
-        <div className="text-red text-[12px]">⚠ {error}</div>
-      )}
     </div>
   );
 }
