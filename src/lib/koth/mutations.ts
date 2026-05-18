@@ -24,26 +24,79 @@ type SchemePicker = {
   pools: Record<string, readonly string[]>;
 };
 
+// Phase C — expanded pools + directory drift + decoy.
+// Each pool's order is locked in; do NOT reorder, or sha256 indices
+// will land on different aliases for the same round_id and arena
+// drift-arena.sh will diverge from the platform-side scheme.
+//
+// Arena-side mirror lives at:
+//   breachlab-koth:scripts/drift-arena.sh:POOLS
+// Any change here MUST land there at the same deploy.
 const PICKER: SchemePicker = {
   pools: {
+    // Renamed binaries (canonical → alias).
     "phantom-python3": [
       "phantom-python3",
       "system-py",
       "auth-helper",
       "ops-py3",
       "secure-runner",
+      "init-helper",
+      "py-runtime",
+      "diag-py",
+      "service-runner",
+      "sys-loader",
     ],
     "system-checker": [
       "system-checker",
       "ops-verify",
       "perimeter-check",
       "service-probe",
+      "net-monitor",
+      "health-checker",
+      "diag-net",
+      "uptime-probe",
+      "reach-test",
+      "ping-helper",
     ],
     "redis-dbfilename": [
       "dump.rdb",
       "authorized_keys",
       "shadow.bak",
       "system.cache",
+      "audit.log",
+      "session.dat",
+      "metrics.dump",
+      "telemetry.bin",
+    ],
+    // Directory drift — where the renamed binary actually lives.
+    // /usr/local/bin stays at index 0 so the "naive" round keeps
+    // binaries in the expected place; other dirs force a wider find.
+    "phantom-python3-dir": [
+      "/usr/local/bin",
+      "/opt/svc/bin",
+      "/usr/lib/utils",
+      "/srv/local/sbin",
+    ],
+    "system-checker-dir": [
+      "/usr/local/bin",
+      "/opt/diag/bin",
+      "/usr/sbin",
+      "/var/lib/health",
+    ],
+    // Decoy SUID binary — one per round. Lands at /usr/local/bin
+    // and is SUID-root so `find -perm -4000` shows it. Calling it
+    // logs the attempt and prints a rejection. Decoy-hit lines show
+    // up in the Guard's Eye via the audit-streamer.
+    "decoy-name": [
+      "audit-rotate",
+      "perimeter-scan",
+      "service-restart",
+      "log-shipper",
+      "metrics-collector",
+      "uptime-monitor",
+      "net-watchdog",
+      "syslog-tail",
     ],
   },
 };
