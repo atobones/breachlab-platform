@@ -13,7 +13,9 @@ import { getLifetimeStatsForUsers } from "@/lib/koth/honors";
 import { titleFromRoundWins } from "@/lib/koth/titles";
 import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
 import { pendingDiscoveriesForUser } from "@/lib/koth/weapons";
-import { joinKothRound, submitKothKey } from "./actions";
+import { getGuardForRound, isUserGuardForRound } from "@/lib/koth/guards";
+import { DECAY_GRACE_SEC } from "@/lib/koth/scoring";
+import { joinKothRound, submitKothKey, claimGuardAction } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
 import { AuditFeed } from "@/components/koth/AuditFeed";
 
@@ -108,11 +110,69 @@ async function loadState() {
     .orderBy(desc(kothEvents.occurredAt))
     .limit(1);
 
+  // King's last patch — used to display Crown Decay status. NULL if
+  // they haven't patched anything yet during this tenure.
+  let kingLastPatchAt: Date | null = null;
+  if (kingEvent && kingEvent.username) {
+    const kingActorId = await db
+      .select({ id: kothEvents.actorUserId })
+      .from(kothEvents)
+      .leftJoin(users, eq(users.id, kothEvents.actorUserId))
+      .where(
+        and(
+          eq(kothEvents.kind, "crown_taken"),
+          eq(kothEvents.roundId, round.id),
+        ),
+      )
+      .orderBy(desc(kothEvents.occurredAt))
+      .limit(1);
+    const kingId = kingActorId[0]?.id ?? null;
+    if (kingId) {
+      const lastPatchRow = await db
+        .select({ occurredAt: kothEvents.occurredAt })
+        .from(kothEvents)
+        .where(
+          and(
+            eq(kothEvents.actorUserId, kingId),
+            eq(kothEvents.roundId, round.id),
+            // patched OR path_patched_attributed — but Drizzle's
+            // typed where doesn't union easily; we query for the
+            // attributed kind first and fall back to "patched" if
+            // none. The most recent of either is what matters.
+            eq(kothEvents.kind, "patched"),
+          ),
+        )
+        .orderBy(desc(kothEvents.occurredAt))
+        .limit(1);
+      const lastAttributedRow = await db
+        .select({ occurredAt: kothEvents.occurredAt })
+        .from(kothEvents)
+        .where(
+          and(
+            eq(kothEvents.actorUserId, kingId),
+            eq(kothEvents.roundId, round.id),
+            eq(kothEvents.kind, "path_patched_attributed"),
+          ),
+        )
+        .orderBy(desc(kothEvents.occurredAt))
+        .limit(1);
+      const a = lastPatchRow[0]?.occurredAt ?? null;
+      const b = lastAttributedRow[0]?.occurredAt ?? null;
+      if (a && b) kingLastPatchAt = a > b ? a : b;
+      else kingLastPatchAt = a ?? b;
+      // Only count patches AFTER the king's current tenure started.
+      if (kingLastPatchAt && kingLastPatchAt < kingEvent.occurredAt) {
+        kingLastPatchAt = null;
+      }
+    }
+  }
+
   const king =
     kingEvent && kingEvent.username
       ? {
           username: kingEvent.username,
           since: kingEvent.occurredAt,
+          lastPatchAt: kingLastPatchAt,
           holdSeconds: Math.max(
             0,
             Math.floor((Date.now() - kingEvent.occurredAt.getTime()) / 1000),
@@ -236,6 +296,33 @@ export default async function KothPage({
     ? await pendingDiscoveriesForUser(user.id)
     : [];
 
+  // Crown Decay + King's Guard surface
+  const guard = state.round
+    ? await getGuardForRound(state.round.id)
+    : null;
+  const iAmGuard =
+    user && state.round
+      ? await isUserGuardForRound(user.id, state.round.id)
+      : false;
+
+  // King is in decay if their last patch was >5min ago AND tenure
+  // itself is > 5min (we give a grace period at tenure start).
+  const kingDecayElapsed =
+    state.king
+      ? state.king.lastPatchAt
+        ? Math.floor(
+            (Date.now() - state.king.lastPatchAt.getTime()) / 1000,
+          )
+        : state.king.holdSeconds
+      : 0;
+  const kingDecaying =
+    state.king !== null &&
+    state.king.holdSeconds > DECAY_GRACE_SEC &&
+    kingDecayElapsed > DECAY_GRACE_SEC;
+  const decaySecondsTillKickIn = state.king
+    ? Math.max(0, DECAY_GRACE_SEC - kingDecayElapsed)
+    : 0;
+
   return (
     <article className="space-y-5 max-w-3xl" data-testid="koth-page">
       <RealtimeRefresh intervalMs={3000} />
@@ -291,6 +378,44 @@ export default async function KothPage({
           rules →
         </Link>
       </nav>
+
+      {/* King's Guard — single slot per round, FCFS. Shows the
+          current Guard's name to all viewers; shows a claim button
+          to logged-in non-Guard viewers when the slot is empty. */}
+      {state.round && (
+        <div className="border border-amber/30 bg-amber/[0.03] px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
+          <div className="flex items-center gap-2">
+            <span className="text-amber tracking-[0.18em] uppercase">
+              ▸ king&apos;s guard
+            </span>
+            {guard ? (
+              <span className="text-text">
+                <span className="text-amber/90">@{guard.username ?? "anon"}</span>{" "}
+                <span className="text-muted">protecting the throne · scores while crown stands</span>
+              </span>
+            ) : (
+              <span className="text-muted">
+                slot open · earn ½ of king&apos;s active hold-time per minute
+              </span>
+            )}
+          </div>
+          {user && !guard && !iAmGuard && (
+            <form action={claimGuardAction}>
+              <button
+                type="submit"
+                className="btn-bracket text-amber text-[11px] font-mono tracking-[0.18em]"
+              >
+                Claim the Guard →
+              </button>
+            </form>
+          )}
+          {iAmGuard && (
+            <span className="text-green/80 tracking-[0.18em] uppercase">
+              ▸ you are the guard
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Weapons Forge — discovery banner. Appears only when the
           viewer has unsubmitted first-discoveries, so it's a per-user
@@ -415,6 +540,28 @@ export default async function KothPage({
                 <span className="text-green">
                   king: {state.king.username} ·{" "}
                   {fmtDuration(state.king.holdSeconds)}
+                  {kingDecaying && (
+                    <>
+                      {" "}
+                      <span
+                        className="text-red-400 animate-pulse"
+                        title="King hasn't closed a path in 5+ minutes — hold-time points are decaying."
+                      >
+                        ▼ decaying
+                      </span>
+                    </>
+                  )}
+                  {!kingDecaying &&
+                    state.king.lastPatchAt !== null &&
+                    decaySecondsTillKickIn > 0 &&
+                    decaySecondsTillKickIn < 60 && (
+                      <>
+                        {" "}
+                        <span className="text-amber/70" title="Decay timer">
+                          ◷ {decaySecondsTillKickIn}s
+                        </span>
+                      </>
+                    )}
                 </span>
               ) : (
                 <span className="text-muted">crown vacant</span>

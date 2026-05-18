@@ -728,6 +728,25 @@ export const kothAuditEvents = pgTable("koth_audit_events", {
 
 export type KothAuditEvent = typeof kothAuditEvents.$inferSelect;
 
+// Crown Wars — King's Guard. One slot per round, FCFS, scores a
+// fraction of the king's hold-time bonus per minute the crown
+// survives. Asymmetric role layered on top of the king/dethroner
+// dynamic.
+export const kothGuards = pgTable("koth_guards", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  roundId: uuid("round_id")
+    .notNull()
+    .references(() => kothRounds.id, { onDelete: "cascade" }),
+  userId: uuid("user_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  claimedAt: timestamp("claimed_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type KothGuard = typeof kothGuards.$inferSelect;
+
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),
   authorId: uuid("author_id")

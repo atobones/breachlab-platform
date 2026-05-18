@@ -12,6 +12,7 @@ import {
   parseAndValidatePubkey,
   pickFreeSlotForRound,
 } from "@/lib/koth/keys";
+import { claimGuard } from "@/lib/koth/guards";
 
 // Server actions for /battles/koth — registering an SSH key and
 // claiming a slot in the current round. Permanent slot assignment was
@@ -155,4 +156,27 @@ export async function joinKothRound(): Promise<void> {
 
   revalidatePath("/battles/koth");
   redirect("/battles/koth?joined=1");
+}
+
+// Crown Decay companion — claim the King's Guard role for this round.
+// FCFS at the DB level via koth_guards.round_id UNIQUE; this action
+// surfaces the error inline if someone else won the race.
+export async function claimGuardAction(): Promise<void> {
+  const { user } = await getCurrentSession();
+  if (!user) {
+    redirect("/login?next=/battles/koth");
+  }
+
+  const roundId = await currentActiveRoundId();
+  if (!roundId) {
+    redirect("/battles/koth?error=" + encodeURIComponent(NO_ROUND_ERR));
+  }
+
+  const r = await claimGuard(user!.id, roundId as string);
+  if (!r.ok) {
+    redirect("/battles/koth?error=" + encodeURIComponent(r.error));
+  }
+
+  revalidatePath("/battles/koth");
+  redirect("/battles/koth?guard=1");
 }
