@@ -322,8 +322,13 @@ export default async function KothPage({
   const todayChallenge = dailyChallengeNumber(todayDay);
   const secsToNextDaily = secondsUntilNextSeed();
 
-  // Drift Mode — per-round mutation scheme. Phase A is purely
-  // informational; cheat-sheet wiring + arena-side renames are Phase B.
+  // Drift Mode — per-round mutation scheme. Phase B (deployed
+  // 2026-05-18) wires arena-side renames so the canonical SUID
+  // binaries move to their drift-aliased paths every round. The
+  // platform's getOrCreateMutationForRound() and arena's
+  // /usr/local/bin/drift-arena run the SAME deterministic
+  // sha256(round_id) picker, so the label shown here matches the
+  // actual rename inside the arena container.
   const drift = state.round
     ? await getOrCreateMutationForRound(state.round.id)
     : null;
@@ -551,6 +556,17 @@ export default async function KothPage({
             <span className="text-muted">
               arena resetting · no active round
             </span>
+          )}
+          {drift && (
+            <>
+              <span className="text-muted">·</span>
+              <span
+                className="text-red-400/90 uppercase tracking-widest"
+                title="Mutating Arena (Drift Mode). Binaries are renamed per round — find them with `ls /usr/local/bin/` or `find / -perm -4000`."
+              >
+                🌀 drift: {drift.schemeLabel}
+              </span>
+            </>
           )}
         </div>
 
