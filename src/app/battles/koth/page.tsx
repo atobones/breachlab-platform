@@ -364,13 +364,7 @@ export default async function KothPage({
           href="/battles/koth/replays"
           className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
         >
-          ▸ replays
-        </Link>
-        <Link
-          href="/battles/koth/replays?kind=crown_moment"
-          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
-        >
-          ▸ ghost-race
+          ▸ replays & race
         </Link>
         <Link
           href="/battles/koth/weapons"
@@ -413,41 +407,6 @@ export default async function KothPage({
           </div>
         )}
 
-      {/* King's Guard — single slot per round, FCFS. Shows the
-          current Guard's name to all viewers; shows a claim button
-          to logged-in non-Guard viewers when the slot is empty. */}
-      {state.round && (
-        <div className="border border-amber/30 bg-amber/[0.03] px-4 py-2.5 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
-          <div className="flex items-center gap-2">
-            <span className="text-amber tracking-[0.18em] uppercase">
-              ▸ king&apos;s guard
-            </span>
-            {guard ? (
-              <span className="text-text">
-                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
-              </span>
-            ) : (
-              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
-            )}
-          </div>
-          {user && !guard && !iAmGuard && (
-            <form action={claimGuardAction}>
-              <button
-                type="submit"
-                className="btn-bracket text-amber text-[11px] font-mono tracking-[0.18em]"
-              >
-                Claim the Guard →
-              </button>
-            </form>
-          )}
-          {iAmGuard && (
-            <span className="text-green/80 tracking-[0.18em] uppercase">
-              ▸ you are the guard
-            </span>
-          )}
-        </div>
-      )}
-
       {/* Weapons Forge — discovery banner. Appears only when the
           viewer has unsubmitted first-discoveries, so it's a per-user
           "you opened a path, finish the submission" prompt rather
@@ -472,66 +431,6 @@ export default async function KothPage({
           </Link>
         </div>
       )}
-
-      {/* Solo modes — hero-level CTAs for Daily + Replays + Race.
-          Above the round console so they read as first-class entries,
-          not buried in the footer. Three equal cards, each fully
-          clickable. */}
-      <section className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <Link
-          href="/battles/koth/daily"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
-        >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ daily · solo
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            #{todayChallenge} · one primitive
-          </div>
-          <div className="text-muted text-[11px] mt-1 tabular-nums">
-            resets in {fmtHHMMSS(secsToNextDaily)}
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            crown today →
-          </div>
-        </Link>
-
-        <Link
-          href="/battles/koth/replays"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
-        >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ replays · library
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            every crown · auto-clipped
-          </div>
-          <div className="text-muted text-[11px] mt-1">
-            asciinema · raw .cast · deep links
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            watch the kills →
-          </div>
-        </Link>
-
-        <Link
-          href="/battles/koth/replays?kind=crown_moment"
-          className="group block border border-amber/30 bg-amber/[0.03] hover:bg-amber/[0.08] hover:border-amber/60 transition-colors px-3 py-3 font-mono"
-        >
-          <div className="text-[10px] text-amber/80 tracking-[0.3em] uppercase">
-            ▸ ghost · race
-          </div>
-          <div className="text-text text-[15px] mt-1.5 tracking-wide">
-            beat a recorded crown
-          </div>
-          <div className="text-muted text-[11px] mt-1">
-            solo · per-replay leaderboard
-          </div>
-          <div className="text-amber/70 group-hover:text-amber text-[11px] mt-2 tracking-[0.18em] uppercase">
-            pick a ghost →
-          </div>
-        </Link>
-      </section>
 
       {/* ─── Combined Arena Console ───────────────────────────────
           Round status strip (top) + enlist / SSH / sign-in (body).
@@ -838,16 +737,12 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
         )}
       </section>
 
-      {/* Top-5 leaderboard */}
-      <section className="border border-border/60 px-4 py-3 space-y-2">
-        <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
-          ▸ top operators (this round)
-        </h2>
-        {state.top5.length === 0 ? (
-          <p className="text-[12px] text-muted font-mono">
-            no scoring yet — first crown grab will appear here
-          </p>
-        ) : (
+      {/* Top-5 leaderboard — hidden until there's something to show. */}
+      {state.top5.length > 0 && (
+        <section className="border border-border/60 px-4 py-3 space-y-2">
+          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
+            ▸ top operators (this round)
+          </h2>
           <ol className="space-y-1 text-[12px] font-mono tabular-nums">
             {state.top5.map((row, i) => {
               const life = lifetimeStats.get(row.userId);
@@ -882,8 +777,42 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
               );
             })}
           </ol>
-        )}
-      </section>
+        </section>
+      )}
+
+      {/* King's Guard — single slot per round, FCFS. Lives under
+          top-operators (low-priority passive role, not above-the-fold). */}
+      {state.round && (
+        <div className="border border-border/40 px-4 py-2 flex items-center justify-between gap-3 flex-wrap font-mono text-[11px]">
+          <div className="flex items-center gap-2">
+            <span className="text-amber/70 tracking-[0.18em] uppercase">
+              ▸ king&apos;s guard
+            </span>
+            {guard ? (
+              <span className="text-text">
+                <span className="text-amber/90">@{guard.username ?? "anon"}</span>
+              </span>
+            ) : (
+              <span className="text-muted">slot open · ½ of king&apos;s hold</span>
+            )}
+          </div>
+          {user && !guard && !iAmGuard && (
+            <form action={claimGuardAction}>
+              <button
+                type="submit"
+                className="text-amber/80 hover:text-amber text-[11px] font-mono tracking-[0.18em] uppercase"
+              >
+                claim →
+              </button>
+            </form>
+          )}
+          {iAmGuard && (
+            <span className="text-green/80 tracking-[0.18em] uppercase">
+              ▸ you are the guard
+            </span>
+          )}
+        </div>
+      )}
 
       {/* Live audit feed — outside-the-arena syscall stream of the
           current crown holder. Client island; subscribes to SSE on
@@ -891,16 +820,12 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           capture runs on the host PID namespace, not in the arena. */}
       <AuditFeed />
 
-      {/* Kill-feed */}
-      <section className="border border-border/60 px-4 py-3 space-y-2">
-        <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
-          ▸ kill feed
-        </h2>
-        {state.feed.length === 0 ? (
-          <p className="text-[12px] text-muted font-mono">
-            waiting for the first claim…
-          </p>
-        ) : (
+      {/* Kill-feed — hidden until there's something to show. */}
+      {state.feed.length > 0 && (
+        <section className="border border-border/60 px-4 py-3 space-y-2">
+          <h2 className="text-amber text-sm font-mono tracking-[0.18em] uppercase">
+            ▸ kill feed
+          </h2>
           <ul className="space-y-1 text-[12px] font-mono leading-relaxed">
             {state.feed.map((ev, i) => (
               <li key={i} className="flex gap-3">
@@ -909,8 +834,8 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
               </li>
             ))}
           </ul>
-        )}
-      </section>
+        </section>
+      )}
 
       <footer className="pt-3 border-t border-border/40 flex items-center justify-between text-xs text-muted font-mono gap-3 flex-wrap">
         <Link href="/battles" className="hover:text-amber tracking-[0.18em] uppercase">
