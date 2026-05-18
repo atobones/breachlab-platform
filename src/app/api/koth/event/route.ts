@@ -105,6 +105,21 @@ export async function POST(req: Request) {
     resolveSlotToUserId(body.target_slot),
   ]);
 
+  // Backwards-compat slug normalization. Players who remember the
+  // pre-0021 codenames (l7-suid, l8-suid, l17-redis) still pass
+  // those to crown-claim. Without this map their event lands with
+  // an unknown slug + spuriously awards a first-discovery bonus.
+  // Rewrite here so downstream code (catalog resolve, event INSERT,
+  // Discord embed) sees the canonical slug only.
+  const SLUG_ALIASES: Record<string, string> = {
+    "l7-suid": "suid-python-wrapper",
+    "l8-suid": "suid-shell-injection",
+    "l17-redis": "redis-config-set-dir",
+  };
+  if (body.exploit_path && SLUG_ALIASES[body.exploit_path]) {
+    body.exploit_path = SLUG_ALIASES[body.exploit_path];
+  }
+
   // Phase 2: resolve the path slug (if any) to its catalog id. Used
   // for path_event bookkeeping and value snapshotting. Core path slugs
   // (suid-python-wrapper / suid-shell-injection / redis-config-set-dir)
