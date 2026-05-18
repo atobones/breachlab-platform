@@ -15,6 +15,7 @@ import { secondsUntilNextSeed, todayUtcString } from "@/lib/koth/daily";
 import { pendingDiscoveriesForUser } from "@/lib/koth/weapons";
 import { joinKothRound, submitKothKey } from "./actions";
 import { RealtimeRefresh } from "./RealtimeRefresh";
+import { AuditFeed } from "@/components/koth/AuditFeed";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -686,6 +687,12 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           </ol>
         )}
       </section>
+
+      {/* Live audit feed — outside-the-arena syscall stream of the
+          current crown holder. Client island; subscribes to SSE on
+          /api/koth/audit/stream. Survives king-as-root because the
+          capture runs on the host PID namespace, not in the arena. */}
+      <AuditFeed />
 
       {/* Kill-feed */}
       <section className="border border-border/60 px-4 py-3 space-y-2">
