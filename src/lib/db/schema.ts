@@ -679,33 +679,6 @@ export type KothRaceAttempt = typeof kothRaceAttempts.$inferSelect;
 export type KothDailySeed = typeof kothDailySeeds.$inferSelect;
 export type KothDailyAttempt = typeof kothDailyAttempts.$inferSelect;
 
-// Weapons Forge — player-submitted attack paths. Workflow:
-// pending → admin reviews → approved (path lands in koth_paths under
-// `<author>/<primitive>`) | rejected (with reviewer notes).
-export const kothWeaponSubmissions = pgTable("koth_weapon_submissions", {
-  id: uuid("id").defaultRandom().primaryKey(),
-  userId: uuid("user_id")
-    .notNull()
-    .references(() => users.id, { onDelete: "cascade" }),
-  slug: text("slug").notNull(),
-  title: text("title").notNull(),
-  techniqueMd: text("technique_md").notNull(),
-  exploitText: text("exploit_text").notNull(),
-  // pending | approved | rejected | withdrawn
-  status: text("status").notNull().default("pending"),
-  reviewerId: uuid("reviewer_id").references(() => users.id, {
-    onDelete: "set null",
-  }),
-  reviewNotes: text("review_notes"),
-  decidedAt: timestamp("decided_at", { withTimezone: true }),
-  approvedPathSlug: text("approved_path_slug"),
-  createdAt: timestamp("created_at", { withTimezone: true })
-    .notNull()
-    .defaultNow(),
-});
-
-export type KothWeaponSubmission = typeof kothWeaponSubmissions.$inferSelect;
-
 // Live Audit Feed — outside-the-arena syscall capture pushed from the
 // sidecar (via --pid=host strace) into the oracle. Hot-path read by
 // the SSE endpoint serving the live transparency widget.

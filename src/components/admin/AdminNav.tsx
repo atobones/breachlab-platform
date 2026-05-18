@@ -12,7 +12,6 @@ const ITEMS: { href: string; label: string }[] = [
   { href: "/admin/ops-broadcast", label: "Ops broadcast" },
   { href: "/admin/audit", label: "Audit" },
   { href: "/admin/koth", label: "KoTH" },
-  { href: "/admin/koth-weapons", label: "Weapons" },
 ];
 
 export function AdminNav() {

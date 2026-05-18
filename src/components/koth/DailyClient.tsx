@@ -81,7 +81,19 @@ export function DailyClient({
   async function startChallenge() {
     setError(null);
     try {
-      const r = await fetch("/api/koth/daily/start", { method: "POST" });
+      // X-Requested-With + same-origin credentials make Cloudflare's
+      // bot-challenge heuristic accept the request as a normal
+      // browser fetch instead of a scripted attack. Without this,
+      // anonymous POSTs to /api/koth/* return a CF interstitial 403.
+      const r = await fetch("/api/koth/daily/start", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
+        body: "{}",
+      });
       if (!r.ok) {
         const b = await r.json().catch(() => ({}));
         throw new Error(b.error ?? `HTTP ${r.status}`);
@@ -107,7 +119,11 @@ export function DailyClient({
     try {
       const r = await fetch(`/api/koth/daily/${attemptId}/finish`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify({ tookCrown: claimedCrown }),
       });
       if (!r.ok) {

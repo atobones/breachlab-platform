@@ -201,20 +201,14 @@ export function postKothFirstDiscoveryToDiscord(opts: {
   slug: string;
   bonus: number;
   occurredAt: Date;
-  siteUrl?: string;
 }): void {
-  const siteUrl =
-    opts.siteUrl ??
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://breachlab.org";
   const actor = opts.actorUsername ?? "an operator";
-  const forgeLink = `${siteUrl}/battles/koth/weapons/submit?slug=${encodeURIComponent(opts.slug)}`;
   postEmbed({
     color: COLOR.victory,
     title: `🌟 First discovery — ${actor} opened a new path`,
-    description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.\n\n${actor === "an operator" ? "Player" : `**${actor}**`} — [▸ submit it to the Forge](${forgeLink}) and your handle joins the catalog as permanent credit.`,
+    description: `\`${opts.slug}\` is a fresh privesc not in the catalog. **+${opts.bonus} pt** bonus, once per slug.`,
     timestamp: opts.occurredAt.toISOString(),
-    footer: { text: "Crown Wars · discoverer bonus · Weapons Forge open" },
+    footer: { text: "Crown Wars · discoverer bonus" },
   });
 }
 
