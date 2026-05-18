@@ -706,6 +706,28 @@ export const kothWeaponSubmissions = pgTable("koth_weapon_submissions", {
 
 export type KothWeaponSubmission = typeof kothWeaponSubmissions.$inferSelect;
 
+// Live Audit Feed — outside-the-arena syscall capture pushed from the
+// sidecar (via --pid=host strace) into the oracle. Hot-path read by
+// the SSE endpoint serving the live transparency widget.
+export const kothAuditEvents = pgTable("koth_audit_events", {
+  id: bigserial("id", { mode: "number" }).primaryKey(),
+  roundId: uuid("round_id")
+    .notNull()
+    .references(() => kothRounds.id, { onDelete: "cascade" }),
+  actorUserId: uuid("actor_user_id").references(() => users.id, {
+    onDelete: "set null",
+  }),
+  actorSlot: text("actor_slot"),
+  // execve | openat | setuid | network | fs | other
+  syscallClass: text("syscall_class").notNull(),
+  summary: text("summary").notNull(),
+  occurredAt: timestamp("occurred_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export type KothAuditEvent = typeof kothAuditEvents.$inferSelect;
+
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),
   authorId: uuid("author_id")
