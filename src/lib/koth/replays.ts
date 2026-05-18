@@ -106,7 +106,43 @@ export async function getReplayById(id: string): Promise<ReplayDetail | null> {
     .where(eq(kothReplays.id, id))
     .limit(1);
   if (rows.length === 0) return null;
-  return rows[0] as ReplayDetail;
+  const row = rows[0] as ReplayDetail;
+  // Fall back to deriving duration from the cast when the uploader
+  // didn't populate it. Each event line is JSON [timestamp, kind, data];
+  // the last event's timestamp = total recording length.
+  if (row.durationSec == null && row.asciicast) {
+    row.durationSec = deriveDurationFromCast(row.asciicast);
+  }
+  return row;
+}
+
+// Asciicast v2 is JSONL — first line is the header, subsequent lines
+// are [timestamp_sec, "o"|"i", data]. The last event's timestamp is
+// the recording duration. Cheap to do at render time.
+function deriveDurationFromCast(cast: string): number | null {
+  let lastTs: number | null = null;
+  let cursor = cast.length;
+  // Walk backwards to find the last non-empty line — handles trailing
+  // newlines and avoids splitting the whole document.
+  for (let i = cast.length - 1; i >= 0; i--) {
+    if (cast[i] === "\n") {
+      const line = cast.slice(i + 1, cursor).trim();
+      cursor = i;
+      if (!line) continue;
+      if (!line.startsWith("[")) continue; // header line — keep walking back
+      try {
+        const parsed = JSON.parse(line);
+        if (Array.isArray(parsed) && typeof parsed[0] === "number") {
+          lastTs = parsed[0];
+          break;
+        }
+      } catch {
+        // malformed line — keep walking
+      }
+    }
+  }
+  if (lastTs == null) return null;
+  return Math.max(0, Math.round(lastTs));
 }
 
 // Siblings to a given replay — same round, near the same recording
