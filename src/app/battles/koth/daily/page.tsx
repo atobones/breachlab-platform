@@ -7,10 +7,12 @@ import {
   getDailyLeaderboard,
   getOrCreateTodaySeed,
   getDailyStreak,
+  getPersonalBestForPrimitive,
   secondsUntilNextSeed,
   todayUtcString,
 } from "@/lib/koth/daily";
 import { getCurrentSession } from "@/lib/auth/session";
+import { getReplayByEventId } from "@/lib/koth/replays";
 import {
   DailyClient,
   type DailyAttemptSnapshot,
@@ -52,6 +54,10 @@ export default async function DailyPage() {
   const leaderboard = await getDailyLeaderboard(day, 20);
   const { user } = await getCurrentSession();
   const streak = user ? await getDailyStreak(user.id) : 0;
+  const personalBest =
+    user && seed
+      ? await getPersonalBestForPrimitive(user.id, seed.pathSlug)
+      : null;
   const secsLeft = secondsUntilNextSeed();
   const chNum = challengeNumber(day);
 
@@ -76,6 +82,14 @@ export default async function DailyPage() {
         : attemptRow;
     }
   }
+  // If the attempt is verified+linked to an event, see if the
+  // arena uploaded a replay for that exact crown moment. That gives
+  // us the "▸ race your past self" CTA on the finish screen (#76).
+  const replayForFinish =
+    attemptRow && attemptRow.tookCrown && attemptRow.linkedEventId
+      ? await getReplayByEventId(attemptRow.linkedEventId)
+      : null;
+
   const initialAttempt: DailyAttemptSnapshot | null = attemptRow
     ? {
         id: attemptRow.id,
@@ -130,6 +144,24 @@ export default async function DailyPage() {
             pathName={seed.pathName}
             challengeNumber={chNum}
             initialAttempt={initialAttempt}
+            twistMode={seed.twistMode}
+            twist={seed.twist}
+            personalBest={
+              personalBest
+                ? {
+                    elapsedSec: personalBest.elapsedSec,
+                    dayUtc: personalBest.dayUtc,
+                  }
+                : null
+            }
+            replayForFinish={
+              replayForFinish
+                ? {
+                    id: replayForFinish.id,
+                    durationSec: replayForFinish.durationSec,
+                  }
+                : null
+            }
           />
           {seed.authorUsername && (
             <p className="text-[11px] text-amber/70 font-mono italic">

@@ -184,6 +184,26 @@ export async function getSiblingReplays(
   return rows as ReplayListRow[];
 }
 
+// Lookup the replay (if any) recorded for a specific crown_taken
+// event. The uploader sets koth_replays.linked_event_id when the
+// replay corresponds to a crown moment, so this gives us a clean
+// "did this win produce a watchable ghost?" check. Used by the
+// daily finish screen (#76) to surface "▸ race your past self".
+export async function getReplayByEventId(
+  eventId: number,
+): Promise<{ id: string; durationSec: number | null } | null> {
+  const rows = await db
+    .select({
+      id: kothReplays.id,
+      durationSec: kothReplays.durationSec,
+    })
+    .from(kothReplays)
+    .where(eq(kothReplays.linkedEventId, eventId))
+    .orderBy(desc(kothReplays.uploadedAt))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function countReplays(): Promise<number> {
   const r = await db
     .select({ n: sql<number>`count(*)::int` })

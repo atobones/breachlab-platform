@@ -134,6 +134,30 @@ export async function getRaceAttempt(id: string) {
   return rows[0] ?? null;
 }
 
+// Most-recent in-flight (unfinished) race attempt for a user on a
+// specific replay. Used by the server-rendered race page so the
+// client boots straight into the racing phase if the user already
+// has an open attempt — no API roundtrip needed (Cloudflare 403s
+// anonymous client POSTs to /api/koth/race/*).
+export async function getInflightRaceAttemptForUser(
+  userId: string,
+  replayId: string,
+) {
+  const rows = await db
+    .select()
+    .from(kothRaceAttempts)
+    .where(
+      and(
+        eq(kothRaceAttempts.userId, userId),
+        eq(kothRaceAttempts.replayId, replayId),
+        isNull(kothRaceAttempts.finishedAt),
+      ),
+    )
+    .orderBy(desc(kothRaceAttempts.startedAt))
+    .limit(1);
+  return rows[0] ?? null;
+}
+
 export async function getReplayLeaderboard(
   replayId: string,
   limit = 20,

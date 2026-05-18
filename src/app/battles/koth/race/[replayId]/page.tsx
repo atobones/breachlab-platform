@@ -4,10 +4,15 @@ import { notFound } from "next/navigation";
 
 import { getReplayById } from "@/lib/koth/replays";
 import {
+  getInflightRaceAttemptForUser,
   getReplayLeaderboard,
   getReplayGhostDuration,
 } from "@/lib/koth/races";
-import { RaceClient } from "@/components/koth/RaceClient";
+import { getCurrentSession } from "@/lib/auth/session";
+import {
+  RaceClient,
+  type RaceAttemptSnapshot,
+} from "@/components/koth/RaceClient";
 
 type Params = Promise<{ replayId: string }>;
 
@@ -41,10 +46,32 @@ export default async function RacePage({ params }: { params: Params }) {
   const replay = await getReplayById(replayId);
   if (!replay) notFound();
 
-  const [ghostDuration, leaderboard] = await Promise.all([
+  const [ghostDuration, leaderboard, session] = await Promise.all([
     getReplayGhostDuration(replayId),
     getReplayLeaderboard(replayId, 20),
+    getCurrentSession(),
   ]);
+
+  // Boot RaceClient straight into the correct phase by handing it
+  // any in-flight attempt the viewer already has. CF blocks the
+  // pre-server-actions /api fetch, so we can't discover this from
+  // the client.
+  const inflight = session.user
+    ? await getInflightRaceAttemptForUser(session.user.id, replayId)
+    : null;
+  const initialAttempt: RaceAttemptSnapshot | null = inflight
+    ? {
+        id: inflight.id,
+        startedAt: inflight.startedAt.toISOString(),
+        finishedAt: inflight.finishedAt
+          ? inflight.finishedAt.toISOString()
+          : null,
+        elapsedSec: inflight.elapsedSec,
+        tookCrown: inflight.tookCrown,
+        selfReported: inflight.selfReported,
+        linkedEventId: inflight.linkedEventId,
+      }
+    : null;
 
   const who = replay.username ?? replay.actorSlot;
 
@@ -90,6 +117,7 @@ export default async function RacePage({ params }: { params: Params }) {
         ghostDurationSec={ghostDuration}
         ghostActorName={who}
         ghostExploitPath={replay.exploitPath}
+        initialAttempt={initialAttempt}
       />
 
       {/* Leaderboard */}

@@ -23,6 +23,29 @@ import { postKothDailyAnnounceToDiscord } from "@/lib/koth/discord";
 //
 // Wordle/Balatro pattern: shared seed → comparable scores → DAU.
 
+export type DailyTwistMode = "plain" | "encoded" | "riddle";
+
+export type DailyTwistEncoding = "base64" | "rot13" | "reverse" | "hex";
+
+// Mode-specific payload persisted in koth_daily_seeds.twist.
+//   plain   → null (no twist)
+//   encoded → encoding + the rendered display string
+//   riddle  → human-readable riddle text describing the primitive,
+//             plus optional reveal_after_sec for the hint timer
+export type DailyTwist =
+  | null
+  | {
+      mode: "encoded";
+      encoding: DailyTwistEncoding;
+      displayed: string;
+      revealAfterSec?: number;
+    }
+  | {
+      mode: "riddle";
+      riddle: string;
+      revealAfterSec?: number;
+    };
+
 export type DailyChallenge = {
   dayUtc: string;              // "YYYY-MM-DD" in UTC
   pathSlug: string;
@@ -34,6 +57,11 @@ export type DailyChallenge = {
   authorUsername: string | null;
   generatedAt: Date;
   discordAnnouncedAt: Date | null;
+  // Per-day puzzle variety. plain = show slug straight; encoded =
+  // slug shown in some encoding; riddle = describe the primitive
+  // without naming it. See generateTwist.
+  twistMode: DailyTwistMode;
+  twist: DailyTwist;
 };
 
 // Days since the feature shipped. Matches the formula in
@@ -59,6 +87,117 @@ export type DailyLeaderRow = {
 // rotates at a globally-deterministic moment.
 export function todayUtcString(d: Date = new Date()): string {
   return d.toISOString().slice(0, 10);
+}
+
+// === Daily Twist generation =====================================
+
+// Mode pool — relative weights, deterministic pick per day from
+// sha256(day | slug). Riddle is the headline variant; encoded keeps
+// the puzzle mechanical; plain is the occasional "no-twist breather".
+const TWIST_MODE_POOL: { mode: DailyTwistMode; weight: number }[] = [
+  { mode: "riddle", weight: 4 },
+  { mode: "encoded", weight: 4 },
+  { mode: "plain", weight: 2 },
+];
+
+const ENCODINGS: DailyTwistEncoding[] = ["base64", "rot13", "reverse", "hex"];
+
+function rot13(s: string): string {
+  return s.replace(/[A-Za-z]/g, (c) => {
+    const base = c <= "Z" ? 65 : 97;
+    return String.fromCharCode(((c.charCodeAt(0) - base + 13) % 26) + base);
+  });
+}
+
+function encodeSlug(slug: string, enc: DailyTwistEncoding): string {
+  switch (enc) {
+    case "base64":
+      return Buffer.from(slug, "utf-8").toString("base64");
+    case "rot13":
+      return rot13(slug);
+    case "reverse":
+      return slug.split("").reverse().join("");
+    case "hex":
+      return Buffer.from(slug, "utf-8").toString("hex");
+  }
+}
+
+// Pure-function twist generator. Input: the date + slug + best
+// available human-readable description. Output: deterministic twist
+// payload + the mode that was actually selected (falls back from
+// 'riddle' to 'encoded' when the path has no description we can riff
+// on, so we never ship an empty riddle).
+function generateTwist(
+  day: string,
+  slug: string,
+  pathName: string | null,
+  pathDescription: string | null,
+  pathHint: string | null,
+): { mode: DailyTwistMode; twist: DailyTwist } {
+  const hash = createHash("sha256").update(`koth-daily-twist:${day}:${slug}`).digest();
+  const totalWeight = TWIST_MODE_POOL.reduce((s, m) => s + m.weight, 0);
+  let pick = hash.readUInt16BE(0) % totalWeight;
+  let mode: DailyTwistMode = "plain";
+  for (const m of TWIST_MODE_POOL) {
+    if (pick < m.weight) {
+      mode = m.mode;
+      break;
+    }
+    pick -= m.weight;
+  }
+
+  // Riddle requires source material. If the catalog row has nothing
+  // to riff on, downgrade to encoded so the player still gets a
+  // puzzle and never sees an empty card.
+  const riddleSource = (pathDescription ?? pathHint ?? "").trim();
+  if (mode === "riddle" && riddleSource.length < 12) {
+    mode = "encoded";
+  }
+
+  if (mode === "plain") {
+    return { mode, twist: null };
+  }
+
+  if (mode === "encoded") {
+    const enc = ENCODINGS[hash.readUInt16BE(2) % ENCODINGS.length];
+    return {
+      mode,
+      twist: {
+        mode: "encoded",
+        encoding: enc,
+        displayed: encodeSlug(slug, enc),
+        // After 5 min the page reveals the encoding hint inline.
+        revealAfterSec: 300,
+      },
+    };
+  }
+
+  // mode === "riddle" — build a short evocative riddle. We use the
+  // path's description (or hint) as the base, prefixed with a
+  // flavoring stem so it reads like a clue rather than the catalog
+  // entry. Pick the stem deterministically too.
+  const STEMS = [
+    "the king runs",
+    "this primitive whispers",
+    "today's crown lives in",
+    "the throne is guarded by",
+    "look for",
+  ];
+  const stem = STEMS[hash.readUInt16BE(4) % STEMS.length];
+  const sanitized = riddleSource
+    .replace(/\.$/, "")
+    .replace(new RegExp(slug.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi"), "[redacted]")
+    .replace(new RegExp((pathName ?? "").replace(/[.*+?^${}()|[\]\\]/g, "\\$&") || "____unused____", "gi"), "[redacted]");
+  const riddle = `${stem} ${sanitized}.`;
+
+  return {
+    mode,
+    twist: {
+      mode: "riddle",
+      riddle,
+      revealAfterSec: 600,
+    },
+  };
 }
 
 // Deterministic path pick for a given UTC date. Excludes "core" kinds
@@ -101,6 +240,8 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
         authorUsername: users.username,
         generatedAt: kothDailySeeds.generatedAt,
         discordAnnouncedAt: kothDailySeeds.discordAnnouncedAt,
+        twistMode: kothDailySeeds.twistMode,
+        twist: kothDailySeeds.twist,
       })
       .from(kothDailySeeds)
       .leftJoin(kothPaths, eq(kothPaths.slug, kothDailySeeds.pathSlug))
@@ -116,15 +257,58 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
     const slug = await pickPathFor(day);
     if (!slug) return null;
 
+    // Look up the catalog row up front so we have description/hint
+    // when generating the twist. Falls back gracefully on null.
+    const catalog = await db
+      .select({
+        name: kothPaths.name,
+        description: kothPaths.description,
+        hint: kothPaths.hint,
+      })
+      .from(kothPaths)
+      .where(eq(kothPaths.slug, slug))
+      .limit(1);
+    const cat = catalog[0] ?? null;
+    const { mode: twistMode, twist } = generateTwist(
+      day,
+      slug,
+      cat?.name ?? null,
+      cat?.description ?? null,
+      cat?.hint ?? null,
+    );
+
     // Race-safe insert: another request might be doing the same right
     // now. ON CONFLICT DO NOTHING + re-read.
     await db
       .insert(kothDailySeeds)
-      .values({ dayUtc: day, pathSlug: slug })
+      .values({ dayUtc: day, pathSlug: slug, twistMode, twist })
       .onConflictDoNothing({ target: kothDailySeeds.dayUtc });
 
     row = await fetchRow();
     if (row == null) return null;
+  }
+
+  // Backfill twist on legacy rows that pre-date migration 0030 —
+  // they have twist_mode = 'plain' (default) and NULL twist. If a
+  // row's twist_mode is still default *and* the day is today, run
+  // the generator and persist. Older days stay plain to preserve
+  // history.
+  if (row.twistMode === "plain" && row.twist == null && row.dayUtc === day) {
+    const { mode: twistMode, twist } = generateTwist(
+      day,
+      row.pathSlug,
+      row.pathName,
+      row.pathDescription,
+      row.pathHint,
+    );
+    if (twistMode !== "plain") {
+      await db
+        .update(kothDailySeeds)
+        .set({ twistMode, twist })
+        .where(eq(kothDailySeeds.dayUtc, day));
+      row.twistMode = twistMode;
+      row.twist = twist as typeof row.twist;
+    }
   }
 
   // Try to claim the Discord-announce slot. The UPDATE only matches
@@ -160,7 +344,14 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
     }
   }
 
-  return row;
+  // Narrow jsonb (Drizzle returns it as unknown) + twistMode (text)
+  // into our domain types. CHECK constraint in migration 0030
+  // guarantees twist_mode is one of the three legal values.
+  return {
+    ...row,
+    twistMode: row.twistMode as DailyTwistMode,
+    twist: (row.twist as DailyTwist) ?? null,
+  };
 }
 
 // One-attempt-per-user-per-day. Returns the existing row if the user
@@ -413,6 +604,41 @@ export async function getDailyStreak(userId: string): Promise<number> {
     }
   }
   return streak;
+}
+
+// Personal best for the given user on the given primitive (across
+// every daily that has shown this slug). Returns null when the user
+// has never crowned via this primitive before — page should render
+// "first time on this primitive" copy in that case.
+export async function getPersonalBestForPrimitive(
+  userId: string,
+  pathSlug: string,
+): Promise<{ elapsedSec: number; dayUtc: string } | null> {
+  const rows = await db
+    .select({
+      elapsedSec: kothDailyAttempts.elapsedSec,
+      dayUtc: kothDailyAttempts.dayUtc,
+    })
+    .from(kothDailyAttempts)
+    .innerJoin(
+      kothDailySeeds,
+      eq(kothDailySeeds.dayUtc, kothDailyAttempts.dayUtc),
+    )
+    .where(
+      and(
+        eq(kothDailyAttempts.userId, userId),
+        eq(kothDailyAttempts.tookCrown, true),
+        isNotNull(kothDailyAttempts.elapsedSec),
+        eq(kothDailySeeds.pathSlug, pathSlug),
+      ),
+    )
+    .orderBy(kothDailyAttempts.elapsedSec)
+    .limit(1);
+  if (rows.length === 0) return null;
+  return {
+    elapsedSec: rows[0].elapsedSec ?? 0,
+    dayUtc: rows[0].dayUtc,
+  };
 }
 
 // Seconds until next UTC midnight — used by the page countdown.
