@@ -3,6 +3,7 @@ import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "@/lib/db/client";
 import {
   kothEvents,
+  kothGuardHeals,
   kothGuardLockdowns,
   kothGuards,
   kothPaths,
@@ -11,6 +12,7 @@ import {
 } from "@/lib/db/schema";
 import {
   postKothGuardClaimedToDiscord,
+  postKothGuardHealToDiscord,
   postKothGuardLockdownToDiscord,
 } from "@/lib/koth/discord";
 
@@ -284,4 +286,112 @@ export async function recordLockdownBlock(lockdownId: string): Promise<void> {
     .update(kothGuardLockdowns)
     .set({ blockedCount: sql`${kothGuardLockdowns.blockedCount} + 1` })
     .where(eq(kothGuardLockdowns.id, lockdownId));
+}
+
+// === Phase D — Crown Heal ============================================
+
+export async function guardHasUsedHeal(
+  roundId: string,
+  guardUserId: string,
+): Promise<boolean> {
+  const r = await db
+    .select({ id: kothGuardHeals.id })
+    .from(kothGuardHeals)
+    .where(
+      and(
+        eq(kothGuardHeals.roundId, roundId),
+        eq(kothGuardHeals.guardUserId, guardUserId),
+      ),
+    )
+    .limit(1);
+  return r.length > 0;
+}
+
+// Place a heal on the current king. Validates: caller is guard, game
+// has started, king exists right now, token unused. Inserts a heal
+// row AND a `guard_heal` koth_event so the page's lastPatchAt
+// computation resets the decay timer without any scoring/state
+// change. Returns the new event id.
+export async function placeHeal(
+  roundId: string,
+  guardUserId: string,
+): Promise<
+  | { ok: true; healedUserId: string }
+  | { ok: false; error: string }
+> {
+  const guard = await getGuardForRound(roundId);
+  if (!guard || guard.userId !== guardUserId) {
+    return { ok: false, error: "you are not the guard for this round." };
+  }
+  const started = await hasFirstCrownBeenTaken(roundId);
+  if (!started) {
+    return { ok: false, error: "the game hasn't started." };
+  }
+
+  // Resolve the current king — the latest crown_taken event in this
+  // round whose actor still holds. We don't enforce "still holds"
+  // strictly here; the actor of the most recent crown_taken event
+  // is treated as the king for heal purposes.
+  const kingRow = await db
+    .select({
+      actorUserId: kothEvents.actorUserId,
+      username: users.username,
+    })
+    .from(kothEvents)
+    .leftJoin(users, eq(users.id, kothEvents.actorUserId))
+    .where(
+      and(
+        eq(kothEvents.roundId, roundId),
+        eq(kothEvents.kind, "crown_taken"),
+      ),
+    )
+    .orderBy(desc(kothEvents.occurredAt))
+    .limit(1);
+  const kingUserId = kingRow[0]?.actorUserId ?? null;
+  const kingUsername = kingRow[0]?.username ?? null;
+  if (!kingUserId) {
+    return { ok: false, error: "no king to heal right now." };
+  }
+
+  try {
+    await db.insert(kothGuardHeals).values({
+      roundId,
+      guardUserId,
+      healedUserId: kingUserId,
+    });
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e);
+    if (msg.includes("koth_guard_heals_one_per_round_guard")) {
+      return {
+        ok: false,
+        error: "you've already used your heal this round.",
+      };
+    }
+    return { ok: false, error: "heal failed — try again." };
+  }
+
+  // Insert the audit-trail event. actor = guard, target = king.
+  // Picked up by the lastPatchAt computation on next page render.
+  await db.insert(kothEvents).values({
+    roundId,
+    kind: "guard_heal",
+    actorUserId: guardUserId,
+    targetUserId: kingUserId,
+    pointsDelta: 0,
+    rawMeta: {
+      heal_source: "guard",
+    },
+  });
+
+  // Fire-and-forget Discord announce.
+  try {
+    postKothGuardHealToDiscord({
+      guardUsername: guard.username ?? "anon",
+      kingUsername: kingUsername ?? "the king",
+    });
+  } catch {
+    /* ignore */
+  }
+
+  return { ok: true, healedUserId: kingUserId };
 }

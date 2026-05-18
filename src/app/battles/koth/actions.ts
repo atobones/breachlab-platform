@@ -15,6 +15,7 @@ import {
 import {
   claimGuard,
   hasFirstCrownBeenTaken,
+  placeHeal,
   placeLockdown,
 } from "@/lib/koth/guards";
 
@@ -225,4 +226,27 @@ export async function placeLockdownAction(formData: FormData): Promise<void> {
 
   revalidatePath("/battles/koth");
   redirect("/battles/koth?lockdown=1");
+}
+
+// Guard ability — burn the per-round Heal token. Resets the king's
+// decay grace window via a guard_heal koth_event (lastPatchAt query
+// picks it up just like a self-patch).
+export async function placeHealAction(): Promise<void> {
+  const { user } = await getCurrentSession();
+  if (!user) {
+    redirect("/login?next=/battles/koth");
+  }
+
+  const roundId = await currentActiveRoundId();
+  if (!roundId) {
+    redirect("/battles/koth?error=" + encodeURIComponent(NO_ROUND_ERR));
+  }
+
+  const r = await placeHeal(user!.id, roundId as string);
+  if (!r.ok) {
+    redirect("/battles/koth?error=" + encodeURIComponent(r.error));
+  }
+
+  revalidatePath("/battles/koth");
+  redirect("/battles/koth?heal=1");
 }
