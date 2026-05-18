@@ -191,8 +191,10 @@ export function RaceClient({
         </div>
       </div>
 
-      {/* Ghost player — auto-plays during the race */}
-      <section className="border border-amber/30 bg-bg">
+      {/* Ghost player — auto-plays during the race. Constrained to
+          max-w-3xl + mx-auto so it doesn't blast across the full page
+          on wide monitors; matches the single-replay viewer. */}
+      <section className="border border-amber/30 bg-bg max-w-3xl mx-auto w-full">
         <ReplayPlayer
           cast={replayCast}
           title={`Ghost: ${ghostActorName}${ghostExploitPath ? " · " + ghostExploitPath : ""}`}
