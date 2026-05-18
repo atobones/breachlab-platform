@@ -512,17 +512,6 @@ export default async function KothPage({
                   </span>
                 </>
               )}
-              {drift && (
-                <>
-                  <span className="text-muted">·</span>
-                  <span
-                    className="text-amber/70"
-                    title="Drift Mode — binary names rotate per round. Run `which` if a path 404s."
-                  >
-                    ◈ drift: {drift.schemeLabel}
-                  </span>
-                </>
-              )}
             </>
             ) : (
               <>
@@ -538,17 +527,6 @@ export default async function KothPage({
                 </span>
                 <span className="text-muted">·</span>
                 <span className="text-amber/80">round: 30:00 fresh</span>
-                {drift && (
-                  <>
-                    <span className="text-muted">·</span>
-                    <span
-                      className="text-amber/70"
-                      title="Drift Mode — binary names rotate per round. Run `which` if a path 404s."
-                    >
-                      ◈ drift: {drift.schemeLabel}
-                    </span>
-                  </>
-                )}
               </>
             )
           ) : (
@@ -700,18 +678,7 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
                 ✓ key registered — slot assigned above
               </div>
             )}
-            <p className="text-[12px] text-muted leading-snug">
-              Slots are per-round (max 10) — they release on every
-              round close so the arena stays open to new operators.
-              Register once, claim a slot whenever you want to play.
-            </p>
             <form action={submitKothKey} className="space-y-2">
-              <label
-                htmlFor="pubkey"
-                className="block text-[11px] text-muted uppercase tracking-widest font-mono"
-              >
-                public key (one line — ssh-ed25519 preferred)
-              </label>
               <textarea
                 id="pubkey"
                 name="pubkey"
