@@ -120,10 +120,6 @@ export default async function DailyPage() {
         <h1 className="text-amber text-2xl sm:text-3xl phosphor wordmark font-bold tracking-[0.04em]">
           DAILY · #{chNum}
         </h1>
-        <p className="text-[14px] leading-relaxed text-muted max-w-3xl">
-          One primitive a day. Everyone gets the same configuration; your
-          time goes on a shared leaderboard. Resets at 00:00 UTC.
-        </p>
       </header>
 
       <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-[12px]">

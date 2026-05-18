@@ -311,16 +311,12 @@ export function DailyClient({
           />
           {checkNotYet && (
             <p className="text-[12px] text-red-400">
-              ⚠ not yet — no crown_taken with{" "}
-              <code className="text-red-400/90">{pathSlug}</code> on your
-              account since you pressed start. The page checks automatically
-              every few seconds; this button is a manual poll.
+              ⚠ not yet — no crown via{" "}
+              <code className="text-red-400/90">{pathSlug}</code> on your account since start.
             </p>
           )}
-          <p className="text-[12px] text-muted leading-relaxed">
-            SSH into Crown Wars in another tab and crown the king via the
-            primitive above. The page auto-detects your crown via the
-            oracle — no need to come back and click anything.
+          <p className="text-[12px] text-muted">
+            ▸ SSH into Crown Wars and crown via the primitive above — verifies automatically.
           </p>
         </section>
       )}
@@ -531,9 +527,6 @@ function TwistCard({
               auto-reveal in {fmt(autoHintRemainingSec)}
             </span>
           )}
-          <span className="text-[10px] text-muted/70">
-            (hint flag tracked on your personal best)
-          </span>
         </div>
       )}
     </div>
