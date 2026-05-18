@@ -72,9 +72,15 @@ export function RaceClient({
   async function startRace() {
     setError(null);
     try {
+      // X-Requested-With + same-origin credentials defuse the Cloudflare
+      // bot-challenge that otherwise interstitials anonymous POSTs.
       const r = await fetch("/api/koth/race/start", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify({ replayId }),
       });
       if (!r.ok) {
@@ -97,7 +103,11 @@ export function RaceClient({
     try {
       const r = await fetch(`/api/koth/race/${attemptId}/finish`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "same-origin",
+        headers: {
+          "Content-Type": "application/json",
+          "X-Requested-With": "XMLHttpRequest",
+        },
         body: JSON.stringify({ tookCrown: claimedCrown }),
       });
       if (!r.ok) {
