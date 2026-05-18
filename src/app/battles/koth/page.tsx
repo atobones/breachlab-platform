@@ -241,20 +241,39 @@ export default async function KothPage({
         </h1>
       </header>
 
-      {/* Help-bar — prominent Rules CTA. Right under the hero, before
-          the round status banner, so eyes hit it on the way down. */}
-      <div className="border border-amber/30 bg-amber/[0.03] px-4 py-3 flex items-center justify-between gap-3 flex-wrap">
-        <div className="text-[13px] font-mono">
-          <span className="text-muted">new here? </span>
-          <span className="text-text">read the rules first.</span>
-        </div>
+      {/* Quick-nav strip — Daily, Replays, Race, Rules in one compact
+          row. Replaces the old help-bar + 3-card hero. All CTAs above
+          the fold without dominating the page. Daily chip keeps a live
+          countdown to the next UTC reset. */}
+      <nav className="flex flex-wrap items-center gap-x-4 gap-y-2 text-[11px] font-mono border-b border-amber/20 pb-2">
+        <Link
+          href="/battles/koth/daily"
+          className="text-amber hover:text-amber/80 tracking-[0.18em] uppercase"
+        >
+          ▸ daily #{todayChallenge}
+          <span className="text-muted/80 normal-case tabular-nums ml-1 tracking-normal">
+            · {fmtHHMMSS(secsToNextDaily)}
+          </span>
+        </Link>
+        <Link
+          href="/battles/koth/replays"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+        >
+          ▸ replays
+        </Link>
+        <Link
+          href="/battles/koth/replays?kind=crown_moment"
+          className="text-amber/80 hover:text-amber tracking-[0.18em] uppercase"
+        >
+          ▸ ghost-race
+        </Link>
         <Link
           href="/battles/koth/rules"
-          className="btn-bracket text-amber text-[13px] font-mono tracking-[0.18em]"
+          className="ml-auto text-muted hover:text-amber tracking-[0.18em] uppercase"
         >
-          Read the Rules →
+          rules →
         </Link>
-      </div>
+      </nav>
 
       {/* Solo modes — hero-level CTAs for Daily + Replays + Race.
           Above the round console so they read as first-class entries,
@@ -664,9 +683,6 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           </Link>
           <Link href="/battles/koth/history" className="hover:text-amber tracking-[0.18em] uppercase">
             history
-          </Link>
-          <Link href="/battles/koth/rules" className="hover:text-amber tracking-[0.18em] uppercase">
-            rules →
           </Link>
         </div>
         <span className="tracking-[0.18em] uppercase">predator</span>
