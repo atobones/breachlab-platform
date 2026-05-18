@@ -14,6 +14,7 @@
 type EventArgs = {
   kind: string;
   actorUsername: string | null;
+  actorSlot?: string | null; // "koth0".."koth9" — used for replay-link in embed
   targetUsername: string | null;
   exploitPath: string | null; // slug, kept for fallback
   pathName?: string | null; // human-readable, e.g. "Writable PYTHONPATH"
@@ -55,18 +56,37 @@ function embedForEvent(ev: EventArgs): Embed | null {
   switch (ev.kind) {
     case "crown_taken": {
       const valueLine = pts != null ? ` · **+${pts} pt**` : "";
+      // Replay deep-link — the sidecar uploads a crown_moment cast a
+      // few seconds after the event fires; by the time someone clicks
+      // this link, the replays-list page renders it as the top entry.
+      // We can't link a specific replay-id yet (cast isn't uploaded at
+      // this point), so we link the filtered list scoped to this slot
+      // + crown_moment kind — newest first.
+      const siteUrl = (process.env.SITE_URL ?? "https://breachlab.org").replace(
+        /\/$/,
+        "",
+      );
+      const replayLink =
+        ev.actorSlot != null
+          ? `${siteUrl}/battles/koth/replays?slot=${encodeURIComponent(
+              ev.actorSlot,
+            )}&kind=crown_moment`
+          : null;
+      const description =
+        (path ? `via **${path}**${valueLine}` : "") +
+        (replayLink ? `\n[▸ watch the kill](${replayLink})` : "");
       if (ev.targetUsername) {
         return {
           color: COLOR.dethrone,
           title: `⚔️ ${actor} dethroned ${ev.targetUsername}`,
-          description: path ? `via **${path}**${valueLine}` : undefined,
+          description: description || undefined,
           timestamp: ts,
         };
       }
       return {
         color: COLOR.crown,
         title: `👑 ${actor} took the crown`,
-        description: path ? `via **${path}**${valueLine}` : undefined,
+        description: description || undefined,
         timestamp: ts,
       };
     }

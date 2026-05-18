@@ -183,6 +183,12 @@ export default async function ReplayDetailPage({
 
       {/* Share + race CTAs */}
       <section className="border-t border-border/40 pt-4 flex flex-wrap items-center gap-3 text-[12px] font-mono">
+        <Link
+          href={`/battles/koth/race/${replay.id}`}
+          className="border border-amber bg-amber/10 text-amber hover:bg-amber/20 px-3 py-1 transition-colors uppercase tracking-wider font-semibold"
+        >
+          ▸ race this ghost
+        </Link>
         <CopyLinkButton path={`/battles/koth/replay/${replay.id}`} />
         <Link
           href={`/api/koth/replay/${replay.id}/raw`}
@@ -190,9 +196,6 @@ export default async function ReplayDetailPage({
         >
           ▸ download .cast
         </Link>
-        <div className="ml-auto text-muted/60 text-[11px]">
-          Ghost-race solo mode — Phase C, queued
-        </div>
       </section>
     </article>
   );

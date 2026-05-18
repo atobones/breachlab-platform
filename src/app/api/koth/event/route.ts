@@ -388,6 +388,7 @@ export async function POST(req: Request) {
   postKothEventToDiscord({
     kind: body.kind,
     actorUsername,
+    actorSlot: body.actor_slot ?? null,
     targetUsername,
     exploitPath: body.exploit_path ?? null,
     pathName: path?.name ?? null,
