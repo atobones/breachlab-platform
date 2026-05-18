@@ -199,6 +199,27 @@ export async function startDailyAttempt(
   return { ...row, resumed: false };
 }
 
+// Return the user's attempt for the given day, if any. Used by the
+// daily page to render the right phase on load — racing if there's
+// an unfinished attempt, finished if there's a completed one, ready
+// otherwise.
+export async function getDailyAttemptForUser(
+  userId: string,
+  day: string,
+) {
+  const r = await db
+    .select()
+    .from(kothDailyAttempts)
+    .where(
+      and(
+        eq(kothDailyAttempts.dayUtc, day),
+        eq(kothDailyAttempts.userId, userId),
+      ),
+    )
+    .limit(1);
+  return r[0] ?? null;
+}
+
 export async function getDailyAttempt(id: string) {
   const r = await db
     .select()

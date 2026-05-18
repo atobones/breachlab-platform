@@ -2,6 +2,7 @@ import { Metadata } from "next";
 import Link from "next/link";
 
 import {
+  getDailyAttemptForUser,
   getDailyLeaderboard,
   getOrCreateTodaySeed,
   getDailyStreak,
@@ -9,7 +10,10 @@ import {
   todayUtcString,
 } from "@/lib/koth/daily";
 import { getCurrentSession } from "@/lib/auth/session";
-import { DailyClient } from "@/components/koth/DailyClient";
+import {
+  DailyClient,
+  type DailyAttemptSnapshot,
+} from "@/components/koth/DailyClient";
 
 export const metadata: Metadata = {
   title: "Daily Challenge — Crown Wars — BreachLab",
@@ -50,6 +54,25 @@ export default async function DailyPage() {
   const secsLeft = secondsUntilNextSeed();
   const chNum = challengeNumber(day);
 
+  // Server-rendered snapshot of the viewer's attempt for today, if any.
+  // Lets DailyClient boot straight into the right phase without a
+  // client-side API roundtrip — Cloudflare 403s anonymous POSTs to
+  // /api/koth/* and breaks the fetch-based flow.
+  const attemptRow = user ? await getDailyAttemptForUser(user.id, day) : null;
+  const initialAttempt: DailyAttemptSnapshot | null = attemptRow
+    ? {
+        id: attemptRow.id,
+        startedAt: attemptRow.startedAt.toISOString(),
+        finishedAt: attemptRow.finishedAt
+          ? attemptRow.finishedAt.toISOString()
+          : null,
+        elapsedSec: attemptRow.elapsedSec,
+        tookCrown: attemptRow.tookCrown,
+        selfReported: attemptRow.selfReported,
+        linkedEventId: attemptRow.linkedEventId,
+      }
+    : null;
+
   return (
     <article className="space-y-6 max-w-4xl">
       <header className="space-y-2">
@@ -89,6 +112,7 @@ export default async function DailyPage() {
             pathSlug={seed.pathSlug}
             pathName={seed.pathName}
             challengeNumber={chNum}
+            initialAttempt={initialAttempt}
           />
           {seed.authorUsername && (
             <p className="text-[11px] text-amber/70 font-mono italic">
