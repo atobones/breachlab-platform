@@ -612,6 +612,51 @@ export const kothRaceAttempts = pgTable(
   ],
 );
 
+export const kothDailySeeds = pgTable("koth_daily_seeds", {
+  // Use text for the date primary key — drizzle's date type with mode:
+  // "string" stays JSON-friendly and avoids timezone weirdness when
+  // the cron picker generates the row from UTC.
+  dayUtc: text("day_utc").primaryKey(),
+  pathSlug: text("path_slug").notNull(),
+  generatedAt: timestamp("generated_at", { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+});
+
+export const kothDailyAttempts = pgTable(
+  "koth_daily_attempts",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    dayUtc: text("day_utc")
+      .notNull()
+      .references(() => kothDailySeeds.dayUtc, { onDelete: "cascade" }),
+    userId: uuid("user_id").references(() => users.id, {
+      onDelete: "set null",
+    }),
+    startedAt: timestamp("started_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    finishedAt: timestamp("finished_at", { withTimezone: true }),
+    elapsedSec: integer("elapsed_sec"),
+    tookCrown: boolean("took_crown").notNull().default(false),
+    selfReported: boolean("self_reported").notNull().default(false),
+    linkedEventId: bigint("linked_event_id", { mode: "number" }).references(
+      () => kothEvents.id,
+      { onDelete: "set null" },
+    ),
+  },
+  (t) => [
+    index("koth_daily_attempts_day_recent").on(
+      t.dayUtc,
+      t.elapsedSec.asc(),
+    ),
+    index("koth_daily_attempts_user_streak").on(
+      t.userId,
+      t.dayUtc.desc(),
+    ),
+  ],
+);
+
 export type KothRound = typeof kothRounds.$inferSelect;
 export type KothEvent = typeof kothEvents.$inferSelect;
 export type KothScore = typeof kothScores.$inferSelect;
@@ -621,6 +666,8 @@ export type KothPathEvent = typeof kothPathEvents.$inferSelect;
 export type KothHonor = typeof kothHonors.$inferSelect;
 export type KothReplay = typeof kothReplays.$inferSelect;
 export type KothRaceAttempt = typeof kothRaceAttempts.$inferSelect;
+export type KothDailySeed = typeof kothDailySeeds.$inferSelect;
+export type KothDailyAttempt = typeof kothDailyAttempts.$inferSelect;
 
 export const writeups = pgTable("writeups", {
   id: uuid("id").defaultRandom().primaryKey(),

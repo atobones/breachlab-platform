@@ -574,6 +574,9 @@ ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
           ← battles
         </Link>
         <div className="flex items-center gap-3">
+          <Link href="/battles/koth/daily" className="hover:text-amber tracking-[0.18em] uppercase">
+            daily
+          </Link>
           <Link href="/battles/koth/replays" className="hover:text-amber tracking-[0.18em] uppercase">
             replays
           </Link>
