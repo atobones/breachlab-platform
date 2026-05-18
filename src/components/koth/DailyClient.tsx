@@ -466,8 +466,11 @@ function TwistCard({
 
       {twistMode === "plain" && (
         <>
-          <div className="text-amber text-xl mb-1">{pathName ?? pathSlug}</div>
-          <code className="text-amber/70 text-[12px]">{pathSlug}</code>
+          <div className="text-amber text-lg mb-2">{pathName ?? pathSlug}</div>
+          <div className="text-[11px] text-muted leading-relaxed">
+            crown via <code className="text-amber/90">{pathSlug}</code> —
+            faster than anyone today.
+          </div>
         </>
       )}
 

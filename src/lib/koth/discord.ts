@@ -56,12 +56,13 @@ function embedForEvent(ev: EventArgs): Embed | null {
   switch (ev.kind) {
     case "crown_taken": {
       const valueLine = pts != null ? ` · **+${pts} pt**` : "";
-      // Replay deep-link — the sidecar uploads a crown_moment cast a
-      // few seconds after the event fires; by the time someone clicks
-      // this link, the replays-list page renders it as the top entry.
-      // We can't link a specific replay-id yet (cast isn't uploaded at
-      // this point), so we link the filtered list scoped to this slot
-      // + crown_moment kind — newest first.
+      // Replay deep-link — the sidecar uploads a session_close cast
+      // ~15s after the player disconnects from this SSH session. We
+      // filter by slot only (no kind filter — the uploader doesn't
+      // produce kind=crown_moment, only kind=session_close, so the
+      // old kind=crown_moment filter always rendered empty). By slot,
+      // the player's recent session lands as the top entry once the
+      // cast is uploaded.
       const siteUrl = (process.env.SITE_URL ?? "https://breachlab.org").replace(
         /\/$/,
         "",
@@ -70,7 +71,7 @@ function embedForEvent(ev: EventArgs): Embed | null {
         ev.actorSlot != null
           ? `${siteUrl}/battles/koth/replays?slot=${encodeURIComponent(
               ev.actorSlot,
-            )}&kind=crown_moment`
+            )}`
           : null;
       const description =
         (path ? `via **${path}**${valueLine}` : "") +
