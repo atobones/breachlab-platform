@@ -24,8 +24,10 @@ const ARENA_HOST = "204.168.229.209";
 const ARENA_PORT = 2300;
 const ESCALATION_THRESHOLD_SECONDS = 300;
 
-// Daily challenge — days since project epoch. Mirrors /battles/koth/daily.
-const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+// Daily challenge — days since the feature shipped. Today (2026-05-18)
+// is Daily #1; #2 fires at the next UTC midnight, etc. Mirrors
+// /battles/koth/daily and lib/koth/daily.ts.
+const DAILY_EPOCH = new Date("2026-05-18T00:00:00Z").getTime();
 function dailyChallengeNumber(day: string): number {
   const d = new Date(day + "T00:00:00Z").getTime();
   return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);

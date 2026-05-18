@@ -32,9 +32,10 @@ function fmtCountdown(sec: number): string {
   return `${h.toString().padStart(2, "0")}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
 }
 
-// Challenge number — days since the project epoch. Gives a Wordle-like
-// "Daily #347" identifier players can reference across posts.
-const EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+// Challenge number — days since the feature shipped. Gives a Wordle-like
+// "Daily #347" identifier players can reference across posts. Today
+// (2026-05-18) is Daily #1.
+const EPOCH = new Date("2026-05-18T00:00:00Z").getTime();
 function challengeNumber(day: string): number {
   const d = new Date(day + "T00:00:00Z").getTime();
   return Math.max(1, Math.floor((d - EPOCH) / 86400_000) + 1);

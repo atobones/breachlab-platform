@@ -36,10 +36,11 @@ export type DailyChallenge = {
   discordAnnouncedAt: Date | null;
 };
 
-// Days since the project epoch. Matches the formula in
-// /battles/koth/daily/page.tsx so the Discord embed and the page
-// quote the same #N for the same day.
-const DAILY_EPOCH = new Date("2026-05-01T00:00:00Z").getTime();
+// Days since the feature shipped. Matches the formula in
+// /battles/koth/daily/page.tsx and /battles/koth/page.tsx so the
+// Discord embed and both pages quote the same #N for the same day.
+// Today (2026-05-18) = Daily #1.
+const DAILY_EPOCH = new Date("2026-05-18T00:00:00Z").getTime();
 export function dailyChallengeNumber(day: string): number {
   const d = new Date(day + "T00:00:00Z").getTime();
   return Math.max(1, Math.floor((d - DAILY_EPOCH) / 86400_000) + 1);
