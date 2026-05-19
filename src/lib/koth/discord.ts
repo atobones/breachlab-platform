@@ -14,7 +14,7 @@
 type EventArgs = {
   kind: string;
   actorUsername: string | null;
-  actorSlot?: string | null; // "koth0".."koth9" — used for replay-link in embed
+  actorSlot?: string | null; // "koth0".."koth9" — kept for future use
   targetUsername: string | null;
   exploitPath: string | null; // slug, kept for fallback
   pathName?: string | null; // human-readable, e.g. "Writable PYTHONPATH"
@@ -56,26 +56,7 @@ function embedForEvent(ev: EventArgs): Embed | null {
   switch (ev.kind) {
     case "crown_taken": {
       const valueLine = pts != null ? ` · **+${pts} pt**` : "";
-      // Replay deep-link — the sidecar uploads a session_close cast
-      // ~15s after the player disconnects from this SSH session. We
-      // filter by slot only (no kind filter — the uploader doesn't
-      // produce kind=crown_moment, only kind=session_close, so the
-      // old kind=crown_moment filter always rendered empty). By slot,
-      // the player's recent session lands as the top entry once the
-      // cast is uploaded.
-      const siteUrl = (process.env.SITE_URL ?? "https://breachlab.org").replace(
-        /\/$/,
-        "",
-      );
-      const replayLink =
-        ev.actorSlot != null
-          ? `${siteUrl}/battles/koth/replays?slot=${encodeURIComponent(
-              ev.actorSlot,
-            )}`
-          : null;
-      const description =
-        (path ? `via **${path}**${valueLine}` : "") +
-        (replayLink ? `\n[▸ watch the kill](${replayLink})` : "");
+      const description = path ? `via **${path}**${valueLine}` : "";
       if (ev.targetUsername) {
         return {
           color: COLOR.dethrone,

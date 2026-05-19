@@ -217,19 +217,6 @@ export default function KothRulesPage() {
         </p>
       </RuleSection>
 
-      <RuleSection title="Ghost replay">
-        <p>
-          Every session is recorded as an asciinema cast. Watch any
-          past kill at{" "}
-          <Link href="/battles/koth/replays" className="text-amber">
-            /battles/koth/replays
-          </Link>
-          . Race the ghost: your timer ticks against the past king&apos;s
-          playback in real-time. Beat their time to land on the
-          replay&apos;s leaderboard.
-        </p>
-      </RuleSection>
-
       <RuleSection title="Fair play">
         <p className="pb-2">
           Do anything to the box. Do nothing to deny the box. Hardening,

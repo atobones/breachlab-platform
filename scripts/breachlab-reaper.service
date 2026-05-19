@@ -1,0 +1,13 @@
+[Unit]
+Description=BreachLab ephemeral container reaper (Specter + Phantom-Deep orphan cleanup)
+Documentation=man:docker-rm(1)
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/breachlab-ephemeral-reaper.sh
+# Defensive timeouts so a stuck docker daemon doesn't pile up reaper
+# processes back-to-back.
+TimeoutStartSec=120
+Nice=10
