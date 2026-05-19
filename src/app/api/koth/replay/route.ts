@@ -1,12 +1,20 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
-import { eq, sql } from "drizzle-orm";
+import { and, desc, eq, gte, lte, sql } from "drizzle-orm";
 
 import { db } from "@/lib/db/client";
-import { kothReplays } from "@/lib/db/schema";
+import { kothEvents, kothReplays } from "@/lib/db/schema";
 import { safeBearerMatch } from "@/lib/auth/tokens";
 import { resolveSlotToUserId } from "@/lib/koth/slots";
 import { deriveDurationFromCast } from "@/lib/koth/replays";
+
+// Crown-moment classification window. We check for crown_taken events
+// by this slot's user up to PRE_SESSION_PAD_SEC before the cast's
+// start and up to recorded_at (the end). The pad covers slight clock
+// drift between the arena, sidecar, and platform — without it a crown
+// taken at second 0 of a session can fall outside (session_start, end]
+// if recorded_at is even slightly low.
+const PRE_SESSION_PAD_SEC = 5;
 
 // Ghost Replay upload endpoint.
 //
@@ -163,6 +171,51 @@ export async function POST(req: Request) {
   // slot may not be linked to a platform user (synthetic / test).
   const userId = await resolveSlotToUserId(body.actor_slot);
 
+  // Crown-moment auto-classification. The sidecar uploader hardcodes
+  // kind=session_close — it has no context about whether a crown was
+  // claimed during the session. Server-side we DO know: kothEvents has
+  // crown_taken rows with actor_user_id + round_id + occurred_at. If
+  // such an event lands inside this cast's time window for THIS slot's
+  // user, the session was a kill — reclassify it as crown_moment and
+  // link the event so the replay viewer can highlight it.
+  //
+  // The cast's window is [recorded_at - duration - pad, recorded_at].
+  // If duration is unknown we conservatively skip classification (the
+  // backfill path can fill it in once duration is derived).
+  let kindFinal = body.kind as "session_close" | "crown_moment" | "ambient";
+  let linkedEventIdFinal = linkedEventId;
+  if (
+    kindFinal === "session_close" &&
+    userId &&
+    durationSec != null &&
+    durationSec > 0
+  ) {
+    const recordedAt = new Date(body.recorded_at);
+    const sessionStart = new Date(
+      recordedAt.getTime() - (durationSec + PRE_SESSION_PAD_SEC) * 1000,
+    );
+    const crownRows = await db
+      .select({ id: kothEvents.id })
+      .from(kothEvents)
+      .where(
+        and(
+          eq(kothEvents.kind, "crown_taken"),
+          eq(kothEvents.actorUserId, userId),
+          eq(kothEvents.roundId, body.round_id),
+          gte(kothEvents.occurredAt, sessionStart),
+          lte(kothEvents.occurredAt, recordedAt),
+        ),
+      )
+      .orderBy(desc(kothEvents.occurredAt))
+      .limit(1);
+    if (crownRows.length > 0) {
+      kindFinal = "crown_moment";
+      if (linkedEventIdFinal == null) {
+        linkedEventIdFinal = crownRows[0].id;
+      }
+    }
+  }
+
   // ON CONFLICT (sha256) DO NOTHING → idempotent. We still return the
   // existing row's id when the upload is a duplicate, so the sidecar
   // can mark its local pending-upload entry as resolved.
@@ -173,11 +226,11 @@ export async function POST(req: Request) {
         roundId: body.round_id,
         userId,
         actorSlot: body.actor_slot,
-        kind: body.kind,
+        kind: kindFinal,
         durationSec,
         asciicast: body.asciicast,
         byteSize,
-        linkedEventId,
+        linkedEventId: linkedEventIdFinal,
         recordedAt: new Date(body.recorded_at),
         sha256: sha,
       })
