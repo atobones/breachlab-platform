@@ -113,14 +113,27 @@ export default async function DailyPage() {
         </h1>
       </header>
 
-      <section className="grid grid-cols-2 sm:grid-cols-4 gap-3 font-mono text-[12px]">
-        <Tile label="day" value={day} />
-        <Tile label="challenge" value={`#${chNum}`} />
-        <Tile label="next reset" value={fmtCountdown(secsLeft)} mono />
-        <Tile
-          label="your streak"
-          value={user ? `${streak} day${streak === 1 ? "" : "s"}` : "—"}
-        />
+      {/* Top strip — only the two dynamic bits that actually move:
+          countdown to next daily, and the player's streak. Day and
+          challenge# already appear in the header, so showing them in
+          tile form duplicates noise without adding signal. */}
+      <section className="flex flex-wrap items-center gap-x-6 gap-y-2 font-mono text-[11px] border-b border-border/40 pb-3">
+        <span className="text-muted">
+          <span className="text-amber/60 uppercase tracking-widest mr-2">
+            next reset
+          </span>
+          <span className="text-amber tabular-nums">
+            {fmtCountdown(secsLeft)}
+          </span>
+        </span>
+        <span className="text-muted">
+          <span className="text-amber/60 uppercase tracking-widest mr-2">
+            streak
+          </span>
+          <span className="text-amber">
+            {user ? `${streak} day${streak === 1 ? "" : "s"}` : "—"}
+          </span>
+        </span>
       </section>
 
       {seed ? (
@@ -200,23 +213,3 @@ export default async function DailyPage() {
   );
 }
 
-function Tile({
-  label,
-  value,
-  mono = false,
-}: {
-  label: string;
-  value: string;
-  mono?: boolean;
-}) {
-  return (
-    <div className="border border-border/40 bg-bg/40 p-3">
-      <div className="text-[10px] text-amber/80 uppercase tracking-widest">
-        {label}
-      </div>
-      <div className={`text-text mt-1 ${mono ? "tabular-nums" : ""}`}>
-        {value}
-      </div>
-    </div>
-  );
-}
