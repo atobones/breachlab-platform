@@ -222,34 +222,36 @@ export function DailyClient({
             onReveal={() => setHintRevealed(true)}
             showHintButton
           />
-          <div className="border border-border/40 bg-bg/40 p-3 flex items-center gap-3 flex-wrap text-[11px] font-mono">
-            <span className="text-amber/70 uppercase tracking-widest">
-              ▸ tier cutoffs
-            </span>
-            {TIER_BANDS.map((b) => (
-              <span key={b.label} className="text-muted">
-                <span className="mr-1">{b.emoji}</span>
-                {b.label}
-              </span>
-            ))}
-          </div>
+          {/* Personal best is the headline metric when a player has one
+              set; the bare existence of a PB is the motivator. Tier
+              cutoffs are reference info — hidden behind a <details>
+              so the page leads with what's actionable. */}
           {personalBest && (
-            <div className="border border-green/30 bg-green/[0.04] p-3 flex items-center gap-3 text-[12px] font-mono">
-              <span className="text-green/80 uppercase tracking-widest text-[10px]">
-                ▸ your best on this primitive
+            <div className="flex items-center gap-3 text-[12px] font-mono px-3 py-2 border-l-2 border-green/60 bg-green/[0.03]">
+              <span className="text-green/70 uppercase tracking-widest text-[10px]">
+                your best
               </span>
-              <span className="text-green">{fmt(personalBest.elapsedSec)}</span>
+              <span className="text-green tabular-nums">
+                {fmt(personalBest.elapsedSec)}
+              </span>
               <span className="text-muted/70 text-[10px] ml-auto">
                 set {personalBest.dayUtc}
               </span>
             </div>
           )}
-          {!personalBest && (
-            <p className="text-[11px] text-muted/80 font-mono italic">
-              ▸ first time on this primitive — set a personal best to chase
-              on its next rotation.
-            </p>
-          )}
+          <details className="text-[11px] font-mono">
+            <summary className="cursor-pointer text-muted/80 hover:text-amber select-none py-1 tracking-wider">
+              ▸ tier cutoffs
+            </summary>
+            <div className="flex items-center gap-4 flex-wrap pt-1 pl-3 text-muted">
+              {TIER_BANDS.map((b) => (
+                <span key={b.label}>
+                  <span className="mr-1">{b.emoji}</span>
+                  {b.label}
+                </span>
+              ))}
+            </div>
+          </details>
           <form action={startDailyAction}>
             <button
               type="submit"
