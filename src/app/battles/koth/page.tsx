@@ -562,7 +562,7 @@ export default async function KothPage({
               <span className="text-muted">·</span>
               <span
                 className="text-red-400/90 uppercase tracking-widest"
-                title="Mutating Arena (Drift Mode). Binaries are renamed per round — find them with `ls /usr/local/bin/` or `find / -perm -4000`."
+                title="Mutating Arena (Drift Mode). Binaries are renamed and relocated each round, and the exploit signature (which env var / shell metachar works) drifts too. Read /etc/breachlab-drift in the arena for this round's scheme."
               >
                 🌀 drift: {drift.schemeLabel}
               </span>
