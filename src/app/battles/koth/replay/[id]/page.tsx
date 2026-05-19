@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { getReplayById, getSiblingReplays } from "@/lib/koth/replays";
-import { ReplayPlayer } from "@/components/koth/ReplayPlayer";
+import { ReplayTranscript } from "@/components/koth/ReplayTranscript";
 import { ReplayCard } from "@/components/koth/ReplayCard";
 import { CopyLinkButton } from "@/components/koth/CopyLinkButton";
 
@@ -64,9 +64,6 @@ export default async function ReplayDetailPage({
   const who = replay.username ?? replay.actorSlot;
   const isCrown = replay.kind === "crown_moment";
   const titleColor = isCrown ? "text-amber" : "text-text";
-  const playerTitle = isCrown
-    ? `${who} — crown moment${replay.exploitPath ? " via " + replay.exploitPath : ""}`
-    : `${who} — ${replay.kind.replace("_", " ")}`;
 
   return (
     <article className="space-y-6 max-w-5xl">
@@ -103,20 +100,12 @@ export default async function ReplayDetailPage({
         </h1>
       </header>
 
-      {/* Player — featured artifact. Constrained max-width so it
-          doesn't dominate wide monitors; metadata strip below stays
-          page-width via the article's max-w-5xl. */}
-      <section className="border border-amber/30 bg-bg shadow-[0_0_40px_-12px_rgba(252,184,20,0.18)] max-w-3xl mx-auto w-full">
-        <ReplayPlayer
-          cast={replay.asciicast}
-          title={playerTitle}
-          idleTimeLimit={1}
-          // Dedicated viewer page — autoplay so visitors see the
-          // recording immediately. Sparse session_close casts (e.g.,
-          // a player who connected, typed little, disconnected) would
-          // otherwise show a black-canvas poster until clicked.
-          autoPlay
-        />
+      {/* Transcript — command-by-command view, not video. CTF players
+          read commands, they don't watch playback. ReplayTranscript
+          parses the cast server-side into timestamped CommandEntry
+          rows; no JS needed for it to render. */}
+      <section className="max-w-3xl w-full">
+        <ReplayTranscript cast={replay.asciicast} who={who} />
       </section>
 
       {/* Metadata strip — telemetry below the player like a flight log */}
