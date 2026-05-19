@@ -591,6 +591,12 @@ export const kothDailyAttempts = pgTable(
       () => kothEvents.id,
       { onDelete: "set null" },
     ),
+    // Trail mode (twist_mode='trail') per-attempt step progress. Array
+    // of slug strings the user has already completed in this trail.
+    // Empty on insert; finishDailyAttempt appends as crown_taken
+    // events for each step's slug land. Stays empty for non-trail
+    // attempts. See migration 0034.
+    stepsCompleted: jsonb("steps_completed").notNull().default([]),
   },
   (t) => [
     index("koth_daily_attempts_day_recent").on(

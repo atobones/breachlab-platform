@@ -23,15 +23,25 @@ import { postKothDailyAnnounceToDiscord } from "@/lib/koth/discord";
 //
 // Wordle/Balatro pattern: shared seed → comparable scores → DAU.
 
-export type DailyTwistMode = "plain" | "encoded" | "riddle";
+export type DailyTwistMode = "plain" | "encoded" | "riddle" | "trail";
 
 export type DailyTwistEncoding = "base64" | "rot13" | "reverse" | "hex";
+
+export type DailyTrailStep = {
+  slug: string;
+  name: string | null;
+  hint: string | null;
+};
 
 // Mode-specific payload persisted in koth_daily_seeds.twist.
 //   plain   → null (no twist)
 //   encoded → encoding + the rendered display string
 //   riddle  → human-readable riddle text describing the primitive,
 //             plus optional reveal_after_sec for the hint timer
+//   trail   → ordered 3-step chain (Phase 2). steps[0] mirrors the
+//             seed's path_slug (backwards compat with PB / leaderboard
+//             lookups). Each step's hint is only shown after the
+//             prior step's crown_taken lands.
 export type DailyTwist =
   | null
   | {
@@ -44,6 +54,11 @@ export type DailyTwist =
       mode: "riddle";
       riddle: string;
       revealAfterSec?: number;
+    }
+  | {
+      mode: "trail";
+      ordered: true;
+      steps: DailyTrailStep[];
     };
 
 export type DailyChallenge = {
@@ -93,12 +108,21 @@ export function todayUtcString(d: Date = new Date()): string {
 
 // Mode pool — relative weights, deterministic pick per day from
 // sha256(day | slug). Riddle is the headline variant; encoded keeps
-// the puzzle mechanical; plain is the occasional "no-twist breather".
+// the puzzle mechanical; plain is the occasional "no-twist breather";
+// trail is the chain-of-3 deep-engagement mode added in Phase 2.
+//
+// Trail weight is intentionally lower than the single-primitive
+// modes — it's a "Tuesday boss" not the default. Players who land
+// it need more time + multiple SSH sessions across the day, so it
+// has to be the standout, not the routine.
 const TWIST_MODE_POOL: { mode: DailyTwistMode; weight: number }[] = [
   { mode: "riddle", weight: 4 },
   { mode: "encoded", weight: 4 },
   { mode: "plain", weight: 2 },
+  { mode: "trail", weight: 2 },
 ];
+
+const TRAIL_LENGTH = 3;
 
 const ENCODINGS: DailyTwistEncoding[] = ["base64", "rot13", "reverse", "hex"];
 
@@ -123,16 +147,25 @@ function encodeSlug(slug: string, enc: DailyTwistEncoding): string {
 }
 
 // Pure-function twist generator. Input: the date + slug + best
-// available human-readable description. Output: deterministic twist
-// payload + the mode that was actually selected (falls back from
-// 'riddle' to 'encoded' when the path has no description we can riff
-// on, so we never ship an empty riddle).
+// available human-readable description + the full candidate catalog
+// (needed for trail picker which must select N additional slugs
+// deterministically). Output: deterministic twist payload + the mode
+// that was actually selected (falls back from 'riddle' to 'encoded'
+// when the path has no description we can riff on, and from 'trail'
+// to 'plain' when there aren't enough catalog entries left).
+type TrailCandidate = {
+  slug: string;
+  name: string | null;
+  hint: string | null;
+};
+
 function generateTwist(
   day: string,
   slug: string,
   pathName: string | null,
   pathDescription: string | null,
   pathHint: string | null,
+  candidates: TrailCandidate[] = [],
 ): { mode: DailyTwistMode; twist: DailyTwist } {
   const hash = createHash("sha256").update(`koth-daily-twist:${day}:${slug}`).digest();
   const totalWeight = TWIST_MODE_POOL.reduce((s, m) => s + m.weight, 0);
@@ -154,6 +187,17 @@ function generateTwist(
     mode = "encoded";
   }
 
+  // Trail requires TRAIL_LENGTH-1 additional distinct candidates
+  // (the primary slug becomes step 0). If the catalog is too small
+  // we downgrade to riddle (the next-most-engaging single-primitive
+  // mode) so a thin catalog never blocks the daily.
+  if (mode === "trail") {
+    const others = candidates.filter((c) => c.slug !== slug);
+    if (others.length < TRAIL_LENGTH - 1) {
+      mode = "riddle";
+    }
+  }
+
   if (mode === "plain") {
     return { mode, twist: null };
   }
@@ -169,6 +213,39 @@ function generateTwist(
         // After 5 min the page reveals the encoding hint inline.
         revealAfterSec: 300,
       },
+    };
+  }
+
+  if (mode === "trail") {
+    // Pick TRAIL_LENGTH-1 additional slugs deterministically from the
+    // remaining catalog. Use a Fisher-Yates-style draw seeded by the
+    // same hash so two web instances picking on the same day land on
+    // the same trail. The primary slug becomes step 0.
+    const pool: TrailCandidate[] = candidates
+      .filter((c) => c.slug !== slug)
+      .slice()
+      .sort((a, b) => a.slug.localeCompare(b.slug));
+    const drawn: TrailCandidate[] = [];
+    let cursor = 4; // first 4 bytes are spoken for above
+    for (let i = 0; i < TRAIL_LENGTH - 1 && pool.length > 0; i++) {
+      // Use 2 bytes per draw; we have plenty of digest entropy.
+      const off = cursor % 30;
+      const idx = hash.readUInt16BE(off) % pool.length;
+      drawn.push(pool[idx]);
+      pool.splice(idx, 1);
+      cursor += 2;
+    }
+    const steps: DailyTrailStep[] = [
+      { slug, name: pathName, hint: (pathDescription ?? pathHint ?? null) },
+      ...drawn.map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        hint: c.hint,
+      })),
+    ];
+    return {
+      mode,
+      twist: { mode: "trail", ordered: true, steps },
     };
   }
 
@@ -257,24 +334,32 @@ export async function getOrCreateTodaySeed(): Promise<DailyChallenge | null> {
     const slug = await pickPathFor(day);
     if (!slug) return null;
 
-    // Look up the catalog row up front so we have description/hint
-    // when generating the twist. Falls back gracefully on null.
-    const catalog = await db
+    // Look up the full escalation catalog up front. The picked path's
+    // own row gives description/hint for riddle mode; the rest of the
+    // pool is what trail mode draws additional steps from. One query
+    // either way — `slug` keys into the same result set.
+    const catalogRows = await db
       .select({
+        slug: kothPaths.slug,
         name: kothPaths.name,
         description: kothPaths.description,
         hint: kothPaths.hint,
       })
       .from(kothPaths)
-      .where(eq(kothPaths.slug, slug))
-      .limit(1);
-    const cat = catalog[0] ?? null;
+      .where(eq(kothPaths.kind, "escalation"))
+      .orderBy(kothPaths.slug);
+    const cat = catalogRows.find((c) => c.slug === slug) ?? null;
     const { mode: twistMode, twist } = generateTwist(
       day,
       slug,
       cat?.name ?? null,
       cat?.description ?? null,
       cat?.hint ?? null,
+      catalogRows.map((c) => ({
+        slug: c.slug,
+        name: c.name,
+        hint: c.hint,
+      })),
     );
 
     // Race-safe insert: another request might be doing the same right
@@ -467,18 +552,110 @@ export async function finishDailyAttempt(
     return { verified: false, reason: "no_user" };
   }
 
-  // Resolve today's seed slug — verification keys off this. If the
-  // seed row is gone (catalog tear-down), we can't verify so we punt.
+  // Resolve today's seed — verification keys off this. If the seed
+  // row is gone (catalog tear-down), we can't verify so we punt.
   const seedRow = await db
-    .select({ pathSlug: kothDailySeeds.pathSlug })
+    .select({
+      pathSlug: kothDailySeeds.pathSlug,
+      twistMode: kothDailySeeds.twistMode,
+      twist: kothDailySeeds.twist,
+    })
     .from(kothDailySeeds)
     .where(eq(kothDailySeeds.dayUtc, a.dayUtc))
     .limit(1);
   if (seedRow.length === 0) {
     return { verified: false, reason: "no_seed" };
   }
-  const requiredSlug = seedRow[0].pathSlug;
+  const seed = seedRow[0];
 
+  // Trail mode (Phase 2) — must complete every step in order. We
+  // poll for crown_taken events for step 0..N-1; "current step" is
+  // the first step not yet in steps_completed. Each step that lands
+  // gets persisted incrementally so partial progress survives a
+  // page reload. Attempt completes only when ALL steps are done.
+  if (seed.twistMode === "trail") {
+    const twist = seed.twist as DailyTwist;
+    if (!twist || twist.mode !== "trail") {
+      return { verified: false, reason: "no_seed" };
+    }
+    const completedSoFar = Array.isArray(a.stepsCompleted)
+      ? (a.stepsCompleted as string[])
+      : [];
+    const completedSet = new Set(completedSoFar);
+    const newlyCompleted: string[] = [];
+    let lastEventId: number | null = a.linkedEventId;
+    let lastEventAt: Date | null = null;
+
+    for (const step of twist.steps) {
+      if (completedSet.has(step.slug)) continue;
+      // Ordered chain: stop scanning at first unmet step. Step N
+      // can't be credited if step N-1 isn't done yet.
+      const stepEvt = await db
+        .select({ id: kothEvents.id, occurredAt: kothEvents.occurredAt })
+        .from(kothEvents)
+        .where(
+          and(
+            eq(kothEvents.actorUserId, a.userId),
+            eq(kothEvents.kind, "crown_taken"),
+            eq(kothEvents.exploitPath, step.slug),
+            gt(kothEvents.occurredAt, a.startedAt),
+          ),
+        )
+        .orderBy(kothEvents.occurredAt)
+        .limit(1);
+      if (stepEvt.length === 0) {
+        break;
+      }
+      newlyCompleted.push(step.slug);
+      completedSet.add(step.slug);
+      lastEventId = stepEvt[0].id;
+      lastEventAt = stepEvt[0].occurredAt;
+    }
+
+    const allDone =
+      twist.steps.every((s) => completedSet.has(s.slug)) &&
+      twist.steps.length > 0;
+
+    if (newlyCompleted.length > 0 && !allDone) {
+      // Partial progress — persist steps_completed but leave the
+      // attempt unfinished so the player keeps the running clock.
+      await db
+        .update(kothDailyAttempts)
+        .set({ stepsCompleted: [...completedSet] })
+        .where(eq(kothDailyAttempts.id, attemptId));
+      return { verified: false, reason: "not_crowned_yet" };
+    }
+
+    if (allDone && lastEventAt) {
+      const finishedAt = lastEventAt;
+      const elapsedSec = Math.max(
+        0,
+        Math.round((finishedAt.getTime() - a.startedAt.getTime()) / 1000),
+      );
+      await db
+        .update(kothDailyAttempts)
+        .set({
+          finishedAt,
+          elapsedSec,
+          tookCrown: true,
+          linkedEventId: lastEventId,
+          stepsCompleted: [...completedSet],
+        })
+        .where(eq(kothDailyAttempts.id, attemptId));
+      return {
+        verified: true,
+        elapsedSec,
+        tookCrown: true,
+        linkedEventId: lastEventId ?? 0,
+      };
+    }
+
+    return { verified: false, reason: "not_crowned_yet" };
+  }
+
+  // Single-primitive mode (plain / encoded / riddle) — verify one
+  // crown_taken event for the seed's path_slug.
+  const requiredSlug = seed.pathSlug;
   const evt = await db
     .select({ id: kothEvents.id, occurredAt: kothEvents.occurredAt })
     .from(kothEvents)
