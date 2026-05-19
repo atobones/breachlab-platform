@@ -173,24 +173,12 @@ export default async function ReplayDetailPage({
         </section>
       )}
 
-      {/* Share + race CTAs — three real buttons, all same height/
-          padding, uppercase tracking. RACE is filled (primary), the
-          others are bordered hollow (secondary). */}
+      {/* Share CTA. Race-this-ghost and download-cast removed — the
+          page is a transcript now (not a playable video), and the raw
+          .cast file is internal data we shouldn't be handing out
+          (would expose un-redacted infrastructure paths). */}
       <section className="border-t border-border/40 pt-4 flex flex-wrap items-center gap-2 text-[12px] font-mono">
-        <Link
-          href={`/battles/koth/race/${replay.id}`}
-          className="border border-amber bg-amber/10 text-amber hover:bg-amber/20 px-3 py-2 transition-colors uppercase tracking-wider font-semibold"
-        >
-          ▸ race this ghost
-        </Link>
         <CopyLinkButton path={`/battles/koth/replay/${replay.id}`} />
-        <a
-          href={`/api/koth/replay/${replay.id}/raw`}
-          download={`koth-replay-${replay.id}.cast`}
-          className="border border-amber/60 text-amber hover:bg-amber/10 px-3 py-2 transition-colors uppercase tracking-wider"
-        >
-          ↓ download .cast
-        </a>
       </section>
     </article>
   );
