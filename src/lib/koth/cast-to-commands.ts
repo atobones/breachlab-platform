@@ -38,10 +38,12 @@ const ANSI_OSC = /\x1b\][^\x07\x1b]*(?:\x07|\x1b\\)/g;
 const ANSI_OTHER = /\x1b[NOP\\]/g;
 const BRACKETED_PASTE = /\x1b\[\?\d+[hl]/g;
 
-// Match a bash-style prompt anywhere in the buffer. The user/host/cwd
-// part is optional so the regex also catches just `$ ` if a previous
-// chunk only emitted the symbol. `g` so we can iterate every match.
-const PROMPT_RE = /(?:[\w.+-]+@[\w.+-]+:[^\s$#]*)?([$#])\s/g;
+// Match a bash-style prompt anywhere in the buffer. The user@host:cwd
+// portion is REQUIRED — without it a bare `# ` in file content (e.g.
+// the first line of a leaked shell script) gets mis-parsed as a root
+// prompt and the next "command" is just the script's text. We rely on
+// the recording wrapper always rendering the full PS1.
+const PROMPT_RE = /[\w.+-]+@[\w.+-]+:[^\s$#]*([$#])\s/g;
 
 function stripAnsi(s: string): string {
   return s

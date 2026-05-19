@@ -1,4 +1,5 @@
 import { castToCommandLog, formatCastTime } from "@/lib/koth/cast-to-commands";
+import { redactCommandLog } from "@/lib/koth/cast-redact";
 
 // Server-rendered transcript view of an asciinema cast. Replaces the
 // asciinema-player widget on /battles/koth/replay/[id] — Boss's call:
@@ -21,7 +22,10 @@ type Props = {
 const OUTPUT_PREVIEW_LINES = 6;
 
 export function ReplayTranscript({ cast, who }: Props) {
-  const entries = castToCommandLog(cast);
+  // Redact arena-internal paths from output + cap long dumps before
+  // we hand entries to the renderer. The parser stays neutral; the
+  // publication step is what enforces "no spoilers, no internals".
+  const entries = redactCommandLog(castToCommandLog(cast));
 
   if (entries.length === 0) {
     return (
