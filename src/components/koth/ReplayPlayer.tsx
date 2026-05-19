@@ -42,10 +42,12 @@ export function ReplayPlayer({
     (async () => {
       const mod = await import("asciinema-player");
       if (disposed || !containerRef.current) return;
+      // Strip a possible UTF-8 BOM — sometimes appears at the head of
+      // casts produced by environments that helpfully add one. The
+      // player's JSONL parser bails on the header line if it does.
+      const castText = cast.charCodeAt(0) === 0xfeff ? cast.slice(1) : cast;
       const player = mod.create(
-        // The library accepts a "source" object — `data` for inline
-        // text content (instead of a URL fetched at runtime).
-        { data: cast },
+        { data: castText },
         containerRef.current,
         {
           autoPlay,
@@ -57,16 +59,12 @@ export function ReplayPlayer({
           // until clicked. fit:width still scales to container.
           fit: "width",
           terminalFontSize: "14px",
-          // Poster frame at 3 seconds — far enough past the recording
-          // start that the prompt and any opening commands have been
-          // drawn. At npt:0:1, sparse session_close casts (player
-          // connected, idled briefly, disconnected) render a black
-          // canvas because the shell hasn't drawn anything to the
-          // pty yet. 3s lands deep enough to show real content for
-          // even the quietest sessions, while still being a
-          // representative "first impression" frame.
-          poster: "npt:0:3",
+          // No `poster` — sparse session casts rendered a black
+          // poster frame and the player stayed parked there showing
+          // `--:--` even with autoPlay set. Letting the player draw
+          // events from t=0 fixes the black-canvas symptom.
           title,
+          logger: console,
         },
       );
       playerRef.current = player;
