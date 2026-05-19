@@ -16,7 +16,6 @@ export const dynamic = "force-dynamic"; // always fresh — replays are appenden
 
 type Search = {
   slot?: string;
-  kind?: "session_close" | "crown_moment" | "ambient";
   path?: string;
 };
 
@@ -26,9 +25,11 @@ export default async function ReplaysLibraryPage({
   searchParams: Promise<Search>;
 }) {
   const sp = await searchParams;
+  // Only crown_moment replays are surfaced publicly — the listReplays
+  // boundary enforces this. session_close and ambient stay in the DB
+  // for anti-cheat / forensic use only.
   const replays = await listReplays({
     slot: sp.slot,
-    kind: sp.kind,
     exploitPath: sp.path,
     limit: 60,
   });
@@ -38,50 +39,34 @@ export default async function ReplaysLibraryPage({
     <article className="space-y-6 max-w-5xl">
       <header className="space-y-2">
         <div className="text-[10px] text-amber/80 tracking-[0.4em] uppercase font-mono">
-          ▸ crown wars / archive
+          ▸ crown wars / archive · crown moments only
         </div>
         <h1 className="text-amber text-2xl sm:text-3xl phosphor wordmark font-bold tracking-[0.08em]">
           REPLAYS
         </h1>
+        <p className="text-[12px] text-muted font-mono leading-snug">
+          Every kill that took the crown — step-by-step. Browse to learn
+          how operators chained primitives, dodged the Guard, and held
+          the throne. Sessions that didn&apos;t end in a crown aren&apos;t
+          published.
+        </p>
       </header>
 
-      <section className="border border-border/40 p-3 text-[11px] font-mono">
-        <div className="flex flex-wrap items-center gap-3 text-muted">
-          <span className="text-amber/80 uppercase tracking-wider">
-            ▸ filters
-          </span>
-          <FilterChip
-            label="all"
-            href="/battles/koth/replays"
-            active={!sp.kind && !sp.slot && !sp.path}
-          />
-          <FilterChip
-            label="👑 crown moments"
-            href="/battles/koth/replays?kind=crown_moment"
-            active={sp.kind === "crown_moment"}
-          />
-          <FilterChip
-            label="▸ session closes"
-            href="/battles/koth/replays?kind=session_close"
-            active={sp.kind === "session_close"}
-          />
-          <FilterChip
-            label="· ambient"
-            href="/battles/koth/replays?kind=ambient"
-            active={sp.kind === "ambient"}
-          />
-          <span className="ml-auto text-[10px] text-muted/70">
-            showing {replays.length} of {total}
-          </span>
-        </div>
+      <section className="border border-border/40 px-3 py-2 text-[11px] font-mono text-muted flex items-center justify-between">
+        <span className="uppercase tracking-wider text-amber/80">
+          👑 crown moments
+        </span>
+        <span className="text-[10px] text-muted/70">
+          showing {replays.length} of {total}
+        </span>
       </section>
 
       {replays.length === 0 ? (
         <div className="border border-border/40 p-8 text-center text-muted font-mono text-sm">
           <div className="text-amber/60 text-base mb-2">▸ empty archive</div>
           <p>
-            No replays match these filters. When KoTH sessions happen,
-            their casts land here automatically.
+            No crown moments yet. When someone takes the throne, their
+            transcript lands here automatically.
           </p>
         </div>
       ) : (
@@ -101,27 +86,5 @@ export default async function ReplaysLibraryPage({
         </a>
       </footer>
     </article>
-  );
-}
-
-function FilterChip({
-  label,
-  href,
-  active,
-}: {
-  label: string;
-  href: string;
-  active: boolean;
-}) {
-  const cls = active
-    ? "border-amber bg-amber/10 text-amber font-semibold"
-    : "border-amber/60 text-amber/70 hover:bg-amber/10 hover:text-amber";
-  return (
-    <a
-      href={href}
-      className={`inline-block border px-3 py-1.5 ${cls} transition-colors uppercase tracking-wider text-[11px]`}
-    >
-      {label}
-    </a>
   );
 }

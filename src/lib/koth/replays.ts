@@ -41,7 +41,13 @@ export async function listReplays(
   const limit = Math.min(Math.max(q.limit ?? 50, 1), 200);
   const conds = [];
   if (q.slot) conds.push(eq(kothReplays.actorSlot, q.slot));
-  if (q.kind) conds.push(eq(kothReplays.kind, q.kind));
+  // Public archive only surfaces crown_moment recordings — session_close
+  // and ambient casts leak too much arena infrastructure (decoy paths,
+  // drift script, recording wrapper, etc.) when a player's enumeration
+  // commands traverse our managed binaries. They stay in the DB for
+  // anti-cheat / forensic use; just not displayed. `q.kind` is ignored
+  // and forced to crown_moment.
+  conds.push(eq(kothReplays.kind, "crown_moment"));
   if (q.cursor) conds.push(sql`${kothReplays.uploadedAt} < ${q.cursor}`);
 
   // Best-effort JOIN to koth_events for the exploit_path. Replays don't
@@ -103,7 +109,9 @@ export async function getReplayById(id: string): Promise<ReplayDetail | null> {
     .leftJoin(users, eq(users.id, kothReplays.userId))
     .leftJoin(kothEvents, eq(kothEvents.id, kothReplays.linkedEventId))
     .leftJoin(kothRounds, eq(kothRounds.id, kothReplays.roundId))
-    .where(eq(kothReplays.id, id))
+    .where(
+      and(eq(kothReplays.id, id), eq(kothReplays.kind, "crown_moment")),
+    )
     .limit(1);
   if (rows.length === 0) return null;
   const row = rows[0] as ReplayDetail;
@@ -175,6 +183,7 @@ export async function getSiblingReplays(
     .where(
       and(
         eq(kothReplays.roundId, replay.roundId),
+        eq(kothReplays.kind, "crown_moment"),
         gte(kothReplays.recordedAt, start),
         sql`${kothReplays.id} <> ${replay.id}`,
       ),
@@ -205,8 +214,11 @@ export async function getReplayByEventId(
 }
 
 export async function countReplays(): Promise<number> {
+  // Same scope as listReplays — count only crown_moment, since that's
+  // what the archive surfaces.
   const r = await db
     .select({ n: sql<number>`count(*)::int` })
-    .from(kothReplays);
+    .from(kothReplays)
+    .where(eq(kothReplays.kind, "crown_moment"));
   return r[0]?.n ?? 0;
 }
