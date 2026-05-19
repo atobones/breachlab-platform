@@ -30,6 +30,11 @@ export type DailyAttemptSnapshot = {
   tookCrown: boolean;
   selfReported: boolean;
   linkedEventId: number | null;
+  // Trail mode (Phase 2) per-attempt step progress. Array of slugs
+  // the user has already completed in this trail. Empty for non-trail
+  // attempts. Surfaced in the UI as a checklist with sequential
+  // hint reveals.
+  stepsCompleted: string[];
 };
 
 type Props = {
@@ -144,6 +149,10 @@ export function DailyClient({
 
   const [phase] = useState<Phase>(initialPhase);
   const attemptId = initialAttempt?.id ?? null;
+  // Trail mode (Phase 2) — server-rendered step progress. Updated
+  // on every page reload via the finishDailyAction form submit, so
+  // we don't need a client poll for this.
+  const trailStepsCompleted = initialAttempt?.stepsCompleted ?? [];
   const startedAt = initialStartMs;
   const [elapsedMs, setElapsedMs] = useState(
     initialStartMs ? Date.now() - initialStartMs : 0,
@@ -221,6 +230,7 @@ export function DailyClient({
             hintRevealed={hintRevealed}
             onReveal={() => setHintRevealed(true)}
             showHintButton
+            trailStepsCompleted={trailStepsCompleted}
           />
           {/* Personal best is the headline metric when a player has one
               set; the bare existence of a PB is the motivator. Tier
@@ -308,6 +318,7 @@ export function DailyClient({
                 ? Math.max(0, revealAfter - sinceStartSec)
                 : null
             }
+            trailStepsCompleted={trailStepsCompleted}
           />
           {checkNotYet && (
             <p className="text-[12px] text-red-400">
@@ -409,6 +420,7 @@ function TwistCard({
   showHintButton,
   autoHintAt,
   autoHintRemainingSec,
+  trailStepsCompleted,
 }: {
   twistMode: DailyTwistMode;
   twist: DailyTwist;
@@ -419,13 +431,19 @@ function TwistCard({
   showHintButton?: boolean;
   autoHintAt?: number | null;
   autoHintRemainingSec?: number | null;
+  // Trail mode (Phase 2) — set of slugs the player has already
+  // completed in this trail. Drives the checklist + sequential hint
+  // reveal. Ignored for non-trail modes.
+  trailStepsCompleted?: string[];
 }) {
   const label =
     twistMode === "riddle"
       ? "▸ today's riddle"
       : twistMode === "encoded"
         ? "▸ today's puzzle"
-        : "▸ today's primitive";
+        : twistMode === "trail"
+          ? "▸ today's trail · 3-step chain"
+          : "▸ today's primitive";
 
   return (
     <div className="border border-amber/30 bg-bg/40 p-4">
@@ -490,7 +508,82 @@ function TwistCard({
         </>
       )}
 
-      {showHintButton && twistMode !== "plain" && !hintRevealed && (
+      {twistMode === "trail" && twist && twist.mode === "trail" && (
+        <div className="space-y-2">
+          <p className="text-[12px] text-muted leading-relaxed mb-3">
+            Three primitives, in order. Each crown unlocks the next step&apos;s
+            hint. Total elapsed counts as one daily attempt.
+          </p>
+          <ol className="space-y-2">
+            {twist.steps.map((step, idx) => {
+              const completedSet = new Set(trailStepsCompleted ?? []);
+              const done = completedSet.has(step.slug);
+              // Sequential reveal: step idx is "current" if all prior
+              // steps are done. Future steps stay locked.
+              const priorAllDone = twist.steps
+                .slice(0, idx)
+                .every((s) => completedSet.has(s.slug));
+              const isCurrent = !done && priorAllDone;
+              const isLocked = !done && !priorAllDone;
+              const stepNum = idx + 1;
+              return (
+                <li
+                  key={step.slug}
+                  className={
+                    "border px-3 py-2 flex items-baseline gap-3 " +
+                    (done
+                      ? "border-green/60 bg-green/[0.05]"
+                      : isCurrent
+                        ? "border-amber/60 bg-amber/[0.04]"
+                        : "border-border/40 bg-bg/40 opacity-60")
+                  }
+                >
+                  <span
+                    className={
+                      "text-[10px] tracking-widest uppercase shrink-0 " +
+                      (done
+                        ? "text-green/80"
+                        : isCurrent
+                          ? "text-amber/80"
+                          : "text-muted/60")
+                    }
+                  >
+                    {done ? "✓ step " + stepNum : isCurrent ? "▸ step " + stepNum : "🔒 step " + stepNum}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    {isLocked ? (
+                      <span className="text-muted/60 text-[12px] italic">
+                        unlocks after step {idx} lands
+                      </span>
+                    ) : (
+                      <>
+                        <div
+                          className={
+                            "text-[13px] " +
+                            (done ? "text-green" : "text-amber")
+                          }
+                        >
+                          {step.name ?? step.slug}
+                        </div>
+                        <code className="text-[10px] text-muted/70">
+                          {step.slug}
+                        </code>
+                        {step.hint && (isCurrent || done) && (
+                          <p className="text-[11px] text-muted mt-1 leading-snug">
+                            {step.hint}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
+        </div>
+      )}
+
+      {showHintButton && twistMode !== "plain" && twistMode !== "trail" && !hintRevealed && (
         <div className="mt-3 flex items-center gap-3">
           <button
             type="button"

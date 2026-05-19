@@ -92,6 +92,12 @@ export default async function DailyPage() {
         tookCrown: attemptRow.tookCrown,
         selfReported: attemptRow.selfReported,
         linkedEventId: attemptRow.linkedEventId,
+        // Trail mode (Phase 2) — jsonb column stores an array of slug
+        // strings. Coerce defensively in case the row is from before
+        // migration 0034 (would be NULL even with default '[]').
+        stepsCompleted: Array.isArray(attemptRow.stepsCompleted)
+          ? (attemptRow.stepsCompleted as string[])
+          : [],
       }
     : null;
 
