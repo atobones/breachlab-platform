@@ -419,12 +419,6 @@ export default async function KothPage({
           </span>
         </Link>
         <Link
-          href="/battles/koth/replays"
-          className="border border-amber/40 hover:border-amber hover:bg-amber/[0.06] transition-colors px-3 py-1.5 text-amber/90 tracking-[0.18em] uppercase"
-        >
-          ▸ replays &amp; race
-        </Link>
-        <Link
           href="/battles/koth/rules"
           className="ml-auto border border-muted/40 hover:border-amber hover:text-amber transition-colors px-3 py-1.5 text-muted tracking-[0.18em] uppercase"
         >

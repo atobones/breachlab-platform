@@ -50,7 +50,6 @@ type Props = {
   // Drives the "▸ watch your run" + "▸ race your past self" CTAs
   // on the finish screen (#76). null when no replay is available
   // (e.g., attempt not yet verified or uploader missed it).
-  replayForFinish: { id: string; durationSec: number | null } | null;
 };
 
 // Tier-cutoff bands (#75) — shown on the ready screen so players
@@ -119,7 +118,6 @@ export function DailyClient({
   twistMode,
   twist,
   personalBest,
-  replayForFinish,
 }: Props) {
   // Boot phase from the server-rendered attempt snapshot. The "ready"
   // phase is for "no attempt logged yet today"; "racing" is for "we
@@ -368,32 +366,6 @@ export function DailyClient({
               </div>
             )}
           </div>
-          {result.tookCrown && replayForFinish && (
-            <div className="border border-amber/30 bg-amber/[0.04] p-3 space-y-2">
-              <div className="text-[10px] text-amber/80 uppercase tracking-widest">
-                ▸ your crown moment was recorded
-              </div>
-              <div className="flex flex-wrap items-center gap-2 text-[12px]">
-                <a
-                  href={`/battles/koth/replay/${replayForFinish.id}`}
-                  className="border border-amber/60 text-amber hover:bg-amber/10 px-3 py-1.5 uppercase tracking-wider text-[12px] transition-colors"
-                >
-                  ▸ watch replay
-                </a>
-                <a
-                  href={`/battles/koth/race/${replayForFinish.id}`}
-                  className="border border-green/60 text-green hover:bg-green/10 px-3 py-1.5 uppercase tracking-wider text-[12px] transition-colors"
-                >
-                  ▸ race your past self
-                </a>
-                {replayForFinish.durationSec != null && (
-                  <span className="text-muted text-[10px]">
-                    ghost length: {fmt(replayForFinish.durationSec)}
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
           {result.tookCrown && (
             <div className="border border-border/40 p-3">
               <div className="text-[10px] text-amber/80 uppercase tracking-widest mb-2">

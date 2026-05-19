@@ -12,7 +12,6 @@ import {
   todayUtcString,
 } from "@/lib/koth/daily";
 import { getCurrentSession } from "@/lib/auth/session";
-import { getReplayByEventId } from "@/lib/koth/replays";
 import {
   DailyClient,
   type DailyAttemptSnapshot,
@@ -82,14 +81,6 @@ export default async function DailyPage() {
         : attemptRow;
     }
   }
-  // If the attempt is verified+linked to an event, see if the
-  // arena uploaded a replay for that exact crown moment. That gives
-  // us the "▸ race your past self" CTA on the finish screen (#76).
-  const replayForFinish =
-    attemptRow && attemptRow.tookCrown && attemptRow.linkedEventId
-      ? await getReplayByEventId(attemptRow.linkedEventId)
-      : null;
-
   const initialAttempt: DailyAttemptSnapshot | null = attemptRow
     ? {
         id: attemptRow.id,
@@ -147,14 +138,6 @@ export default async function DailyPage() {
                 ? {
                     elapsedSec: personalBest.elapsedSec,
                     dayUtc: personalBest.dayUtc,
-                  }
-                : null
-            }
-            replayForFinish={
-              replayForFinish
-                ? {
-                    id: replayForFinish.id,
-                    durationSec: replayForFinish.durationSec,
                   }
                 : null
             }

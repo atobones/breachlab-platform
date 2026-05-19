@@ -1,0 +1,12 @@
+[Unit]
+Description=Run BreachLab invariant checker every 15 minutes
+Documentation=man:systemd.timer(5)
+
+[Timer]
+OnBootSec=5min
+OnUnitActiveSec=15min
+AccuracySec=30s
+Unit=breachlab-invariants.service
+
+[Install]
+WantedBy=timers.target

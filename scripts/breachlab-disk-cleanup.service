@@ -1,0 +1,10 @@
+[Unit]
+Description=BreachLab safe Docker storage reclaim (images + build cache)
+Wants=network-online.target
+After=docker.service network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/breachlab-disk-cleanup.sh
+StandardOutput=append:/var/log/breachlab-disk-cleanup.log
+StandardError=append:/var/log/breachlab-disk-cleanup.log

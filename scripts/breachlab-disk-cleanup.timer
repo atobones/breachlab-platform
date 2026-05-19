@@ -1,0 +1,13 @@
+[Unit]
+Description=BreachLab safe disk cleanup, every 6 hours
+
+[Timer]
+# Fire 5 minutes after boot, then every 6 hours. Persistent=true means
+# if the host was off when a fire was due, run it on next boot.
+OnBootSec=5min
+OnUnitActiveSec=6h
+Persistent=true
+Unit=breachlab-disk-cleanup.service
+
+[Install]
+WantedBy=timers.target

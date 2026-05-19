@@ -548,76 +548,9 @@ export const kothHonors = pgTable(
   ],
 );
 
-export const kothReplays = pgTable(
-  "koth_replays",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    roundId: uuid("round_id")
-      .notNull()
-      .references(() => kothRounds.id, { onDelete: "cascade" }),
-    userId: uuid("user_id").references(() => users.id, {
-      onDelete: "set null",
-    }),
-    // "koth0".."koth9"
-    actorSlot: text("actor_slot").notNull(),
-    // session_close | crown_moment | ambient
-    kind: text("kind").notNull(),
-    durationSec: integer("duration_sec"),
-    // asciinema v2 cast — header object + jsonl events as a single blob
-    asciicast: text("asciicast").notNull(),
-    // octet_length(asciicast); cheap to read in lists without pulling the blob
-    byteSize: integer("byte_size").notNull(),
-    // FK back to the crown_taken event that triggered the upload, when applicable
-    linkedEventId: bigint("linked_event_id", { mode: "number" }).references(
-      () => kothEvents.id,
-      { onDelete: "set null" },
-    ),
-    recordedAt: timestamp("recorded_at", { withTimezone: true }).notNull(),
-    uploadedAt: timestamp("uploaded_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    // sha256 of the asciicast text — idempotent uploads, UNIQUE in DB
-    sha256: text("sha256").notNull().unique(),
-  },
-  (t) => [
-    index("koth_replays_round_recent").on(t.roundId, t.recordedAt.desc()),
-    index("koth_replays_user_recent").on(t.userId, t.recordedAt.desc()),
-    index("koth_replays_kind").on(t.kind, t.uploadedAt.desc()),
-  ],
-);
-
-export const kothRaceAttempts = pgTable(
-  "koth_race_attempts",
-  {
-    id: uuid("id").defaultRandom().primaryKey(),
-    replayId: uuid("replay_id")
-      .notNull()
-      .references(() => kothReplays.id, { onDelete: "cascade" }),
-    userId: uuid("user_id").references(() => users.id, {
-      onDelete: "set null",
-    }),
-    startedAt: timestamp("started_at", { withTimezone: true })
-      .notNull()
-      .defaultNow(),
-    finishedAt: timestamp("finished_at", { withTimezone: true }),
-    // finishedAt - startedAt, computed at finish; nullable until done
-    elapsedSec: integer("elapsed_sec"),
-    tookCrown: boolean("took_crown").notNull().default(false),
-    // true when no user_id link (anonymous SSH session)
-    selfReported: boolean("self_reported").notNull().default(false),
-    linkedEventId: bigint("linked_event_id", { mode: "number" }).references(
-      () => kothEvents.id,
-      { onDelete: "set null" },
-    ),
-  },
-  (t) => [
-    index("koth_race_attempts_replay_recent").on(
-      t.replayId,
-      t.elapsedSec.asc(),
-    ),
-    index("koth_race_attempts_user_recent").on(t.userId, t.startedAt.desc()),
-  ],
-);
+// Ghost Replay tables (koth_replays + koth_race_attempts) removed —
+// the feature was retired in PR #335 along with the asciinema recording
+// pipeline. See migration 0033_drop_koth_replays.sql.
 
 export const kothDailySeeds = pgTable("koth_daily_seeds", {
   // Use text for the date primary key — drizzle's date type with mode:
@@ -678,8 +611,6 @@ export type KothSshKey = typeof kothSshKeys.$inferSelect;
 export type KothPath = typeof kothPaths.$inferSelect;
 export type KothPathEvent = typeof kothPathEvents.$inferSelect;
 export type KothHonor = typeof kothHonors.$inferSelect;
-export type KothReplay = typeof kothReplays.$inferSelect;
-export type KothRaceAttempt = typeof kothRaceAttempts.$inferSelect;
 export type KothDailySeed = typeof kothDailySeeds.$inferSelect;
 export type KothDailyAttempt = typeof kothDailyAttempts.$inferSelect;
 

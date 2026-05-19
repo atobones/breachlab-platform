@@ -1,0 +1,15 @@
+[Unit]
+Description=Run BreachLab ephemeral reaper every 5 minutes
+Documentation=man:systemd.timer(5)
+
+[Timer]
+# Fire 2 minutes after boot, then every 5 minutes thereafter.
+# OnUnitActiveSec measures from the previous run completing, so a
+# stuck reaper won't get stacked re-runs.
+OnBootSec=2min
+OnUnitActiveSec=5min
+AccuracySec=15s
+Unit=breachlab-reaper.service
+
+[Install]
+WantedBy=timers.target
