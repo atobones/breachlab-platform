@@ -98,6 +98,31 @@ const PICKER: SchemePicker = {
       "net-watchdog",
       "syslog-tail",
     ],
+    // Phase D — exploit signature drift.
+    // phantom-python3 accepts ONE exploit vector per round:
+    //   pythonstartup → PYTHONSTARTUP env (needs `-i`)
+    //   pythonpath    → PYTHONPATH env + sitecustomize.py
+    //   argv-c        → `-c "<code>"` argv injection
+    // The wrapper enforces this by stripping unsafe argv flags
+    // (-c, -m, positional script) in the env-based signatures, and
+    // stripping all PYTHON* env vars in the argv-c signature.
+    // Players who guess wrong get python3 with no exploit surface —
+    // their payload silently doesn't trigger.
+    "phantom-python3-signature": [
+      "pythonstartup",
+      "pythonpath",
+      "argv-c",
+    ],
+    // system-checker accepts ONE shell metachar per round. argv[1] is
+    // scanned; if it contains any non-active metachar from the banned
+    // set, the binary refuses with "input rejected". Player must use
+    // the active separator.
+    "system-checker-signature": [
+      "semicolon",
+      "pipe",
+      "backtick",
+      "dollar-paren",
+    ],
   },
 };
 
@@ -107,11 +132,20 @@ function pickFor(roundId: string): {
   scheme: Record<string, string>;
   label: string;
 } {
+  // sha256 = 32 bytes; we can carry up to 8 pools at 4 bytes each
+  // without overlapping. Pool order is locked in and the arena's
+  // drift-arena.sh mirrors this byte-for-byte — if you add a pool,
+  // both sides must land together. Adding a pool past index 7 would
+  // need a different keying scheme (e.g., domain-separated sha256
+  // per pool name) — do that, don't wrap the offset.
   const hash = createHash("sha256").update(`koth-mutation:${roundId}`).digest();
   const scheme: Record<string, string> = {};
   let cursor = 0;
   for (const [canonical, pool] of Object.entries(PICKER.pools)) {
-    const idx = hash.readUInt32BE(cursor % 28) % pool.length;
+    if (cursor + 4 > hash.length) {
+      throw new Error("koth/mutations: too many pools for 32-byte digest");
+    }
+    const idx = hash.readUInt32BE(cursor) % pool.length;
     scheme[canonical] = pool[idx];
     cursor += 4;
   }

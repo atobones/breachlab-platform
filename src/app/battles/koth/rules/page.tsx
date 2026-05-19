@@ -174,6 +174,19 @@ export default function KothRulesPage() {
           reads — naive attackers get burned. Smart players{" "}
           <code>strings</code> a binary before exploiting it.
         </p>
+        <p className="pt-2">
+          The <strong>exploit signature</strong> drifts too. The python
+          wrapper opens exactly one vector per round —{" "}
+          <code>PYTHONSTARTUP</code> + <code>-i</code>,{" "}
+          <code>PYTHONPATH</code> + <code>sitecustomize.py</code>, or{" "}
+          <code>-c</code> argv injection — the other two get stripped
+          silently. <code>system-checker</code> accepts one shell
+          metachar per round (<code>;</code>, <code>|</code>,{" "}
+          <code>`</code>, or <code>$()</code>); the others are rejected
+          with <code>input rejected</code>. Active signatures are listed
+          in <code>/etc/breachlab-drift</code>. Read it once per round,
+          then craft.
+        </p>
       </RuleSection>
 
       <RuleSection title="Live audit feed">
@@ -270,6 +283,7 @@ export default function KothRulesPage() {
         <KV
           rows={[
             ["crown-claim <slot> <slug>", "claim throne (run as root)"],
+            ["cat /etc/breachlab-drift", "this round's alias, dir, signature"],
             ["find / -perm -4000", "enumerate SUID binaries (drift)"],
             ["stat /root/.crown", "current king (owner field)"],
             ["cat /var/log/auth.log", "watch other ops"],
